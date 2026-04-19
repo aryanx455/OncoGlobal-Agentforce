@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ValidationRule xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>VR_010_CategoryRequired</fullName>
+    <active>true</active>
+    <description>VR-010: Expense Category is required at save. Uncategorised expenses cannot be processed by Finance.</description>
+    <errorConditionFormula>ISBLANK(TEXT(Category__c))</errorConditionFormula>
+    <errorDisplayField>Category__c</errorDisplayField>
+    <errorMessage>Expense category is required. Please select a category before saving.</errorMessage>
+</ValidationRule>

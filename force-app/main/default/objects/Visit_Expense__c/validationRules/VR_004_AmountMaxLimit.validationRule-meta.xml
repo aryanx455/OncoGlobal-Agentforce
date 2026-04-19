@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ValidationRule xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>VR_004_AmountMaxLimit</fullName>
+    <active>true</active>
+    <description>VR-004: Expense amount cannot exceed 99,999. Amounts above this threshold must be submitted via a separate Finance process.</description>
+    <errorConditionFormula>Amount__c &gt; 99999</errorConditionFormula>
+    <errorDisplayField>Amount__c</errorDisplayField>
+    <errorMessage>Expense amount cannot exceed 99,999. Please contact Finance directly for larger amounts.</errorMessage>
+</ValidationRule>

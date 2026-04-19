@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Total_Visit_Expense__c</fullName>
+    <description>Roll-up sum of all child Visit Expense records linked to this Visit Report. Auto-calculated by Salesforce master-detail rollup (FR-EXP-004).</description>
+    <inlineHelpText>Total of all expenses logged for this visit. Read-only — updated automatically.</inlineHelpText>
+    <label>Total Visit Expense</label>
+    <summarizedField>Visit_Expense__c.Amount__c</summarizedField>
+    <summaryForeignKey>Visit_Expense__c.Visit_Report__c</summaryForeignKey>
+    <summaryOperation>SUM</summaryOperation>
+    <type>Summary</type>
+</CustomField>

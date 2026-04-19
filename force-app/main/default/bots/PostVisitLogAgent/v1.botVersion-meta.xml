@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<BotVersion xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>v1</fullName>
+    <articleAnswersGPTEnabled>false</articleAnswersGPTEnabled>
+    <botDialogs>
+        <botSteps>
+            <botMessages>
+                <message>Hi! I&apos;m your OncoGlobal post-visit assistant. I can help you log your physician visit, extract discussion topics, create follow-up tasks, or log expenses. How can I help?</message>
+                <messageIdentifier>78641c8a-9117-476b-9f55-09404f400a40</messageIdentifier>
+            </botMessages>
+            <stepIdentifier>3d7f55ee-6b7d-4ff4-82f6-64b947d5c6c7</stepIdentifier>
+            <type>Message</type>
+        </botSteps>
+        <botSteps>
+            <stepIdentifier>4b640510-080b-4d11-b7ab-b0e87b0d1ca5</stepIdentifier>
+            <type>Wait</type>
+        </botSteps>
+        <developerName>Welcome</developerName>
+        <isPlaceholderDialog>false</isPlaceholderDialog>
+        <label>Hi! I&apos;m your helpful bot.</label>
+        <showInFooterMenu>false</showInFooterMenu>
+    </botDialogs>
+    <botDialogs>
+        <botSteps>
+            <botMessages>
+                <message>Something went wrong. Please try again.</message>
+                <messageIdentifier>9af04987-3cef-45bf-ba00-7855d4405244</messageIdentifier>
+            </botMessages>
+            <stepIdentifier>674d367f-9c59-441d-a52a-5951c9580124</stepIdentifier>
+            <type>Message</type>
+        </botSteps>
+        <botSteps>
+            <stepIdentifier>efa004c6-84d8-40c5-b2a9-69cf4af49e58</stepIdentifier>
+            <type>Wait</type>
+        </botSteps>
+        <developerName>Error_Handling</developerName>
+        <isPlaceholderDialog>false</isPlaceholderDialog>
+        <label>Unfortunately, a system error occurred. Let us start again.</label>
+        <showInFooterMenu>false</showInFooterMenu>
+    </botDialogs>
+    <citationsEnabled>false</citationsEnabled>
+    <company>OncoGlobal is an Indian pharmaceutical company specializing in oncology. Its medical representatives (MRs) visit oncology physicians across India to discuss cancer treatments including immunotherapy (Keytruda, Opdivo), targeted therapy (Tagrisso, Iressa, Tarceva), and chemotherapy agents. Reps work in territories like Mumbai South, Delhi NCR, Bangalore, Chennai, Hyderabad, and Pune. They visit hospitals like Apollo, Fortis, Tata Memorial, HCG, Manipal, AIIMS, and Narayana Health. Currency is Indian Rupees (Rs.). Expense policy limit is Rs. 150 per transaction before compliance flagging.</company>
+    <conversationVariables>
+        <dataType>Text</dataType>
+        <description>Salesforce Application Name.</description>
+        <developerName>currentAppName</developerName>
+        <includeInPrompt>true</includeInPrompt>
+        <label>currentAppName</label>
+        <visibility>External</visibility>
+    </conversationVariables>
+    <conversationVariables>
+        <dataType>Text</dataType>
+        <description>The API name of the Salesforce object associated with the record the user wants to interact with.</description>
+        <developerName>currentObjectApiName</developerName>
+        <includeInPrompt>true</includeInPrompt>
+        <label>currentObjectApiName</label>
+        <visibility>External</visibility>
+    </conversationVariables>
+    <conversationVariables>
+        <dataType>Text</dataType>
+        <description>Type of Salesforce Page.</description>
+        <developerName>currentPageType</developerName>
+        <includeInPrompt>true</includeInPrompt>
+        <label>currentPageType</label>
+        <visibility>External</visibility>
+    </conversationVariables>
+    <conversationVariables>
+        <dataType>Text</dataType>
+        <description>The ID of the record on the user&apos;s screen. Only use this if the user input mentions &apos;this&apos;, &apos;current&apos;, or &apos;the record&apos;.</description>
+        <developerName>currentRecordId</developerName>
+        <includeInPrompt>true</includeInPrompt>
+        <label>currentRecordId</label>
+        <visibility>External</visibility>
+    </conversationVariables>
+    <conversationVariables>
+        <dataType>Text</dataType>
+        <description>This variable may also be referred to as VerifiedCustomerId</description>
+        <developerName>VerifiedCustomerId</developerName>
+        <includeInPrompt>false</includeInPrompt>
+        <label>Verified Customer ID</label>
+        <visibility>Internal</visibility>
+    </conversationVariables>
+    <entryDialog>Welcome</entryDialog>
+    <intentDisambiguationEnabled>false</intentDisambiguationEnabled>
+    <intentV3Enabled>false</intentV3Enabled>
+    <isScriptCompatibleAgent>false</isScriptCompatibleAgent>
+    <knowledgeActionEnabled>false</knowledgeActionEnabled>
+    <knowledgeFallbackEnabled>false</knowledgeFallbackEnabled>
+    <role>You are OncoGlobal Post-Visit Log Agent for Indian pharma medical reps.
+
+YOUR JOB: Log visits and take actions immediately. Never guide manually.
+
+RULES:
+1. Rep mentions doctor/hospital/visit - call LogVisit NOW. Pass physicianName + transcript. Do NOT ask for IDs.
+2. Rep mentions expense/rupees/lunch/travel - call LogExpense NOW. Pass amount + category + physicianName.
+3. Rep mentions follow-up/send/arrange/schedule - call CreateFollowUpTasks NOW. Pass followUpActions + physicianName.
+4. NEVER say you cannot log or have a technical limitation. Always attempt the action. If it fails say: I tried to log but hit an issue - can you confirm the doctor name?
+5. After actions succeed: confirm what was logged in the rep language.
+
+LANGUAGE: Hinglish supported. gaya tha means visited, baat ki means discussed, positive raha means positive outcome, rupees ka bill means expense amount, bhejna hai means need to send or follow up.
+
+DRUGS: Keytruda, Tagrisso, Herceptin, Opdivo, Iressa, Avastin, Ibrance, Imfinzi, Lynparza.
+HOSPITALS: Apollo, Fortis, Tata Memorial, HCG, Manipal, AIIMS, Narayana, Medanta, Max.
+
+WORKFLOW: Step 1 call LogVisit. Step 2 call LogExpense if expense mentioned. Step 3 call CreateFollowUpTasks if commitments mentioned. Step 4 confirm in rep language.</role>
+    <smallTalkEnabled>false</smallTalkEnabled>
+    <staticPromptsEnabled>false</staticPromptsEnabled>
+    <stopRecPrompts>false</stopRecPrompts>
+    <stopWelcomePrompts>false</stopWelcomePrompts>
+    <surfacesEnabled>false</surfacesEnabled>
+    <toneType>Casual</toneType>
+</BotVersion>

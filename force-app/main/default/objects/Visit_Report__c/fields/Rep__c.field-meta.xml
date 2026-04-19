@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Rep__c</fullName>
+    <deleteConstraint>SetNull</deleteConstraint>
+    <description>The medical sales rep who conducted the physician visit.</description>
+    <inlineHelpText>Auto-populated with the logged-in user who created the record.</inlineHelpText>
+    <label>Sales Rep</label>
+    <referenceTo>User</referenceTo>
+    <relationshipLabel>Visit Reports</relationshipLabel>
+    <relationshipName>Visit_Reports_Rep</relationshipName>
+    <required>false</required>
+    <trackHistory>false</trackHistory>
+    <trackTrending>false</trackTrending>
+    <type>Lookup</type>
+</CustomField>

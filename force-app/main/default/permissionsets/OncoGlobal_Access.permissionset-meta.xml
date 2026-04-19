@@ -1,0 +1,176 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PermissionSet xmlns="http://soap.sforce.com/2006/04/metadata">
+    <description>Grants access to the Onco Global app, Visit Report and Visit Expense objects, and all related tabs.</description>
+    <hasActivationRequired>false</hasActivationRequired>
+    <label>Onco Global Access</label>
+    <license>Salesforce</license>
+
+    <!-- App visibility -->
+    <applicationVisibilities>
+        <application>OncoGlobal</application>
+        <visible>true</visible>
+    </applicationVisibilities>
+
+    <!-- Tab visibility — DefaultOn means they show in the nav bar automatically -->
+    <tabSettings>
+        <tab>Visit_Report__c</tab>
+        <visibility>Visible</visibility>
+    </tabSettings>
+    <tabSettings>
+        <tab>Visit_Expense__c</tab>
+        <visibility>Visible</visibility>
+    </tabSettings>
+    <tabSettings>
+        <tab>standard-HealthcareProvider</tab>
+        <visibility>Visible</visibility>
+    </tabSettings>
+    <tabSettings>
+        <tab>standard-Visit</tab>
+        <visibility>Visible</visibility>
+    </tabSettings>
+    <tabSettings>
+        <tab>standard-Account</tab>
+        <visibility>Visible</visibility>
+    </tabSettings>
+    <tabSettings>
+        <tab>standard-Contact</tab>
+        <visibility>Visible</visibility>
+    </tabSettings>
+    <tabSettings>
+        <tab>standard-Task</tab>
+        <visibility>Visible</visibility>
+    </tabSettings>
+    <tabSettings>
+        <tab>standard-Lead</tab>
+        <visibility>Visible</visibility>
+    </tabSettings>
+    <tabSettings>
+        <tab>standard-Opportunity</tab>
+        <visibility>Visible</visibility>
+    </tabSettings>
+
+    <!-- Visit_Report__c object permissions -->
+    <objectPermissions>
+        <allowCreate>true</allowCreate>
+        <allowDelete>true</allowDelete>
+        <allowEdit>true</allowEdit>
+        <allowRead>true</allowRead>
+        <modifyAllRecords>true</modifyAllRecords>
+        <object>Visit_Report__c</object>
+        <viewAllRecords>true</viewAllRecords>
+    </objectPermissions>
+
+    <!-- Visit_Expense__c object permissions -->
+    <objectPermissions>
+        <allowCreate>true</allowCreate>
+        <allowDelete>true</allowDelete>
+        <allowEdit>true</allowEdit>
+        <allowRead>true</allowRead>
+        <modifyAllRecords>true</modifyAllRecords>
+        <object>Visit_Expense__c</object>
+        <viewAllRecords>true</viewAllRecords>
+    </objectPermissions>
+
+    <!-- Account Record Type visibility -->
+    <recordTypeVisibilities>
+        <recordType>Account.Healthcare_Facility</recordType>
+        <visible>true</visible>
+    </recordTypeVisibilities>
+    <recordTypeVisibilities>
+        <recordType>Account.Physician</recordType>
+        <visible>true</visible>
+    </recordTypeVisibilities>
+
+    <!-- Visit_Report__c optional field permissions -->
+    <fieldPermissions>
+        <editable>true</editable>
+        <field>Visit_Report__c.Voice_Transcript__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <editable>true</editable>
+        <field>Visit_Report__c.AI_Summary__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <editable>true</editable>
+        <field>Visit_Report__c.Discussion_Topics__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <editable>true</editable>
+        <field>Visit_Report__c.Follow_Up_Actions__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <editable>true</editable>
+        <field>Visit_Report__c.Visit_Outcome__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <editable>true</editable>
+        <field>Visit_Report__c.Rep__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <editable>true</editable>
+        <field>Visit_Report__c.Next_Best_Action__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <editable>true</editable>
+        <field>Visit_Report__c.Engagement_Score__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+
+    <!-- Visit_Expense__c optional field permissions -->
+    <fieldPermissions>
+        <editable>true</editable>
+        <field>Visit_Expense__c.Receipt_URL__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <editable>true</editable>
+        <field>Visit_Expense__c.Notes__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <editable>false</editable>
+        <field>Visit_Expense__c.Policy_Flag__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+
+    <!-- Visit_Report__c new fields -->
+    <fieldPermissions>
+        <editable>true</editable>
+        <field>Visit_Report__c.Visit_Type__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <editable>false</editable>
+        <field>Visit_Report__c.Needs_Review__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <editable>false</editable>
+        <field>Visit_Report__c.Total_Visit_Expense__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+
+    <!-- Account new fields -->
+    <fieldPermissions>
+        <editable>true</editable>
+        <field>Account.Best_Visit_Time__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <editable>false</editable>
+        <field>Account.Last_Enriched__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+    <fieldPermissions>
+        <editable>true</editable>
+        <field>Account.ABDM_Registration__c</field>
+        <readable>true</readable>
+    </fieldPermissions>
+</PermissionSet>

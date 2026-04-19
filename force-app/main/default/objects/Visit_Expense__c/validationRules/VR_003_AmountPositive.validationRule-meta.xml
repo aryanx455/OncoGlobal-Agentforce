@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ValidationRule xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>VR_003_AmountPositive</fullName>
+    <active>true</active>
+    <description>VR-003: Expense amount must be greater than zero. Zero or negative amounts are not valid expense entries.</description>
+    <errorConditionFormula>NOT(ISBLANK(Amount__c)) &amp;&amp; Amount__c &lt;= 0</errorConditionFormula>
+    <errorDisplayField>Amount__c</errorDisplayField>
+    <errorMessage>Expense amount must be greater than zero.</errorMessage>
+</ValidationRule>

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Best_Visit_Time__c</fullName>
+    <description>Best day and time window to visit this facility, derived from Google Popular Times data. e.g. &quot;Tuesday 10am–12pm (least busy)&quot;. Populated automatically during Google Places enrichment.</description>
+    <externalId>false</externalId>
+    <inlineHelpText>Auto-populated from Google Popular Times during facility enrichment.</inlineHelpText>
+    <label>Best Visit Time</label>
+    <length>255</length>
+    <required>false</required>
+    <trackFeedHistory>false</trackFeedHistory>
+    <trackHistory>false</trackHistory>
+    <type>Text</type>
+    <unique>false</unique>
+</CustomField>

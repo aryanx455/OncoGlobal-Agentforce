@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<GenAiFunction xmlns="http://soap.sforce.com/2006/04/metadata">
+    <description>Creates a Visit_Report__c record from a rep&apos;s voice transcript after a physician visit. Returns the new Visit Report ID.</description>
+    <invocationTarget>LogVisitAction</invocationTarget>
+    <invocationTargetType>apex</invocationTargetType>
+    <isConfirmationRequired>false</isConfirmationRequired>
+    <masterLabel>Log Post-Visit Report</masterLabel>
+</GenAiFunction>

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ValidationRule xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>VR_007_AccountRequired</fullName>
+    <active>true</active>
+    <description>VR-007: A Contact must be linked to an Account. Orphaned contacts cannot be targeted for visits or associated with Visit Reports.</description>
+    <errorConditionFormula>ISBLANK(AccountId)</errorConditionFormula>
+    <errorDisplayField>AccountId</errorDisplayField>
+    <errorMessage>A Contact must be linked to an Account. Please select the facility or physician account this contact belongs to.</errorMessage>
+</ValidationRule>

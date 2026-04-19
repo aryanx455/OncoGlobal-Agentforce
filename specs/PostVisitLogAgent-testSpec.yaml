@@ -1,0 +1,62 @@
+subjectType: AGENT
+subjectName: PostVisitLogAgent
+name: PostVisitLogAgent Test Suite
+description: Tests for OncoGlobal Post-Visit Log Agent — covers Hinglish input, action invocation, and end-to-end visit logging workflow.
+testCases:
+
+  # ── Test 1: Basic English Capability Check ────────────────────────────────
+  # No Apex action expected — agent should just describe capabilities
+  - utterance: What can you help me with?
+    expectedTopic: Post_Visit_Log_Plugin
+    expectedOutcome: Response should mention visit logging or post-visit report capabilities.
+
+  # ── Test 2: Hinglish — Log Visit Intent ──────────────────────────────────
+  # Expected: LogVisit action invoked with physicianName=Dr.Sharma, hospitalName=Apollo Mumbai
+  - utterance: "Aaj maine Dr. Sharma ke paas gaya tha Apollo Mumbai mein. Keytruda ke baare mein baat ki, unhone bahut interest dikhaya. Visit positive raha."
+    expectedTopic: Post_Visit_Log_Plugin
+    expectedActions:
+      - LogVisit
+    expectedOutcome: Agent should confirm logging the visit report for Dr. Sharma at Apollo Mumbai with a positive outcome.
+
+  # ── Test 3: Hinglish — Follow Up Task Intent ─────────────────────────────
+  # Expected: CreateFollowUpTasks action invoked
+  - utterance: "Dr. Gupta ko literature bhejna hai Tagrisso ke baare mein, aur unka CME arrange karna hai next month."
+    expectedTopic: Post_Visit_Log_Plugin
+    expectedActions:
+      - CreateFollowUpTasks
+    expectedOutcome: Agent should confirm creating follow-up tasks for sending Tagrisso literature and arranging CME for Dr. Gupta.
+
+  # ── Test 4: Hinglish — Expense Logging ───────────────────────────────────
+  # Expected: LogExpense action invoked with amount=450, category=Meal
+  - utterance: "HCG Bangalore mein lunch tha Dr. Reddy ke saath, 450 rupees ka bill tha."
+    expectedTopic: Post_Visit_Log_Plugin
+    expectedActions:
+      - LogExpense
+    expectedOutcome: Agent should confirm logging a Meal expense of Rs. 450 at HCG Bangalore with Dr. Reddy.
+
+  # ── Test 5: Drug Name Recognition ────────────────────────────────────────
+  # Expected: LogVisit action invoked with drug names in transcript
+  - utterance: "I visited Dr. Iyer at Tata Memorial today. We discussed Keytruda PD-L1 data and Tagrisso EGFR mutation patients. She was very interested in the ADAURA trial."
+    expectedTopic: Post_Visit_Log_Plugin
+    expectedActions:
+      - LogVisit
+    expectedOutcome: Agent should confirm logging the visit for Dr. Iyer at Tata Memorial with Keytruda and Tagrisso discussion noted.
+
+  # ── Test 6: Negative Outcome + Follow Up ────────────────────────────────
+  # Expected: LogVisit + CreateFollowUpTasks both invoked
+  - utterance: "Dr. Patel ke paas gaya tha Fortis Delhi mein. Visit negative gaya, unhone TAT ki problem batai. Dobara 2 hafte mein jaana hai."
+    expectedTopic: Post_Visit_Log_Plugin
+    expectedActions:
+      - LogVisit
+      - CreateFollowUpTasks
+    expectedOutcome: Agent should log the negative visit outcome and create a follow-up task to revisit in 2 weeks.
+
+  # ── Test 7: Full Hinglish Transcript ─────────────────────────────────────
+  # Expected: LogVisit + LogExpense + CreateFollowUpTasks all invoked
+  - utterance: "Aaj Dr. Meena Nair ke paas gaya tha Manipal Bangalore mein, oncology OPD mein mila. Herceptin aur HER2 patients ke baare mein baat ki. Unhone samples maange. Lunch ke liye 600 rupees gaye. Follow up task banana hai unhe ASCO data bhejne ke liye."
+    expectedTopic: Post_Visit_Log_Plugin
+    expectedActions:
+      - LogVisit
+      - LogExpense
+      - CreateFollowUpTasks
+    expectedOutcome: Agent should log the visit with Herceptin discussion, create expense for Rs.600 lunch, and create follow-up task for ASCO data for Dr. Meena Nair at Manipal.

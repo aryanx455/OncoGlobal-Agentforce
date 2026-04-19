@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<GenAiFunction xmlns="http://soap.sforce.com/2006/04/metadata">
+    <description>Retrieves a curated medical reference document containing oncology drug names, Indian physician name patterns, Hinglish pharma phrases, Indian healthcare facility names, and oncology abbreviations. Call this when you need context about medicines, Indian names, or medical terminology to answer a rep question accurately.</description>
+    <invocationTarget>GetMedicalContextAction</invocationTarget>
+    <invocationTargetType>apex</invocationTargetType>
+    <isConfirmationRequired>false</isConfirmationRequired>
+    <masterLabel>Get Medical Context</masterLabel>
+</GenAiFunction>

@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<GenAiFunction xmlns="http://soap.sforce.com/2006/04/metadata">
+    <description>Updates an existing Visit Report with AI-extracted discussion topics, engagement score, next best action recommendation, and AI-generated summary.</description>
+    <invocationTarget>ExtractTopicsAction</invocationTarget>
+    <invocationTargetType>apex</invocationTargetType>
+    <isConfirmationRequired>false</isConfirmationRequired>
+    <masterLabel>Extract Topics and Update Visit Report</masterLabel>
+</GenAiFunction>

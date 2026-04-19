@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<RecordType xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Healthcare_Facility</fullName>
+    <active>true</active>
+    <description>Hospitals, cancer centres, clinics, and diagnostic facilities visited by Onco Global sales reps.</description>
+    <label>Healthcare Facility</label>
+    <picklistValues>
+        <picklist>Facility_Type__c</picklist>
+        <values><fullName>Hospital</fullName><default>false</default></values>
+        <values><fullName>Cancer Centre</fullName><default>false</default></values>
+        <values><fullName>Clinic</fullName><default>true</default></values>
+        <values><fullName>Private Practice</fullName><default>false</default></values>
+        <values><fullName>Diagnostic Centre</fullName><default>false</default></values>
+        <values><fullName>Pharmacy</fullName><default>false</default></values>
+        <values><fullName>Research Institute</fullName><default>false</default></values>
+        <values><fullName>Other</fullName><default>false</default></values>
+    </picklistValues>
+    <picklistValues>
+        <picklist>Specialty__c</picklist>
+        <values><fullName>Oncology</fullName><default>false</default></values>
+        <values><fullName>Haematology</fullName><default>false</default></values>
+        <values><fullName>Surgical Oncology</fullName><default>false</default></values>
+        <values><fullName>Radiation Oncology</fullName><default>false</default></values>
+        <values><fullName>Cardiology</fullName><default>false</default></values>
+        <values><fullName>Neurology</fullName><default>false</default></values>
+        <values><fullName>General Medicine</fullName><default>false</default></values>
+        <values><fullName>Pathology</fullName><default>false</default></values>
+        <values><fullName>Radiology</fullName><default>false</default></values>
+        <values><fullName>Other</fullName><default>false</default></values>
+    </picklistValues>
+</RecordType>

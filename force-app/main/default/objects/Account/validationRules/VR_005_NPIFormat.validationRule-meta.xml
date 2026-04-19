@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ValidationRule xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>VR_005_NPIFormat</fullName>
+    <active>true</active>
+    <description>VR-005: NPI number must be exactly 10 numeric digits if entered. Enforces correct NPI format for both Physician and Healthcare Facility accounts.</description>
+    <errorConditionFormula>NOT(ISBLANK(NPI__c)) &amp;&amp; NOT(REGEX(NPI__c, "[0-9]{10}"))</errorConditionFormula>
+    <errorDisplayField>NPI__c</errorDisplayField>
+    <errorMessage>NPI number must be exactly 10 digits (numbers only). Example: 1234567890</errorMessage>
+</ValidationRule>

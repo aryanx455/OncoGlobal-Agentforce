@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ValidationRule xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>VR_006_EmailFormat</fullName>
+    <active>true</active>
+    <description>VR-006: Email address must be in a valid format if entered. Applies belt-and-suspenders validation in addition to Salesforce native email field validation.</description>
+    <errorConditionFormula>NOT(ISBLANK(Email)) &amp;&amp; NOT(REGEX(Email, "[a-zA-Z0-9._%+\\-]+@[a-zA-Z0-9.\\-]+\\.[a-zA-Z]{2,}"))</errorConditionFormula>
+    <errorDisplayField>Email</errorDisplayField>
+    <errorMessage>Email address format is invalid. Please enter a valid email address (e.g. doctor@hospital.com).</errorMessage>
+</ValidationRule>

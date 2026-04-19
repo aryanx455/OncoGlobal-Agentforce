@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Voice_Transcript__c</fullName>
+    <description>Raw voice transcript captured by the sales rep via the Onco Global mobile agent.</description>
+    <inlineHelpText>Auto-populated from voice input. You can also type directly here.</inlineHelpText>
+    <label>Voice Transcript</label>
+    <length>32768</length>
+    <trackHistory>false</trackHistory>
+    <trackTrending>false</trackTrending>
+    <type>LongTextArea</type>
+    <visibleLines>6</visibleLines>
+</CustomField>

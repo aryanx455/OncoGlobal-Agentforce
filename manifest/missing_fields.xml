@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Package xmlns="http://soap.sforce.com/2006/04/metadata">
+    <types>
+        <members>Account.Best_Visit_Time__c</members>
+        <members>Account.ABDM_Registration__c</members>
+        <members>Account.Last_Enriched__c</members>
+        <members>Visit_Report__c.Visit_Type__c</members>
+        <members>Visit_Report__c.Needs_Review__c</members>
+        <members>Visit_Report__c.Total_Visit_Expense__c</members>
+        <members>Visit_Expense__c.Policy_Flag__c</members>
+        <name>CustomField</name>
+    </types>
+    <version>66.0</version>
+</Package>

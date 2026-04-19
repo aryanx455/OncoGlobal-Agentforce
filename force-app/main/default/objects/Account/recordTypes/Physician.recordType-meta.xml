@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<RecordType xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Physician</fullName>
+    <active>true</active>
+    <description>Individual physicians and medical professionals (Person Account). Used for Dr. Priya Mehta, Dr. Arun Sharma etc.</description>
+    <label>Physician</label>
+    <picklistValues>
+        <picklist>Specialty__c</picklist>
+        <values><fullName>Oncology</fullName><default>false</default></values>
+        <values><fullName>Haematology</fullName><default>false</default></values>
+        <values><fullName>Surgical Oncology</fullName><default>false</default></values>
+        <values><fullName>Radiation Oncology</fullName><default>false</default></values>
+        <values><fullName>Cardiology</fullName><default>false</default></values>
+        <values><fullName>Neurology</fullName><default>false</default></values>
+        <values><fullName>General Medicine</fullName><default>false</default></values>
+        <values><fullName>Pathology</fullName><default>false</default></values>
+        <values><fullName>Radiology</fullName><default>false</default></values>
+        <values><fullName>Other</fullName><default>false</default></values>
+    </picklistValues>
+</RecordType>

@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<GenAiFunction xmlns="http://soap.sforce.com/2006/04/metadata">
+    <description>Retrieves rich visit history and physician profile context to help generate smarter summaries and next best action recommendations for a given physician.</description>
+    <invocationTarget>GetVisitInsightsAction</invocationTarget>
+    <invocationTargetType>apex</invocationTargetType>
+    <isConfirmationRequired>false</isConfirmationRequired>
+    <masterLabel>Get Visit Insights for Physician</masterLabel>
+</GenAiFunction>

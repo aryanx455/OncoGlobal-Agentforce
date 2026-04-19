@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Key_Account__c</fullName>
+    <defaultValue>false</defaultValue>
+    <description>Flag this account as a Key Account requiring priority visits and dedicated relationship management.</description>
+    <label>Key Account</label>
+    <trackHistory>false</trackHistory>
+    <type>Checkbox</type>
+</CustomField>

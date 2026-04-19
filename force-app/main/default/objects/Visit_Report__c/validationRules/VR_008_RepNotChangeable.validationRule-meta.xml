@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ValidationRule xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>VR_008_RepNotChangeable</fullName>
+    <active>true</active>
+    <description>VR-008: The Rep field cannot be changed after a Visit Report is created. Prevents data tampering and ensures accurate activity attribution.</description>
+    <errorConditionFormula>NOT(ISNEW()) &amp;&amp; ISCHANGED(Rep__c)</errorConditionFormula>
+    <errorDisplayField>Rep__c</errorDisplayField>
+    <errorMessage>The Rep field cannot be changed after the visit report is created. Contact your System Administrator if a correction is needed.</errorMessage>
+</ValidationRule>

@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<GenAiPlugin xmlns="http://soap.sforce.com/2006/04/metadata">
+    <description>OncoGlobal Post-Visit Logging plugin. Enables medical reps to log physician visits, extract AI topics, create follow-up tasks, log expenses, and retrieve physician insights — all via voice through the Agentforce PostVisitLogAgent.</description>
+    <developerName>Post_Visit_Log_Plugin</developerName>
+    <genAiFunctions>
+        <functionName>GetMedicalContext</functionName>
+    </genAiFunctions>
+    <genAiFunctions>
+        <functionName>GetVisitInsights</functionName>
+    </genAiFunctions>
+    <genAiFunctions>
+        <functionName>LogVisit</functionName>
+    </genAiFunctions>
+    <genAiFunctions>
+        <functionName>ExtractTopics</functionName>
+    </genAiFunctions>
+    <genAiFunctions>
+        <functionName>CreateFollowUpTasks</functionName>
+    </genAiFunctions>
+    <genAiFunctions>
+        <functionName>LogExpense</functionName>
+    </genAiFunctions>
+    <genAiPluginInstructions>
+        <description>Support Hinglish (Hindi-English mix). If the rep speaks Hinglish, respond in the same style. Key phrases: "visit log karna hai" = log visit, "Doctor ke paas gaya tha" = I visited the doctor, "follow up banana hai" = create follow-up, "accha gaya/positive tha" = positive outcome, "neutral raha" = neutral, "negative gaya" = negative, "samples diye" = gave samples, "Keytruda ke baare mein baat ki" = discussed Keytruda, "dobara jaana hai" = need to revisit. Recognize Indian physician names: Dr. Sharma, Dr. Gupta, Dr. Patel, Dr. Iyer, Dr. Nair, Dr. Reddy, Dr. Rao, Dr. Menon.</description>
+        <developerName>instruction_hinglish</developerName>
+        <language>en_US</language>
+        <masterLabel>instruction_hinglish</masterLabel>
+    </genAiPluginInstructions>
+    <genAiPluginInstructions>
+        <description>Know oncology drugs: Keytruda (pembrolizumab), Opdivo (nivolumab), Tagrisso (osimertinib), Iressa (gefitinib), Tarceva (erlotinib), Herceptin (trastuzumab), Avastin (bevacizumab), Ibrance (palbociclib), Gleevec (imatinib), Revlimid (lenalidomide), Velcade (bortezomib), Zytiga (abiraterone), Lynparza (olaparib), Tecentriq (atezolizumab), Imfinzi (durvalumab). Indian hospitals: Apollo, Fortis, Tata Memorial, HCG, Manipal, AIIMS, Narayana, Medanta, Max Healthcare.</description>
+        <developerName>instruction_drugs</developerName>
+        <language>en_US</language>
+        <masterLabel>instruction_drugs</masterLabel>
+    </genAiPluginInstructions>
+    <genAiPluginInstructions>
+        <description>ACTION INVOCATION RULES — you MUST call these functions automatically WITHOUT asking for Salesforce IDs:
+
+1. When the rep describes visiting a doctor → call LogVisit immediately. Pass physicianName (e.g. "Dr. Sharma"), hospitalName (e.g. "Apollo Mumbai"), transcript (the full rep statement), visitOutcome (Positive/Negative/Neutral), visitType (In-Person Clinic/Hospital Round/Virtual Call). You do NOT need a physicianId — the action will resolve it from the name.
+
+2. When the rep mentions an expense (lunch, travel, accommodation, amount in rupees) → call LogExpense. Pass amount (numeric, e.g. 450), category (Meal/Travel/Accommodation/Samples/CME - Event/Other), physicianName, hospitalName. You do NOT need a visitReportId.
+
+3. When the rep mentions follow-up commitments ("send literature", "arrange CME", "call next week", "dobara jaana hai") → call CreateFollowUpTasks. Pass followUpActions (comma-separated list of tasks), physicianName. You do NOT need a visitReportId.
+
+4. When asked about a doctor's history → call GetVisitInsights.
+
+Always proceed with the action call using whatever name information you have. Do not ask for a Salesforce ID — the functions handle lookups internally.</description>
+        <developerName>instruction_workflow</developerName>
+        <language>en_US</language>
+        <masterLabel>instruction_workflow</masterLabel>
+    </genAiPluginInstructions>
+    <language>en_US</language>
+    <masterLabel>Post Visit Log Plugin</masterLabel>
+    <pluginType>Topic</pluginType>
+    <scope>Handle all post-visit logging requests from OncoGlobal medical reps. Log physician visit reports from voice transcripts, extract discussion topics, create follow-up tasks, log visit expenses, and retrieve physician visit insights. Support English and Hinglish. Understand Indian physician names, Indian oncology hospitals, and oncology drug names.</scope>
+</GenAiPlugin>

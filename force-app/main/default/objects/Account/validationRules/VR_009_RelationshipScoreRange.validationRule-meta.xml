@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ValidationRule xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>VR_009_RelationshipScoreRange</fullName>
+    <active>true</active>
+    <description>VR-009: Relationship Score must be between 0 and 100 inclusive. Prevents invalid values being written by Apex or data loads.</description>
+    <errorConditionFormula>NOT(ISBLANK(Relationship_Score__c)) &amp;&amp; (Relationship_Score__c &lt; 0 || Relationship_Score__c &gt; 100)</errorConditionFormula>
+    <errorDisplayField>Relationship_Score__c</errorDisplayField>
+    <errorMessage>Relationship Score must be between 0 and 100.</errorMessage>
+</ValidationRule>

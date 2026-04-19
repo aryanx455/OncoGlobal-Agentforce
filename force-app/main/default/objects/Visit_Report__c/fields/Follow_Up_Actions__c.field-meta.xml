@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Follow_Up_Actions__c</fullName>
+    <description>Action items extracted from the visit transcript. Each item becomes a Salesforce Task when the agent processes the record.</description>
+    <inlineHelpText>Semicolon-separated action items. Each will auto-create a Task.</inlineHelpText>
+    <label>Follow-Up Actions</label>
+    <length>10000</length>
+    <trackHistory>false</trackHistory>
+    <trackTrending>false</trackTrending>
+    <type>LongTextArea</type>
+    <visibleLines>4</visibleLines>
+</CustomField>

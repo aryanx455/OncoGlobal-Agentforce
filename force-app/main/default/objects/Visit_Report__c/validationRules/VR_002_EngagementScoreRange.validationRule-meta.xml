@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ValidationRule xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>VR_002_EngagementScoreRange</fullName>
+    <active>true</active>
+    <description>VR-002: Engagement Score must be between 0 and 100 inclusive.</description>
+    <errorConditionFormula>NOT(ISBLANK(Engagement_Score__c)) &amp;&amp; (Engagement_Score__c &lt; 0 || Engagement_Score__c &gt; 100)</errorConditionFormula>
+    <errorDisplayField>Engagement_Score__c</errorDisplayField>
+    <errorMessage>Engagement Score must be between 0 and 100.</errorMessage>
+</ValidationRule>

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<DuplicateRule xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Visit_Report__c.VisitReportDuplicate</fullName>
+        <actionOnInsert>Allow</actionOnInsert>
+        <actionOnUpdate>Allow</actionOnUpdate>
+        <description>Warns (does not block) when a Visit Report for the same Physician, on the same date, by the same Rep already exists. Prevents accidental duplicate logging (BR-001).</description>
+        <duplicateRuleMatchRules>
+            <matchRuleSObjectType>Visit_Report__c</matchRuleSObjectType>
+            <matchingRule>VisitReportMatching</matchingRule>
+        </duplicateRuleMatchRules>
+        <masterLabel>Visit Report Duplicate</masterLabel>
+        <securityOption>EnforceSharingRules</securityOption>
+        <sortOrder>1</sortOrder>
+</DuplicateRule>

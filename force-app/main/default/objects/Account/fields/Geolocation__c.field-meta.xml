@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Geolocation__c</fullName>
+    <description>GPS coordinates of the healthcare facility, populated from ABDM HFR or Google Places.</description>
+    <displayLocationInDecimal>true</displayLocationInDecimal>
+    <label>Geolocation</label>
+    <required>false</required>
+    <scale>6</scale>
+    <trackFeedHistory>false</trackFeedHistory>
+    <type>Location</type>
+</CustomField>

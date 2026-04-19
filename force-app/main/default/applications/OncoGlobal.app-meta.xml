@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomApplication xmlns="http://soap.sforce.com/2006/04/metadata">
+    <defaultLandingTab>Visit_Report__c</defaultLandingTab>
+    <description>Onco Global Post-Visit Log Agent — AI-powered physician visit tracking for medical sales reps.</description>
+    <formFactors>Large</formFactors>
+    <formFactors>Small</formFactors>
+    <isNavAutoTempTabsDisabled>false</isNavAutoTempTabsDisabled>
+    <isNavPersonalizationDisabled>false</isNavPersonalizationDisabled>
+    <isNavTabPersistenceDisabled>false</isNavTabPersistenceDisabled>
+    <label>Onco Global</label>
+    <navType>Standard</navType>
+    <!-- Custom Onco Global objects -->
+    <tabs>Visit_Report__c</tabs>
+    <tabs>Visit_Expense__c</tabs>
+    <!-- Health Cloud objects -->
+    <tabs>standard-HealthcareProvider</tabs>
+    <tabs>standard-Visit</tabs>
+    <!-- Standard CRM objects -->
+    <tabs>standard-Account</tabs>
+    <tabs>standard-Contact</tabs>
+    <tabs>standard-Task</tabs>
+    <tabs>standard-Lead</tabs>
+    <tabs>standard-Opportunity</tabs>
+    <uiType>Lightning</uiType>
+</CustomApplication>
