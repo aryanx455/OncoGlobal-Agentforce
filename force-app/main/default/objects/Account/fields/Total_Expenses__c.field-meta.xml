@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Total_Expenses__c</fullName>
+    <description>Total expenses logged across all visit reports for this account. For Individual Prescribers: sum of direct visit expenses. For Healthcare Facilities: sum of all visits at this facility via Hospital__c. Updated by VisitReportTriggerHandler.</description>
+    <inlineHelpText>Total Rs. in visit expenses. Read-only — updated automatically.</inlineHelpText>
+    <label>Total Expenses (Rs.)</label>
+    <precision>14</precision>
+    <required>false</required>
+    <scale>2</scale>
+    <trackHistory>false</trackHistory>
+    <type>Currency</type>
+</CustomField>

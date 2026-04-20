@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Hospital__c</fullName>
+    <deleteConstraint>SetNull</deleteConstraint>
+    <description>The hospital or healthcare facility where the visit took place. Populated automatically from the prescriber's linked Account when a Contact-based prescriber is resolved.</description>
+    <inlineHelpText>The hospital or clinic where this visit occurred.</inlineHelpText>
+    <label>Hospital / Facility</label>
+    <referenceTo>Account</referenceTo>
+    <relationshipLabel>Hospital Visit Reports</relationshipLabel>
+    <relationshipName>Hospital_Visit_Reports</relationshipName>
+    <required>false</required>
+    <trackHistory>false</trackHistory>
+    <trackTrending>false</trackTrending>
+    <type>Lookup</type>
+</CustomField>

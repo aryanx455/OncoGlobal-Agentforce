@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Prescriber__c</fullName>
+    <deleteConstraint>SetNull</deleteConstraint>
+    <description>The individual prescriber (Contact) visited by the rep. Use this for physician Contacts linked to a hospital Account. The legacy Physician__c (Account) field remains for backward compatibility.</description>
+    <inlineHelpText>Select the Individual Prescriber Contact for this visit.</inlineHelpText>
+    <label>Individual Prescriber</label>
+    <referenceTo>Contact</referenceTo>
+    <relationshipLabel>Visit Reports</relationshipLabel>
+    <relationshipName>Visit_Reports</relationshipName>
+    <required>false</required>
+    <trackHistory>false</trackHistory>
+    <trackTrending>false</trackTrending>
+    <type>Lookup</type>
+</CustomField>

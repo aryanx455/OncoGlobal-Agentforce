@@ -3,7 +3,7 @@
     <fullName>Physician</fullName>
     <active>true</active>
     <description>Individual physicians and medical professionals (Person Account). Used for Dr. Priya Mehta, Dr. Arun Sharma etc.</description>
-    <label>Physician</label>
+    <label>Individual Prescriber</label>
     <picklistValues>
         <picklist>Specialty__c</picklist>
         <values><fullName>Oncology</fullName><default>false</default></values>

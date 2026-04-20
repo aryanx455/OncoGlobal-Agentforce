@@ -61,6 +61,12 @@ public without sharing class LogVisitAction {
 
         @InvocableVariable(label='Physician Name (resolved)')
         public String resolvedPhysicianName;
+
+        @InvocableVariable(label='Prescriber Contact ID')
+        public Id prescriberContactId;
+
+        @InvocableVariable(label='Hospital Account ID')
+        public Id hospitalAccountId;
     }
 
     // ─── INVOCABLE ENTRY POINT ─────────────────────────────────────────────────
@@ -77,6 +83,8 @@ public without sharing class LogVisitAction {
         Map<Id, String> accountNamesById = new Map<Id, String>();
         Set<Id> physicianIdsToQuery = new Set<Id>();
         Map<String, Id> resolvedPhysicianIdsByKey = new Map<String, Id>();
+        // Contact resolution cache: resolutionKey → [contactId, accountId]
+        Map<String, Id[]> resolvedContactByKey = new Map<String, Id[]>();
 
         for (Request req : requests) {
             if (req != null && req.physicianId != null) {
@@ -105,33 +113,54 @@ public without sharing class LogVisitAction {
                 continue;
             }
 
-            // ── Resolve physician ID ──────────────────────────────────────────
+            // ── Resolve prescriber Contact first, fall back to Account ────────
             Id resolvedPhysicianId = req.physicianId;
-            String resolutionKey = buildResolutionKey(req.physicianName, req.hospitalName);
+            Id prescriberContactId = null;
+            Id hospitalAccountId   = null;
+            String resolutionKey   = buildResolutionKey(req.physicianName, req.hospitalName);
 
-            if (resolvedPhysicianId == null && String.isNotBlank(resolutionKey)) {
+            if (String.isNotBlank(resolutionKey)) {
+                if (resolvedContactByKey.containsKey(resolutionKey)) {
+                    Id[] cached = resolvedContactByKey.get(resolutionKey);
+                    prescriberContactId = cached[0];
+                    hospitalAccountId   = cached[1];
+                } else {
+                    Contact found = resolveContact(req.physicianName, req.hospitalName);
+                    if (found != null) {
+                        prescriberContactId = found.Id;
+                        hospitalAccountId   = found.AccountId;
+                        res.resolvedPhysicianName = found.Name;
+                    }
+                    resolvedContactByKey.put(resolutionKey, new Id[]{ prescriberContactId, hospitalAccountId });
+                }
+            }
+
+            // Fall back to Account-based resolution when no Contact match
+            if (prescriberContactId == null && resolvedPhysicianId == null && String.isNotBlank(resolutionKey)) {
                 if (resolvedPhysicianIdsByKey.containsKey(resolutionKey)) {
                     resolvedPhysicianId = resolvedPhysicianIdsByKey.get(resolutionKey);
                 } else {
                     resolvedPhysicianId = resolvePhysician(req.physicianName, req.hospitalName);
                     if (resolvedPhysicianId == null) {
-                        // Create a placeholder Account for the physician so we can still log
                         resolvedPhysicianId = createPlaceholderAccount(req.physicianName, req.hospitalName);
                     }
                     resolvedPhysicianIdsByKey.put(resolutionKey, resolvedPhysicianId);
                 }
             }
 
-            if (resolvedPhysicianId != null && !accountNamesById.containsKey(resolvedPhysicianId)) {
-                physicianIdsToQuery.add(resolvedPhysicianId);
+            if (res.resolvedPhysicianName == null) {
+                res.resolvedPhysicianName = accountNamesById.containsKey(resolvedPhysicianId)
+                    ? accountNamesById.get(resolvedPhysicianId)
+                    : req.physicianName;
             }
 
-            res.resolvedPhysicianName = accountNamesById.containsKey(resolvedPhysicianId)
-                ? accountNamesById.get(resolvedPhysicianId)
-                : req.physicianName;
+            res.prescriberContactId = prescriberContactId;
+            res.hospitalAccountId   = hospitalAccountId;
 
             Visit_Report__c vr = new Visit_Report__c(
                 Physician__c        = resolvedPhysicianId,
+                Prescriber__c       = prescriberContactId,
+                Hospital__c         = hospitalAccountId,
                 Rep__c              = UserInfo.getUserId(),
                 Voice_Transcript__c = req.transcript,
                 Visit_Date__c       = req.visitDate != null ? req.visitDate : Date.today(),
@@ -167,6 +196,39 @@ public without sharing class LogVisitAction {
     }
 
     // ─── HELPERS ──────────────────────────────────────────────────────────────
+
+    /**
+     * Try to resolve physician to a Contact linked to a hospital Account.
+     * Preferred over Account-based resolution when reps use the Contact model.
+     */
+    @TestVisible
+    private static Contact resolveContact(String physicianName, String hospitalName) {
+        if (String.isBlank(physicianName)) return null;
+
+        String searchName    = physicianName.replaceAll('(?i)^dr\\.?\\s+', '').trim();
+        String wildcardName  = '%' + searchName + '%';
+
+        List<Contact> candidates = [
+            SELECT Id, Name, AccountId, Account.Name
+            FROM   Contact
+            WHERE  (Name LIKE :wildcardName OR Name LIKE :('%Dr%' + searchName + '%'))
+            ORDER  BY LastModifiedDate DESC
+            LIMIT  5
+        ];
+
+        if (candidates.isEmpty()) return null;
+        if (candidates.size() == 1) return candidates[0];
+
+        if (String.isNotBlank(hospitalName)) {
+            for (Contact con : candidates) {
+                if (con.Account != null && con.Account.Name.containsIgnoreCase(hospitalName)) {
+                    return con;
+                }
+            }
+        }
+
+        return candidates[0];
+    }
 
     /**
      * Attempt to find an existing physician Account by name (and optionally
