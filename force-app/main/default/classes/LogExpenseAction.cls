@@ -1,10 +1,8 @@
 /**
  * LogExpenseAction
- * @InvocableMethod — called by Agentforce to log one or more expenses
- * mentioned in the post-visit voice transcript.
- *
- * Can work with a Visit Report ID (preferred) OR with a physician name +
- * visit date to look up or create the associated visit report automatically.
+ * Creates Visit_Expense__c records. Accepts total bill amount as-is.
+ * GST fields (rate, SGST, CGST, invoice number) are optional — only stored
+ * when the rep explicitly provides them from the receipt.
  */
 public without sharing class LogExpenseAction {
 
@@ -12,34 +10,50 @@ public without sharing class LogExpenseAction {
 
     public class Request {
         @InvocableVariable(required=true label='Amount'
-            description='Expense amount in Indian Rupees (e.g. 450 for a lunch costing Rs. 450).')
+            description='Total expense amount in Indian Rupees as stated by the rep (e.g. 450 for Rs. 450 ka bill). Do not calculate or modify — use exactly what the rep says.')
         public Decimal amount;
 
         @InvocableVariable(required=true label='Category'
-            description='Expense category. Must be one of: Meal, Travel, Accommodation, Samples, CME / Event, Other.')
+            description='Expense category. Must be exactly one of: Meal, Travel, Accommodation, Samples, CME / Event, Other.')
         public String category;
 
         @InvocableVariable(label='Visit Report ID'
-            description='Salesforce ID of the Visit Report to link this expense to. Optional — if not provided, the agent will look up today\'s visit report for the named physician.')
+            description='Salesforce ID of the Visit Report to link this expense to. Optional — action finds today\'s visit report for the named physician if not provided.')
         public Id visitReportId;
 
         @InvocableVariable(label='Physician Name'
-            description='Name of the physician as spoken by the rep (e.g. "Dr. Reddy"). Used to find today\'s visit report when Visit Report ID is not provided.')
+            description='Name of the physician (e.g. "Dr. Reddy"). Used to find today\'s visit report.')
         public String physicianName;
 
         @InvocableVariable(label='Hospital or Facility Name'
-            description='Name of the hospital or clinic (e.g. "HCG Bangalore"). Helps find the correct visit report.')
+            description='Name of the hospital or clinic. Helps find the correct visit report.')
         public String hospitalName;
 
         @InvocableVariable(label='Visit Date (defaults to today)')
         public Date visitDate;
 
         @InvocableVariable(label='Notes'
-            description='Free-text notes about the expense (e.g. "lunch with Dr. Reddy at HCG Bangalore").')
+            description='Free-text notes about the expense (e.g. "Lunch with Dr. Reddy at HCG Bangalore").')
         public String notes;
 
         @InvocableVariable(label='Receipt URL')
         public String receiptUrl;
+
+        @InvocableVariable(label='GST Rate (%)'
+            description='GST percentage from the receipt — only when rep explicitly states it (e.g. "bill mein 5% GST tha"). Leave blank otherwise.')
+        public Decimal gstRate;
+
+        @InvocableVariable(label='SGST Amount (Rs.)'
+            description='SGST amount from receipt — only when rep explicitly reads it out. Leave blank otherwise.')
+        public Decimal sgstAmount;
+
+        @InvocableVariable(label='CGST Amount (Rs.)'
+            description='CGST amount from receipt — only when rep explicitly reads it out. Leave blank otherwise.')
+        public Decimal cgstAmount;
+
+        @InvocableVariable(label='GST Invoice Number'
+            description='Invoice/bill number from the receipt, if rep provides it.')
+        public String gstInvoiceNumber;
     }
 
     public class Result {
@@ -50,7 +64,7 @@ public without sharing class LogExpenseAction {
         public Boolean success;
 
         @InvocableVariable(label='Policy Flagged'
-            description='True if the expense exceeds the Rs.150 policy limit.')
+            description='True if the expense exceeds the Rs.150 company policy limit.')
         public Boolean policyFlagged;
 
         @InvocableVariable(label='Error Message')
@@ -64,7 +78,7 @@ public without sharing class LogExpenseAction {
 
     @InvocableMethod(
         label='Log Visit Expense'
-        description='Creates a Visit_Expense__c record linked to a Visit Report. Amount and Category are required. Accepts physician name (e.g. "Dr. Reddy") and hospital name (e.g. "HCG Bangalore") to find the visit report — no Salesforce IDs needed. Policy flag is auto-set by trigger.'
+        description='Creates a Visit_Expense__c record. Required: Amount (total bill in Rs.) and Category (Meal/Travel/Accommodation/Samples/CME Event/Other). Accepts Physician Name to auto-link to today\'s visit report. Auto-flags amounts over Rs.150. GST fields optional — only stored if rep explicitly provides them.'
         category='OncoGlobal Visit Management'
     )
     public static List<Result> execute(List<Request> requests) {
@@ -90,19 +104,21 @@ public without sharing class LogExpenseAction {
 
             // ── Resolve visit report ─────────────────────────────────────────
             Id resolvedVisitReportId = req.visitReportId;
-
             if (resolvedVisitReportId == null) {
                 resolvedVisitReportId = findOrCreateVisitReport(req.physicianName, req.hospitalName, req.visitDate);
             }
-
             res.resolvedVisitReportId = resolvedVisitReportId;
 
             Visit_Expense__c exp = new Visit_Expense__c(
-                Visit_Report__c = resolvedVisitReportId,
-                Amount__c       = req.amount,
-                Category__c     = req.category,
-                Notes__c        = req.notes,
-                Receipt_URL__c  = req.receiptUrl
+                Visit_Report__c       = resolvedVisitReportId,
+                Amount__c             = req.amount,
+                Category__c           = req.category,
+                Notes__c              = req.notes,
+                Receipt_URL__c        = req.receiptUrl,
+                GST_Rate__c           = req.gstRate,
+                SGST_Amount__c        = req.sgstAmount,
+                CGST_Amount__c        = req.cgstAmount,
+                GST_Invoice_Number__c = req.gstInvoiceNumber
             );
 
             expensesToInsert.add(exp);
@@ -117,21 +133,18 @@ public without sharing class LogExpenseAction {
                 Database.SaveResult sr = saveResults[j];
                 Result res = results[validIndexes[j]];
                 if (sr.isSuccess()) {
-                    res.success = true;
+                    res.success   = true;
                     res.expenseId = sr.getId();
-                    // Re-query to get trigger-set Policy_Flag__c
                     try {
                         res.policyFlagged = [
-                            SELECT Policy_Flag__c
-                            FROM Visit_Expense__c
-                            WHERE Id = :sr.getId()
-                            LIMIT 1
+                            SELECT Policy_Flag__c FROM Visit_Expense__c
+                            WHERE Id = :sr.getId() LIMIT 1
                         ].Policy_Flag__c;
                     } catch (Exception e) {
                         res.policyFlagged = false;
                     }
                 } else {
-                    res.success = false;
+                    res.success      = false;
                     res.errorMessage = sr.getErrors()[0].getMessage();
                 }
             }
@@ -142,46 +155,42 @@ public without sharing class LogExpenseAction {
 
     // ─── HELPERS ──────────────────────────────────────────────────────────────
 
-    /**
-     * Find today's visit report for a given physician (by name), or create a
-     * minimal one so the expense can be linked.
-     */
     @TestVisible
     private static Id findOrCreateVisitReport(String physicianName, String hospitalName, Date visitDate) {
         Date targetDate = visitDate != null ? visitDate : Date.today();
 
-        // Try to find an existing visit report for this physician today
         if (String.isNotBlank(physicianName)) {
             String nameWildcard = '%' + physicianName.replaceAll('(?i)^dr\\.?\\s+', '').trim() + '%';
-            List<Visit_Report__c> existing = [
-                SELECT Id
-                FROM Visit_Report__c
+
+            List<Visit_Report__c> byContact = [
+                SELECT Id FROM Visit_Report__c
+                WHERE Visit_Date__c = :targetDate
+                AND Prescriber__r.Name LIKE :nameWildcard
+                AND OwnerId = :UserInfo.getUserId()
+                ORDER BY CreatedDate DESC LIMIT 1
+            ];
+            if (!byContact.isEmpty()) return byContact[0].Id;
+
+            List<Visit_Report__c> byAccount = [
+                SELECT Id FROM Visit_Report__c
                 WHERE Visit_Date__c = :targetDate
                 AND Physician__r.Name LIKE :nameWildcard
                 AND OwnerId = :UserInfo.getUserId()
-                ORDER BY CreatedDate DESC
-                LIMIT 1
+                ORDER BY CreatedDate DESC LIMIT 1
             ];
-            if (!existing.isEmpty()) {
-                return existing[0].Id;
-            }
+            if (!byAccount.isEmpty()) return byAccount[0].Id;
         }
 
-        // Look up the physician account
         Id physicianId = null;
         if (String.isNotBlank(physicianName)) {
             String nameWildcard = '%' + physicianName.replaceAll('(?i)^dr\\.?\\s+', '').trim() + '%';
             List<Account> accounts = [
-                SELECT Id FROM Account
-                WHERE Name LIKE :nameWildcard
+                SELECT Id FROM Account WHERE Name LIKE :nameWildcard
                 ORDER BY LastModifiedDate DESC LIMIT 1
             ];
-            if (!accounts.isEmpty()) {
-                physicianId = accounts[0].Id;
-            }
+            if (!accounts.isEmpty()) physicianId = accounts[0].Id;
         }
 
-        // Create a minimal visit report
         String notes = 'Auto-created by LogExpenseAction.';
         if (String.isNotBlank(hospitalName)) notes += ' Hospital: ' + hospitalName;
 

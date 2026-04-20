@@ -40,6 +40,9 @@ public with sharing class GetMedicalContextAction {
         if (category == 'ALL' || category == 'TERMS') {
             res.medicalTerms = buildMedicalTerms();
         }
+        if (category == 'ALL' || category == 'EXPENSES' || category == 'GST') {
+            res.expenseGstReference = buildExpenseGstReference();
+        }
 
         res.fullContext = String.join(
             new List<String>{
@@ -47,7 +50,8 @@ public with sharing class GetMedicalContextAction {
                 res.namePatterns,
                 res.hinglishPhrases,
                 res.facilityReference,
-                res.medicalTerms
+                res.medicalTerms,
+                res.expenseGstReference
             },
             '\n\n'
         );
@@ -194,6 +198,51 @@ public with sharing class GetMedicalContextAction {
             + 'Treatment: IV (Intravenous), SC (Subcutaneous), PO (Per Oral), Q2W/Q3W/Q4W/Q6W (dosing frequency), TKI (Tyrosine Kinase Inhibitor), mAb (monoclonal antibody), IO (Immuno-Oncology), ADC (Antibody-Drug Conjugate), CART (CAR-T cell therapy), BSC (Best Supportive Care), CCRT (Concurrent Chemoradiotherapy)';
     }
 
+    // ─── GST & Expense Reference ────────────────────────────────────────────────
+
+    private static String buildExpenseGstReference() {
+        return 'INDIA GST ON PHARMA REP EXPENSES (2024):\n'
+            + 'HOW TO READ A GST BILL:\n'
+            + '  A bill shows: taxable value (pre-tax) + SGST + CGST = total amount\n'
+            + '  SGST = State GST (goes to state government)\n'
+            + '  CGST = Central GST (goes to central government)\n'
+            + '  IGST = Integrated GST (inter-state: one tax instead of SGST+CGST)\n'
+            + '  Example: Bill Rs.450 total → Taxable Rs.428.57 + SGST Rs.10.71 + CGST Rs.10.71 = Rs.450\n'
+            + '\n'
+            + 'GST RATES BY EXPENSE CATEGORY:\n'
+            + '  Meal (restaurants): 5% GST = 2.5% SGST + 2.5% CGST\n'
+            + '    Example: Rs.500 bill → pre-tax Rs.476.19 + SGST Rs.11.90 + CGST Rs.11.90\n'
+            + '    Note: Both AC and non-AC restaurants now charge 5% GST\n'
+            + '  Travel — Cab/Ola/Uber/Auto: 5% GST = 2.5% SGST + 2.5% CGST\n'
+            + '  Travel — Train (non-AC): 0% GST\n'
+            + '  Travel — Train (AC class): 5% GST\n'
+            + '  Travel — Air (economy): 5% GST\n'
+            + '  Travel — Air (business): 12% GST\n'
+            + '  Accommodation — Under Rs.1,000/night: 0% GST\n'
+            + '  Accommodation — Rs.1,001 to Rs.7,500/night: 12% GST = 6% SGST + 6% CGST\n'
+            + '  Accommodation — Above Rs.7,500/night: 18% GST = 9% SGST + 9% CGST\n'
+            + '  CME / Conference / Event: 18% GST = 9% SGST + 9% CGST\n'
+            + '  Pharma Samples: 0% GST (drug samples exempt)\n'
+            + '\n'
+            + 'ONCO GLOBAL EXPENSE POLICY:\n'
+            + '  Policy limit: Rs.150 per transaction before compliance review\n'
+            + '  Common compliant expenses: auto-rickshaw (<Rs.100), chai/snacks (<Rs.50)\n'
+            + '  Common flagged expenses: lunch (>Rs.150), cab rides (usually >Rs.150)\n'
+            + '  Flagging does not block logging — it alerts compliance team\n'
+            + '\n'
+            + 'HINGLISH EXPENSE PHRASES:\n'
+            + '  "450 ka bill tha" → Bill was Rs.450 total\n'
+            + '  "GST mila ke 500 tha" → Including GST it was Rs.500\n'
+            + '  "GST alag se 45 tha" → GST was Rs.45 separately (pre-tax amount given)\n'
+            + '  "Receipt hai mere paas" → I have the receipt\n'
+            + '  "Invoice number hai" → Invoice number is available\n'
+            + '  "Lunch ke liye gaya" → Went for lunch (category = Meal)\n'
+            + '  "Cab se gaya tha" → Went by cab (category = Travel)\n'
+            + '  "Hotel mein ruka tha" → Stayed in hotel (category = Accommodation)\n'
+            + '  "Train se gaya" → Went by train (category = Travel)\n'
+            + '  "Conference mein gaya" → Went to conference (category = CME / Event)';
+    }
+
     // ─── Inner Classes ──────────────────────────────────────────────────────────
 
     public class Request {
@@ -226,6 +275,9 @@ public with sharing class GetMedicalContextAction {
 
         @InvocableVariable(label = 'Medical Terms')
         public String medicalTerms;
+
+        @InvocableVariable(label = 'Expense & GST Reference')
+        public String expenseGstReference;
 
         @InvocableVariable(label = 'Error Message')
         public String errorMessage;
