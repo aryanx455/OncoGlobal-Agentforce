@@ -1,0 +1,118 @@
+{
+  "unevaluatedProperties" : false,
+  "properties" : {
+    "contextSummaryForAI" : {
+      "title" : "Context Summary for AI",
+      "description" : "Full AI-ready context summary including visit history, relationship score, preferred products, and next best action recommendations.",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isDisplayable" : false,
+      "copilotAction:isUsedByPlanner" : true
+    },
+    "errorMessage" : {
+      "title" : "Error Message",
+      "description" : "Error details if retrieval failed",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isDisplayable" : false,
+      "copilotAction:isUsedByPlanner" : false
+    },
+    "isKeyAccount" : {
+      "title" : "Key Account",
+      "description" : "True if this physician is a key account",
+      "lightning:type" : "lightning__booleanType",
+      "lightning:isPII" : false,
+      "copilotAction:isDisplayable" : false,
+      "copilotAction:isUsedByPlanner" : true
+    },
+    "lastVisitDate" : {
+      "title" : "Last Visit Date",
+      "description" : "Date of the most recent visit to this physician",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isDisplayable" : false,
+      "copilotAction:isUsedByPlanner" : true
+    },
+    "lastVisitOutcome" : {
+      "title" : "Last Visit Outcome",
+      "description" : "Outcome of the most recent visit (Positive/Negative/Neutral/Follow-Up Required)",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isDisplayable" : false,
+      "copilotAction:isUsedByPlanner" : true
+    },
+    "physicianName" : {
+      "title" : "Physician Name",
+      "description" : "Full name of the physician",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isDisplayable" : false,
+      "copilotAction:isUsedByPlanner" : true
+    },
+    "preferredVisitDay" : {
+      "title" : "Preferred Visit Day",
+      "description" : "Day of the week this physician prefers for visits",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isDisplayable" : false,
+      "copilotAction:isUsedByPlanner" : true
+    },
+    "recentOutcomesSummary" : {
+      "title" : "Recent Outcomes Summary",
+      "description" : "Summary of outcomes from recent visits",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isDisplayable" : false,
+      "copilotAction:isUsedByPlanner" : true
+    },
+    "recentTopics" : {
+      "title" : "Recent Topics (last 5 visits)",
+      "description" : "Topics discussed in the most recent visits",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isDisplayable" : false,
+      "copilotAction:isUsedByPlanner" : true
+    },
+    "relationshipScore" : {
+      "title" : "Relationship Score",
+      "description" : "Current relationship score with this physician (0-100)",
+      "lightning:type" : "lightning__numberType",
+      "lightning:isPII" : false,
+      "copilotAction:isDisplayable" : false,
+      "copilotAction:isUsedByPlanner" : true
+    },
+    "specialty" : {
+      "title" : "Specialty",
+      "description" : "Medical specialty of the physician (e.g. Medical Oncology)",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isDisplayable" : false,
+      "copilotAction:isUsedByPlanner" : true
+    },
+    "success" : {
+      "title" : "Success",
+      "description" : "True if insights were retrieved",
+      "lightning:type" : "lightning__booleanType",
+      "lightning:isPII" : false,
+      "copilotAction:isDisplayable" : false,
+      "copilotAction:isUsedByPlanner" : true
+    },
+    "territory" : {
+      "title" : "Territory",
+      "description" : "Sales territory the physician belongs to",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isDisplayable" : false,
+      "copilotAction:isUsedByPlanner" : true
+    },
+    "totalVisits" : {
+      "title" : "Total Visits",
+      "description" : "Total number of visits logged for this physician",
+      "lightning:type" : "lightning__numberType",
+      "lightning:isPII" : false,
+      "copilotAction:isDisplayable" : false,
+      "copilotAction:isUsedByPlanner" : true
+    }
+  },
+  "lightning:type" : "lightning__objectType"
+}

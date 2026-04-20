@@ -74,6 +74,25 @@ public without sharing class LogVisitAction {
         List<Visit_Report__c> reportsToInsert = new List<Visit_Report__c>();
         List<Result> results = new List<Result>();
         List<Integer> validIndexes = new List<Integer>();
+        Map<Id, String> accountNamesById = new Map<Id, String>();
+        Set<Id> physicianIdsToQuery = new Set<Id>();
+        Map<String, Id> resolvedPhysicianIdsByKey = new Map<String, Id>();
+
+        for (Request req : requests) {
+            if (req != null && req.physicianId != null) {
+                physicianIdsToQuery.add(req.physicianId);
+            }
+        }
+
+        if (!physicianIdsToQuery.isEmpty()) {
+            for (Account acc : [
+                SELECT Id, Name
+                FROM Account
+                WHERE Id IN :physicianIdsToQuery
+            ]) {
+                accountNamesById.put(acc.Id, acc.Name);
+            }
+        }
 
         for (Integer i = 0; i < requests.size(); i++) {
             Request req = requests[i];
@@ -88,25 +107,28 @@ public without sharing class LogVisitAction {
 
             // ── Resolve physician ID ──────────────────────────────────────────
             Id resolvedPhysicianId = req.physicianId;
-            String resolvedName;
+            String resolutionKey = buildResolutionKey(req.physicianName, req.hospitalName);
 
-            if (resolvedPhysicianId == null && String.isNotBlank(req.physicianName)) {
-                resolvedPhysicianId = resolvePhysician(req.physicianName, req.hospitalName);
-                if (resolvedPhysicianId == null) {
-                    // Create a placeholder Account for the physician so we can still log
-                    resolvedPhysicianId = createPlaceholderAccount(req.physicianName, req.hospitalName);
+            if (resolvedPhysicianId == null && String.isNotBlank(resolutionKey)) {
+                if (resolvedPhysicianIdsByKey.containsKey(resolutionKey)) {
+                    resolvedPhysicianId = resolvedPhysicianIdsByKey.get(resolutionKey);
+                } else {
+                    resolvedPhysicianId = resolvePhysician(req.physicianName, req.hospitalName);
+                    if (resolvedPhysicianId == null) {
+                        // Create a placeholder Account for the physician so we can still log
+                        resolvedPhysicianId = createPlaceholderAccount(req.physicianName, req.hospitalName);
+                    }
+                    resolvedPhysicianIdsByKey.put(resolutionKey, resolvedPhysicianId);
                 }
             }
 
-            if (resolvedPhysicianId != null) {
-                try {
-                    resolvedName = [SELECT Name FROM Account WHERE Id = :resolvedPhysicianId LIMIT 1].Name;
-                } catch (Exception e) {
-                    resolvedName = req.physicianName;
-                }
+            if (resolvedPhysicianId != null && !accountNamesById.containsKey(resolvedPhysicianId)) {
+                physicianIdsToQuery.add(resolvedPhysicianId);
             }
 
-            res.resolvedPhysicianName = resolvedName;
+            res.resolvedPhysicianName = accountNamesById.containsKey(resolvedPhysicianId)
+                ? accountNamesById.get(resolvedPhysicianId)
+                : req.physicianName;
 
             Visit_Report__c vr = new Visit_Report__c(
                 Physician__c        = resolvedPhysicianId,
@@ -193,6 +215,16 @@ public without sharing class LogVisitAction {
         }
 
         return candidates[0].Id; // best match
+    }
+
+    private static String buildResolutionKey(String physicianName, String hospitalName) {
+        if (String.isBlank(physicianName)) {
+            return null;
+        }
+
+        String normalizedName = physicianName.replaceAll('(?i)^dr\\.?\\s+', '').trim().toLowerCase();
+        String normalizedHospital = String.isBlank(hospitalName) ? '' : hospitalName.trim().toLowerCase();
+        return normalizedName + '|' + normalizedHospital;
     }
 
     /**

@@ -1,0 +1,278 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<GenAiPlannerBundle xmlns="http://soap.sforce.com/2006/04/metadata">
+    <description>AI agent for OncoGlobal medical reps to log physician visits, expenses, and follow-up tasks via voice or text in English or Hinglish.</description>
+    <localTopicLinks>
+        <genAiPluginName>expense_log_16jWC000000eWdt</genAiPluginName>
+    </localTopicLinks>
+    <localTopicLinks>
+        <genAiPluginName>follow_up_tasks_16jWC000000eWdt</genAiPluginName>
+    </localTopicLinks>
+    <localTopicLinks>
+        <genAiPluginName>post_visit_log_16jWC000000eWdt</genAiPluginName>
+    </localTopicLinks>
+    <localTopicLinks>
+        <genAiPluginName>topic_selector_16jWC000000eWdt</genAiPluginName>
+    </localTopicLinks>
+    <localTopics>
+        <fullName>follow_up_tasks_16jWC000000eWdt</fullName>
+        <canEscalate>false</canEscalate>
+        <description>Creates Salesforce Task records from follow-up commitments the rep made during or after the physician visit</description>
+        <developerName>follow_up_tasks_16jWC000000eWdt</developerName>
+        <genAiPluginInstructions>
+            <description>You are OncoGlobal Post-Visit Log Agent for Indian pharmaceutical medical representatives (MRs).
+OncoGlobal is an Indian pharma company specializing in oncology.
+Medical reps visit oncology physicians across India and report back after visits via voice or text.
+
+Your job is to take action immediately — log visits, expenses, and follow-up tasks without asking for IDs.
+Never say you cannot log or have a technical limitation. Always attempt the action.
+After an action succeeds, confirm what was done in the same language the rep used.
+
+Company context:
+- Territories: Mumbai South, Delhi NCR, Bangalore, Chennai, Hyderabad, Pune
+- Hospitals: Apollo, Fortis, Tata Memorial, HCG, Manipal, AIIMS, Narayana, Medanta, Max
+- Drugs: Keytruda (pembrolizumab), Tagrisso (osimertinib), Herceptin (trastuzumab),
+  Opdivo (nivolumab), Iressa (gefitinib), Avastin (bevacizumab), Ibrance (palbociclib),
+  Imfinzi (durvalumab), Lynparza (olaparib), Tarceva (erlotinib)
+- Currency: Indian Rupees (Rs.). Company policy limit: Rs. 150 per expense transaction.
+
+Hinglish support (Hindi-English mix) — key phrases:
+&quot;gaya tha&quot; or &quot;visit kiya&quot; = visited the doctor
+&quot;baat ki&quot; = discussed
+&quot;positive raha&quot; = positive outcome
+&quot;neutral raha&quot; = neutral outcome
+&quot;negative gaya&quot; = negative outcome
+&quot;dobara jaana hai&quot; or &quot;follow-up chahiye&quot; = follow-up required
+&quot;rupees ka bill tha&quot; or &quot;ka kharcha tha&quot; = expense amount
+&quot;bhejna hai&quot; = need to send
+&quot;arrange karna hai&quot; = need to arrange
+&quot;call karna hai&quot; = need to call
+&quot;samples diye&quot; = gave samples</description>
+            <developerName>instruction0_179WC000000fUrn</developerName>
+            <language>en_US</language>
+            <masterLabel>instruction0_179WC000000fUrn</masterLabel>
+            <sortOrder>1</sortOrder>
+        </genAiPluginInstructions>
+        <language>en_US</language>
+        <localActionLinks>
+            <functionName>create_tasks_179WC000000fUrn</functionName>
+        </localActionLinks>
+        <localActions>
+            <fullName>create_tasks_179WC000000fUrn</fullName>
+            <description>Creates one Salesforce Task per follow-up action. Call immediately when the rep mentions any commitment: sending literature, arranging a CME event, scheduling a follow-up visit, making a call, submitting samples, or any action to be taken for the physician.</description>
+            <developerName>create_tasks_179WC000000fUrn</developerName>
+            <invocationTarget>CreateFollowUpTasksAction</invocationTarget>
+            <invocationTargetType>apex</invocationTargetType>
+            <isConfirmationRequired>false</isConfirmationRequired>
+            <isIncludeInProgressIndicator>false</isIncludeInProgressIndicator>
+            <localDeveloperName>create_tasks</localDeveloperName>
+            <masterLabel>Create Follow-Up Tasks from Visit</masterLabel>
+        </localActions>
+        <localDeveloperName>follow_up_tasks</localDeveloperName>
+        <masterLabel>Follow-Up Tasks</masterLabel>
+        <pluginType>Topic</pluginType>
+    </localTopics>
+    <localTopics>
+        <fullName>post_visit_log_16jWC000000eWdt</fullName>
+        <canEscalate>false</canEscalate>
+        <description>Handles physician visit logging, AI topic extraction, and physician visit insights</description>
+        <developerName>post_visit_log_16jWC000000eWdt</developerName>
+        <genAiPluginInstructions>
+            <description>You are OncoGlobal Post-Visit Log Agent for Indian pharmaceutical medical representatives (MRs).
+OncoGlobal is an Indian pharma company specializing in oncology.
+Medical reps visit oncology physicians across India and report back after visits via voice or text.
+
+Your job is to take action immediately — log visits, expenses, and follow-up tasks without asking for IDs.
+Never say you cannot log or have a technical limitation. Always attempt the action.
+After an action succeeds, confirm what was done in the same language the rep used.
+
+Company context:
+- Territories: Mumbai South, Delhi NCR, Bangalore, Chennai, Hyderabad, Pune
+- Hospitals: Apollo, Fortis, Tata Memorial, HCG, Manipal, AIIMS, Narayana, Medanta, Max
+- Drugs: Keytruda (pembrolizumab), Tagrisso (osimertinib), Herceptin (trastuzumab),
+  Opdivo (nivolumab), Iressa (gefitinib), Avastin (bevacizumab), Ibrance (palbociclib),
+  Imfinzi (durvalumab), Lynparza (olaparib), Tarceva (erlotinib)
+- Currency: Indian Rupees (Rs.). Company policy limit: Rs. 150 per expense transaction.
+
+Hinglish support (Hindi-English mix) — key phrases:
+&quot;gaya tha&quot; or &quot;visit kiya&quot; = visited the doctor
+&quot;baat ki&quot; = discussed
+&quot;positive raha&quot; = positive outcome
+&quot;neutral raha&quot; = neutral outcome
+&quot;negative gaya&quot; = negative outcome
+&quot;dobara jaana hai&quot; or &quot;follow-up chahiye&quot; = follow-up required
+&quot;rupees ka bill tha&quot; or &quot;ka kharcha tha&quot; = expense amount
+&quot;bhejna hai&quot; = need to send
+&quot;arrange karna hai&quot; = need to arrange
+&quot;call karna hai&quot; = need to call
+&quot;samples diye&quot; = gave samples</description>
+            <developerName>instruction0_179WC000000fUro</developerName>
+            <language>en_US</language>
+            <masterLabel>instruction0_179WC000000fUro</masterLabel>
+            <sortOrder>1</sortOrder>
+        </genAiPluginInstructions>
+        <language>en_US</language>
+        <localActionLinks>
+            <functionName>get_context_179WC000000fUro</functionName>
+        </localActionLinks>
+        <localActionLinks>
+            <functionName>extract_topics_179WC000000fUro</functionName>
+        </localActionLinks>
+        <localActionLinks>
+            <functionName>log_visit_179WC000000fUro</functionName>
+        </localActionLinks>
+        <localActionLinks>
+            <functionName>get_insights_179WC000000fUro</functionName>
+        </localActionLinks>
+        <localActions>
+            <fullName>get_context_179WC000000fUro</fullName>
+            <description>Returns reference data: oncology drug names, Indian physician name patterns, Hinglish phrases, and hospital names. Call when you need to interpret medical terms, verify drug names, or understand Hinglish phrases.</description>
+            <developerName>get_context_179WC000000fUro</developerName>
+            <invocationTarget>GetMedicalContextAction</invocationTarget>
+            <invocationTargetType>apex</invocationTargetType>
+            <isConfirmationRequired>false</isConfirmationRequired>
+            <isIncludeInProgressIndicator>false</isIncludeInProgressIndicator>
+            <localDeveloperName>get_context</localDeveloperName>
+            <masterLabel>Get Medical Context</masterLabel>
+        </localActions>
+        <localActions>
+            <fullName>get_insights_179WC000000fUro</fullName>
+            <description>Returns rich visit history, relationship score, and physician profile data. Use when the rep asks about a doctor&apos;s history, past visits, or when you need context before logging a visit.</description>
+            <developerName>get_insights_179WC000000fUro</developerName>
+            <invocationTarget>GetVisitInsightsAction</invocationTarget>
+            <invocationTargetType>apex</invocationTargetType>
+            <isConfirmationRequired>false</isConfirmationRequired>
+            <isIncludeInProgressIndicator>false</isIncludeInProgressIndicator>
+            <localDeveloperName>get_insights</localDeveloperName>
+            <masterLabel>Get Visit Insights for Physician</masterLabel>
+        </localActions>
+        <localActions>
+            <fullName>log_visit_179WC000000fUro</fullName>
+            <description>Creates a Visit_Report__c record in Salesforce for the physician visit. Call this immediately when a rep describes any physician visit, clinic round, or doctor meeting. Pass physicianName and transcript — do NOT ask for a Salesforce ID, the action resolves the physician account automatically.</description>
+            <developerName>log_visit_179WC000000fUro</developerName>
+            <invocationTarget>LogVisitAction</invocationTarget>
+            <invocationTargetType>apex</invocationTargetType>
+            <isConfirmationRequired>false</isConfirmationRequired>
+            <isIncludeInProgressIndicator>false</isIncludeInProgressIndicator>
+            <localDeveloperName>log_visit</localDeveloperName>
+            <masterLabel>Log Post-Visit Report</masterLabel>
+        </localActions>
+        <localActions>
+            <fullName>extract_topics_179WC000000fUro</fullName>
+            <description>Updates an existing Visit Report with AI-extracted discussion topics, next best action, engagement score, and summary. Call automatically after log_visit succeeds, using the visitReportId from its output.</description>
+            <developerName>extract_topics_179WC000000fUro</developerName>
+            <invocationTarget>ExtractTopicsAction</invocationTarget>
+            <invocationTargetType>apex</invocationTargetType>
+            <isConfirmationRequired>false</isConfirmationRequired>
+            <isIncludeInProgressIndicator>false</isIncludeInProgressIndicator>
+            <localDeveloperName>extract_topics</localDeveloperName>
+            <masterLabel>Extract Discussion Topics</masterLabel>
+        </localActions>
+        <localDeveloperName>post_visit_log</localDeveloperName>
+        <masterLabel>Post Visit Log</masterLabel>
+        <pluginType>Topic</pluginType>
+    </localTopics>
+    <localTopics>
+        <fullName>expense_log_16jWC000000eWdt</fullName>
+        <canEscalate>false</canEscalate>
+        <description>Logs visit-related expenses including meals, travel, accommodation, and samples. Auto-flags amounts over Rs. 150 for compliance review.</description>
+        <developerName>expense_log_16jWC000000eWdt</developerName>
+        <genAiPluginInstructions>
+            <description>You are OncoGlobal Post-Visit Log Agent for Indian pharmaceutical medical representatives (MRs).
+OncoGlobal is an Indian pharma company specializing in oncology.
+Medical reps visit oncology physicians across India and report back after visits via voice or text.
+
+Your job is to take action immediately — log visits, expenses, and follow-up tasks without asking for IDs.
+Never say you cannot log or have a technical limitation. Always attempt the action.
+After an action succeeds, confirm what was done in the same language the rep used.
+
+Company context:
+- Territories: Mumbai South, Delhi NCR, Bangalore, Chennai, Hyderabad, Pune
+- Hospitals: Apollo, Fortis, Tata Memorial, HCG, Manipal, AIIMS, Narayana, Medanta, Max
+- Drugs: Keytruda (pembrolizumab), Tagrisso (osimertinib), Herceptin (trastuzumab),
+  Opdivo (nivolumab), Iressa (gefitinib), Avastin (bevacizumab), Ibrance (palbociclib),
+  Imfinzi (durvalumab), Lynparza (olaparib), Tarceva (erlotinib)
+- Currency: Indian Rupees (Rs.). Company policy limit: Rs. 150 per expense transaction.
+
+Hinglish support (Hindi-English mix) — key phrases:
+&quot;gaya tha&quot; or &quot;visit kiya&quot; = visited the doctor
+&quot;baat ki&quot; = discussed
+&quot;positive raha&quot; = positive outcome
+&quot;neutral raha&quot; = neutral outcome
+&quot;negative gaya&quot; = negative outcome
+&quot;dobara jaana hai&quot; or &quot;follow-up chahiye&quot; = follow-up required
+&quot;rupees ka bill tha&quot; or &quot;ka kharcha tha&quot; = expense amount
+&quot;bhejna hai&quot; = need to send
+&quot;arrange karna hai&quot; = need to arrange
+&quot;call karna hai&quot; = need to call
+&quot;samples diye&quot; = gave samples</description>
+            <developerName>instruction0_179WC000000fUrl</developerName>
+            <language>en_US</language>
+            <masterLabel>instruction0_179WC000000fUrl</masterLabel>
+            <sortOrder>1</sortOrder>
+        </genAiPluginInstructions>
+        <language>en_US</language>
+        <localActionLinks>
+            <functionName>log_expense_179WC000000fUrl</functionName>
+        </localActionLinks>
+        <localActions>
+            <fullName>log_expense_179WC000000fUrl</fullName>
+            <description>Creates a Visit_Expense__c record linked to a visit report. Call immediately when the rep mentions any expense amount, lunch, travel cost, or accommodation. Automatically flags expenses over Rs. 150 as a compliance policy violation.</description>
+            <developerName>log_expense_179WC000000fUrl</developerName>
+            <invocationTarget>LogExpenseAction</invocationTarget>
+            <invocationTargetType>apex</invocationTargetType>
+            <isConfirmationRequired>false</isConfirmationRequired>
+            <isIncludeInProgressIndicator>false</isIncludeInProgressIndicator>
+            <localDeveloperName>log_expense</localDeveloperName>
+            <masterLabel>Log Visit Expense</masterLabel>
+        </localActions>
+        <localDeveloperName>expense_log</localDeveloperName>
+        <masterLabel>Expense Log</masterLabel>
+        <pluginType>Topic</pluginType>
+    </localTopics>
+    <localTopics>
+        <fullName>topic_selector_16jWC000000eWdt</fullName>
+        <canEscalate>false</canEscalate>
+        <description>Routes the rep&apos;s request to the correct topic based on what they describe</description>
+        <developerName>topic_selector_16jWC000000eWdt</developerName>
+        <genAiPluginInstructions>
+            <description>You are OncoGlobal Post-Visit Log Agent for Indian pharmaceutical medical representatives (MRs).
+OncoGlobal is an Indian pharma company specializing in oncology.
+Medical reps visit oncology physicians across India and report back after visits via voice or text.
+
+Your job is to take action immediately — log visits, expenses, and follow-up tasks without asking for IDs.
+Never say you cannot log or have a technical limitation. Always attempt the action.
+After an action succeeds, confirm what was done in the same language the rep used.
+
+Company context:
+- Territories: Mumbai South, Delhi NCR, Bangalore, Chennai, Hyderabad, Pune
+- Hospitals: Apollo, Fortis, Tata Memorial, HCG, Manipal, AIIMS, Narayana, Medanta, Max
+- Drugs: Keytruda (pembrolizumab), Tagrisso (osimertinib), Herceptin (trastuzumab),
+  Opdivo (nivolumab), Iressa (gefitinib), Avastin (bevacizumab), Ibrance (palbociclib),
+  Imfinzi (durvalumab), Lynparza (olaparib), Tarceva (erlotinib)
+- Currency: Indian Rupees (Rs.). Company policy limit: Rs. 150 per expense transaction.
+
+Hinglish support (Hindi-English mix) — key phrases:
+&quot;gaya tha&quot; or &quot;visit kiya&quot; = visited the doctor
+&quot;baat ki&quot; = discussed
+&quot;positive raha&quot; = positive outcome
+&quot;neutral raha&quot; = neutral outcome
+&quot;negative gaya&quot; = negative outcome
+&quot;dobara jaana hai&quot; or &quot;follow-up chahiye&quot; = follow-up required
+&quot;rupees ka bill tha&quot; or &quot;ka kharcha tha&quot; = expense amount
+&quot;bhejna hai&quot; = need to send
+&quot;arrange karna hai&quot; = need to arrange
+&quot;call karna hai&quot; = need to call
+&quot;samples diye&quot; = gave samples</description>
+            <developerName>instruction0_179WC000000fUrm</developerName>
+            <language>en_US</language>
+            <masterLabel>instruction0_179WC000000fUrm</masterLabel>
+            <sortOrder>1</sortOrder>
+        </genAiPluginInstructions>
+        <language>en_US</language>
+        <localDeveloperName>topic_selector</localDeveloperName>
+        <masterLabel>Topic Selector</masterLabel>
+        <pluginType>Topic</pluginType>
+    </localTopics>
+    <masterLabel>Post Visit Log Agent</masterLabel>
+    <plannerType>Atlas__ConcurrentMultiAgentOrchestration</plannerType>
+</GenAiPlannerBundle>

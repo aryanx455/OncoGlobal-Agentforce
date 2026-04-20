@@ -63,7 +63,7 @@ private class CreateFollowUpTasksActionTest {
     }
 
     @IsTest
-    static void testExecute_missingReportId_returnsError() {
+    static void testExecute_missingReportId_createsTasksWithoutVisitLink() {
         CreateFollowUpTasksAction.Request req = new CreateFollowUpTasksAction.Request();
         req.physicianId     = [SELECT Id FROM Account LIMIT 1].Id;
         req.followUpActions = 'Do something';
@@ -74,7 +74,16 @@ private class CreateFollowUpTasksActionTest {
         );
         Test.stopTest();
 
-        System.assert(!results[0].success);
+        System.assert(results[0].success);
+        System.assertEquals(1, results[0].tasksCreated);
+
+        Task createdTask = [
+            SELECT Subject, WhatId
+            FROM Task
+            WHERE Id = :results[0].taskIds
+        ];
+        System.assertEquals('Do something', createdTask.Subject);
+        System.assertEquals(null, createdTask.WhatId, 'Task should still be created without a visit report link');
     }
 
     @IsTest

@@ -45,7 +45,7 @@ private class LogVisitActionTest {
     }
 
     @IsTest
-    static void testExecute_missingPhysicianId_returnsError() {
+    static void testExecute_missingPhysicianId_createsVisitWithoutLink() {
         LogVisitAction.Request req = new LogVisitAction.Request();
         req.transcript = 'Some transcript text';
 
@@ -56,8 +56,16 @@ private class LogVisitActionTest {
         Test.stopTest();
 
         System.assertEquals(1, results.size());
-        System.assert(!results[0].success, 'Should fail without physician ID');
-        System.assertNotEquals(null, results[0].errorMessage);
+        System.assert(results[0].success, 'Should still log without physician ID');
+        System.assertEquals(null, results[0].errorMessage);
+
+        Visit_Report__c vr = [
+            SELECT Physician__c, Voice_Transcript__c
+            FROM Visit_Report__c
+            WHERE Id = :results[0].visitReportId
+        ];
+        System.assertEquals(null, vr.Physician__c, 'Visit should be logged without a physician link');
+        System.assertEquals('Some transcript text', vr.Voice_Transcript__c);
     }
 
     @IsTest

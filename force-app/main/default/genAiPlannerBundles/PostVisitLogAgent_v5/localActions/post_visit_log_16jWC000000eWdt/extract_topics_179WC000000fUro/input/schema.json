@@ -1,0 +1,49 @@
+{
+  "required" : [ "visitReportId" ],
+  "unevaluatedProperties" : false,
+  "properties" : {
+    "aiSummary" : {
+      "title" : "AI Summary",
+      "description" : "Concise AI-generated summary of the visit for the record.",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : true
+    },
+    "discussionTopics" : {
+      "title" : "Extracted Discussion Topics",
+      "description" : "Semicolon-separated list of topics discussed during the visit. Extract drug names, clinical topics, and formulary discussions from the transcript (e.g. 'Keytruda; PD-L1 testing; formulary listing; dose escalation').",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : true
+    },
+    "engagementScore" : {
+      "title" : "AI Engagement Score (0-100)",
+      "description" : "Engagement score 0-100 for the physician based on this visit.",
+      "lightning:type" : "lightning__numberType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : true
+    },
+    "needsReview" : {
+      "title" : "Needs Review Flag",
+      "description" : "Set to True if the visit had unusual circumstances or compliance concerns. Default False.",
+      "lightning:type" : "lightning__booleanType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : false
+    },
+    "nextBestAction" : {
+      "title" : "Next Best Action",
+      "description" : "The single most important follow-up action the rep should take based on this visit (e.g. 'Send Keytruda clinical trial data to Dr. Sharma').",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : true
+    },
+    "visitReportId" : {
+      "title" : "Visit Report ID",
+      "description" : "Salesforce ID of the visit report to update. Use the visitReportId output from log_visit.",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : false
+    }
+  },
+  "lightning:type" : "lightning__objectType"
+}

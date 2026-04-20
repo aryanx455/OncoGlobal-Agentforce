@@ -1,0 +1,56 @@
+{
+  "required" : [ "transcript", "physicianName" ],
+  "unevaluatedProperties" : false,
+  "properties" : {
+    "aiSummary" : {
+      "title" : "AI Generated Summary",
+      "description" : "One to two sentence AI-generated summary of the visit (e.g. 'Strong positive visit at Apollo Mumbai. Dr. Sharma expressed interest in Keytruda for PD-L1 positive patients and requested clinical trial data.').",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : true
+    },
+    "engagementScore" : {
+      "title" : "Engagement Score (0-100)",
+      "description" : "Physician engagement score 0-100. Infer from sentiment: very positive/enthusiastic = 85-95, moderately positive = 65-80, neutral = 45-55, negative = 15-35.",
+      "lightning:type" : "lightning__numberType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : true
+    },
+    "hospitalName" : {
+      "title" : "Hospital or Facility Name",
+      "description" : "Name of the hospital or clinic where the visit took place (e.g. 'Apollo Mumbai', 'Tata Memorial', 'HCG Bangalore'). Helps narrow down the physician Account search.",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : true
+    },
+    "physicianName" : {
+      "title" : "Physician Name",
+      "description" : "Name of the physician as spoken by the rep (e.g. 'Dr. Sharma', 'Dr. Meena Nair', 'Dr. Iyer'). Used to look up the Salesforce Account. Provide even if you do not have the Account ID.",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : true
+    },
+    "transcript" : {
+      "title" : "Voice Transcript",
+      "description" : "The full voice transcript or summary spoken by the rep after the visit. REQUIRED — this is the main input. Include all details: drugs discussed, outcome, follow-ups mentioned.",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : true
+    },
+    "visitOutcome" : {
+      "title" : "Visit Outcome",
+      "description" : "Outcome of the visit. Must be exactly one of: Positive, Negative, Neutral, Follow-Up Required. Infer from language — 'positive raha' = Positive, 'dobara jaana hai' = Follow-Up Required, no strong signal = Neutral.",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : true
+    },
+    "visitType" : {
+      "title" : "Visit Type",
+      "description" : "Type of visit. Must be exactly one of: In-Person Clinic, Hospital Round, Virtual Call, Conference / Event, Drop-In. Default to In-Person Clinic if not specified.",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : true
+    }
+  },
+  "lightning:type" : "lightning__objectType"
+}

@@ -1,0 +1,507 @@
+system:
+    instructions: |
+        You are OncoGlobal Post-Visit Log Agent for Indian pharmaceutical medical representatives (MRs).
+        OncoGlobal is an Indian pharma company specializing in oncology.
+        Medical reps visit oncology physicians across India and report back after visits via voice or text.
+
+        Your job is to take action immediately — log visits, expenses, and follow-up tasks without asking for IDs.
+        Never say you cannot log or have a technical limitation. Always attempt the action.
+        After an action succeeds, confirm what was done in the same language the rep used.
+
+        Company context:
+        - Territories: Mumbai South, Delhi NCR, Bangalore, Chennai, Hyderabad, Pune
+        - Hospitals: Apollo, Fortis, Tata Memorial, HCG, Manipal, AIIMS, Narayana, Medanta, Max
+        - Drugs: Keytruda (pembrolizumab), Tagrisso (osimertinib), Herceptin (trastuzumab),
+          Opdivo (nivolumab), Iressa (gefitinib), Avastin (bevacizumab), Ibrance (palbociclib),
+          Imfinzi (durvalumab), Lynparza (olaparib), Tarceva (erlotinib)
+        - Currency: Indian Rupees (Rs.). Company policy limit: Rs. 150 per expense transaction.
+
+        Hinglish support (Hindi-English mix) — key phrases:
+        "gaya tha" or "visit kiya" = visited the doctor
+        "baat ki" = discussed
+        "positive raha" = positive outcome
+        "neutral raha" = neutral outcome
+        "negative gaya" = negative outcome
+        "dobara jaana hai" or "follow-up chahiye" = follow-up required
+        "rupees ka bill tha" or "ka kharcha tha" = expense amount
+        "bhejna hai" = need to send
+        "arrange karna hai" = need to arrange
+        "call karna hai" = need to call
+        "samples diye" = gave samples
+    messages:
+        welcome: "Hi! I'm your OncoGlobal post-visit assistant. I can help you log your physician visit, extract discussion topics, create follow-up tasks, or log expenses. How can I help?"
+        error: "Something went wrong. Please try again."
+
+config:
+    developer_name: "PostVisitLogAgent"
+    agent_label: "Post Visit Log Agent"
+    description: "AI agent for OncoGlobal medical reps to log physician visits, expenses, and follow-up tasks via voice or text in English or Hinglish."
+    agent_type: "AgentforceEmployeeAgent"
+
+variables:
+    visitReportId: mutable string = ""
+        description: "Salesforce ID of the visit report created in this session"
+    physicianName: mutable string = ""
+        description: "Resolved physician name from the visit logged in this session"
+
+language:
+    default_locale: "en_US"
+    additional_locales: "hi"
+    all_additional_locales: False
+
+start_agent topic_selector:
+    description: "Routes the rep's request to the correct topic based on what they describe"
+    reasoning:
+        instructions: |
+            You are a router only. Route immediately — do not answer questions directly.
+            - Rep describes visiting a doctor, a visit, meeting, clinic round, or a hospital -> use to_visit_log
+            - Rep mentions an expense, rupees, lunch, meal, travel cost, bill, accommodation -> use to_expense_log
+            - Rep mentions follow-up, sending literature, arranging CME, scheduling, bhejna hai, arrange karna hai -> use to_followup
+            - Rep asks about doctor history, past visits, relationship score, or insights -> use to_visit_log
+        actions:
+            to_visit_log: @utils.transition to @topic.post_visit_log
+                description: "Log a physician visit, extract topics, or get physician insights"
+            to_expense_log: @utils.transition to @topic.expense_log
+                description: "Log a visit-related expense in Indian Rupees"
+            to_followup: @utils.transition to @topic.follow_up_tasks
+                description: "Create follow-up tasks from visit commitments"
+
+topic post_visit_log:
+    label: "Post Visit Log"
+    description: "Handles physician visit logging, AI topic extraction, and physician visit insights"
+
+    actions:
+        log_visit:
+            label: "Log Post-Visit Report"
+            description: "Creates a Visit_Report__c record in Salesforce for the physician visit. Call this immediately when a rep describes any physician visit, clinic round, or doctor meeting. Pass physicianName and transcript — do NOT ask for a Salesforce ID, the action resolves the physician account automatically."
+            require_user_confirmation: False
+            target: "apex://LogVisitAction"
+            inputs:
+                transcript: string
+                    label: "Voice Transcript"
+                    description: "The full voice transcript or summary spoken by the rep after the visit. REQUIRED — this is the main input. Include all details: drugs discussed, outcome, follow-ups mentioned."
+                    is_required: True
+                    is_user_input: True
+                physicianName: string
+                    label: "Physician Name"
+                    description: "Name of the physician as spoken by the rep (e.g. 'Dr. Sharma', 'Dr. Meena Nair', 'Dr. Iyer'). Used to look up the Salesforce Account. Provide even if you do not have the Account ID."
+                    is_required: True
+                    is_user_input: True
+                hospitalName: string
+                    label: "Hospital or Facility Name"
+                    description: "Name of the hospital or clinic where the visit took place (e.g. 'Apollo Mumbai', 'Tata Memorial', 'HCG Bangalore'). Helps narrow down the physician Account search."
+                    is_user_input: True
+                visitOutcome: string
+                    label: "Visit Outcome"
+                    description: "Outcome of the visit. Must be exactly one of: Positive, Negative, Neutral, Follow-Up Required. Infer from language — 'positive raha' = Positive, 'dobara jaana hai' = Follow-Up Required, no strong signal = Neutral."
+                    is_user_input: True
+                visitType: string
+                    label: "Visit Type"
+                    description: "Type of visit. Must be exactly one of: In-Person Clinic, Hospital Round, Virtual Call, Conference / Event, Drop-In. Default to In-Person Clinic if not specified."
+                    is_user_input: True
+                engagementScore: number
+                    label: "Engagement Score (0-100)"
+                    description: "Physician engagement score 0-100. Infer from sentiment: very positive/enthusiastic = 85-95, moderately positive = 65-80, neutral = 45-55, negative = 15-35."
+                    is_user_input: True
+                aiSummary: string
+                    label: "AI Generated Summary"
+                    description: "One to two sentence AI-generated summary of the visit (e.g. 'Strong positive visit at Apollo Mumbai. Dr. Sharma expressed interest in Keytruda for PD-L1 positive patients and requested clinical trial data.')."
+                    is_user_input: True
+            outputs:
+                success: boolean
+                    label: "Success"
+                    description: "True if the visit report was created successfully in Salesforce"
+                    is_used_by_planner: True
+                visitReportId: string
+                    label: "Visit Report ID"
+                    description: "Salesforce ID of the newly created Visit_Report__c record. Used by extract_topics and create_tasks actions to link further data."
+                    is_used_by_planner: True
+                    filter_from_agent: True
+                visitReportName: string
+                    label: "Visit Report Name"
+                    description: "Human-readable name of the visit report (e.g. 'VR-00042')"
+                    is_used_by_planner: True
+                resolvedPhysicianName: string
+                    label: "Physician Name (resolved)"
+                    description: "The physician name as it was resolved in Salesforce. Confirm this to the rep."
+                    is_used_by_planner: True
+                errorMessage: string
+                    label: "Error Message"
+                    description: "Error details if success is False. If present, ask the rep to confirm the doctor name."
+                    filter_from_agent: True
+
+        extract_topics:
+            label: "Extract Discussion Topics"
+            description: "Updates an existing Visit Report with AI-extracted discussion topics, next best action, engagement score, and summary. Call automatically after log_visit succeeds, using the visitReportId from its output."
+            require_user_confirmation: False
+            target: "apex://ExtractTopicsAction"
+            inputs:
+                visitReportId: string
+                    label: "Visit Report ID"
+                    description: "Salesforce ID of the visit report to update. Use the visitReportId output from log_visit."
+                    is_required: True
+                discussionTopics: string
+                    label: "Extracted Discussion Topics"
+                    description: "Semicolon-separated list of topics discussed during the visit. Extract drug names, clinical topics, and formulary discussions from the transcript (e.g. 'Keytruda; PD-L1 testing; formulary listing; dose escalation')."
+                    is_user_input: True
+                nextBestAction: string
+                    label: "Next Best Action"
+                    description: "The single most important follow-up action the rep should take based on this visit (e.g. 'Send Keytruda clinical trial data to Dr. Sharma')."
+                    is_user_input: True
+                engagementScore: number
+                    label: "AI Engagement Score (0-100)"
+                    description: "Engagement score 0-100 for the physician based on this visit."
+                    is_user_input: True
+                aiSummary: string
+                    label: "AI Summary"
+                    description: "Concise AI-generated summary of the visit for the record."
+                    is_user_input: True
+                needsReview: boolean
+                    label: "Needs Review Flag"
+                    description: "Set to True if the visit had unusual circumstances or compliance concerns. Default False."
+            outputs:
+                success: boolean
+                    label: "Success"
+                    description: "True if the visit report was updated with topics"
+                    is_used_by_planner: True
+                visitReportId: string
+                    label: "Updated Visit Report ID"
+                    description: "ID of the updated visit report"
+                    filter_from_agent: True
+                errorMessage: string
+                    label: "Error Message"
+                    description: "Error details if topic extraction failed"
+                    filter_from_agent: True
+
+        get_insights:
+            label: "Get Visit Insights for Physician"
+            description: "Returns rich visit history, relationship score, and physician profile data. Use when the rep asks about a doctor's history, past visits, or when you need context before logging a visit."
+            require_user_confirmation: False
+            target: "apex://GetVisitInsightsAction"
+            inputs:
+                physicianId: string
+                    label: "Physician Account ID"
+                    description: "Salesforce Account ID of the physician to retrieve insights for."
+                    is_required: True
+            outputs:
+                success: boolean
+                    label: "Success"
+                    description: "True if insights were retrieved"
+                    is_used_by_planner: True
+                physicianName: string
+                    label: "Physician Name"
+                    description: "Full name of the physician"
+                    is_used_by_planner: True
+                specialty: string
+                    label: "Specialty"
+                    description: "Medical specialty of the physician (e.g. Medical Oncology)"
+                    is_used_by_planner: True
+                territory: string
+                    label: "Territory"
+                    description: "Sales territory the physician belongs to"
+                    is_used_by_planner: True
+                relationshipScore: number
+                    label: "Relationship Score"
+                    description: "Current relationship score with this physician (0-100)"
+                    is_used_by_planner: True
+                totalVisits: number
+                    label: "Total Visits"
+                    description: "Total number of visits logged for this physician"
+                    is_used_by_planner: True
+                lastVisitDate: string
+                    label: "Last Visit Date"
+                    description: "Date of the most recent visit to this physician"
+                    is_used_by_planner: True
+                lastVisitOutcome: string
+                    label: "Last Visit Outcome"
+                    description: "Outcome of the most recent visit (Positive/Negative/Neutral/Follow-Up Required)"
+                    is_used_by_planner: True
+                recentTopics: string
+                    label: "Recent Topics (last 5 visits)"
+                    description: "Topics discussed in the most recent visits"
+                    is_used_by_planner: True
+                recentOutcomesSummary: string
+                    label: "Recent Outcomes Summary"
+                    description: "Summary of outcomes from recent visits"
+                    is_used_by_planner: True
+                isKeyAccount: boolean
+                    label: "Key Account"
+                    description: "True if this physician is a key account"
+                    is_used_by_planner: True
+                preferredVisitDay: string
+                    label: "Preferred Visit Day"
+                    description: "Day of the week this physician prefers for visits"
+                    is_used_by_planner: True
+                contextSummaryForAI: string
+                    label: "Context Summary for AI"
+                    description: "Full AI-ready context summary including visit history, relationship score, preferred products, and next best action recommendations."
+                    is_used_by_planner: True
+                errorMessage: string
+                    label: "Error Message"
+                    description: "Error details if retrieval failed"
+                    filter_from_agent: True
+
+        get_context:
+            label: "Get Medical Context"
+            description: "Returns reference data: oncology drug names, Indian physician name patterns, Hinglish phrases, and hospital names. Call when you need to interpret medical terms, verify drug names, or understand Hinglish phrases."
+            require_user_confirmation: False
+            target: "apex://GetMedicalContextAction"
+            inputs:
+                category: string
+                    label: "Context Category"
+                    description: "Category of context to retrieve: ALL, DRUGS, NAMES, PHRASES, FACILITIES, TERMS. Use ALL unless you need a specific category."
+            outputs:
+                success: boolean
+                    label: "Success"
+                    description: "True if context was retrieved"
+                    is_used_by_planner: True
+                fullContext: string
+                    label: "Full Context"
+                    description: "Complete medical context reference including all categories"
+                    is_used_by_planner: True
+                drugReference: string
+                    label: "Drug Reference"
+                    description: "Oncology drug names, brand names, generic names, and indications"
+                    is_used_by_planner: True
+                namePatterns: string
+                    label: "Name Patterns"
+                    description: "Common Indian physician name patterns for recognition"
+                    is_used_by_planner: True
+                hinglishPhrases: string
+                    label: "Hinglish Phrases"
+                    description: "Hindi-English mixed phrases used by Indian pharma reps and their English meanings"
+                    is_used_by_planner: True
+                facilityReference: string
+                    label: "Facility Reference"
+                    description: "Indian oncology hospital and cancer centre names"
+                    is_used_by_planner: True
+                medicalTerms: string
+                    label: "Medical Terms"
+                    description: "Oncology and clinical trial terminology"
+                    is_used_by_planner: True
+                errorMessage: string
+                    label: "Error Message"
+                    description: "Error details if context retrieval failed"
+                    filter_from_agent: True
+
+    reasoning:
+        instructions: ->
+            | STEP 1 — CALL log_visit IMMEDIATELY when the rep describes a visit.
+            | Pass transcript (the rep's full statement), physicianName, and hospitalName.
+            | Do NOT ask for a Salesforce ID — the action resolves it from the name.
+            |
+            if @variables.visitReportId == "":
+                | After log_visit succeeds, CALL extract_topics automatically with the visitReportId.
+                | Extract drug names, clinical topics, and the most important follow-up action from the transcript.
+            else:
+                | Visit already logged in this session for {!@variables.physicianName}.
+                | You can call extract_topics or get_insights for additional tasks.
+            |
+            | CONFIRMATION: After each successful action, confirm in the same language the rep used.
+            | English: "Visit logged for Dr. [name] at [hospital]. Report: [visitReportName]."
+            | Hinglish: "Visit log ho gaya Dr. [name] ke liye. Report number: [visitReportName]."
+            | If policyFlagged on expense: warn "Expense exceeds Rs. 150 policy limit — flagged for review."
+
+        actions:
+            visit: @actions.log_visit
+                description: "Log the physician visit — call immediately when rep describes ANY visit. Do NOT ask for IDs."
+                with transcript = ...
+                with physicianName = ...
+                with hospitalName = ...
+                with visitOutcome = ...
+                with visitType = ...
+                with engagementScore = ...
+                with aiSummary = ...
+                set @variables.visitReportId = @outputs.visitReportId
+                set @variables.physicianName = @outputs.resolvedPhysicianName
+
+            topics: @actions.extract_topics
+                description: "Extract AI discussion topics — call after log_visit succeeds with the visitReportId output"
+                with visitReportId = @variables.visitReportId
+                with discussionTopics = ...
+                with nextBestAction = ...
+                with engagementScore = ...
+                with aiSummary = ...
+                with needsReview = ...
+
+            insights: @actions.get_insights
+                description: "Get physician visit history and insights — use when rep asks about doctor history or you need context"
+                with physicianId = ...
+
+            medical_ctx: @actions.get_context
+                description: "Get oncology drug and Hinglish reference data — use to interpret unfamiliar medical terms or phrases"
+                with category = ...
+
+            to_expense: @utils.transition to @topic.expense_log
+                description: "Rep mentions an expense amount in rupees — transition to expense logging"
+
+            to_followup: @utils.transition to @topic.follow_up_tasks
+                description: "Rep mentions follow-up commitments — transition to task creation"
+
+topic expense_log:
+    label: "Expense Log"
+    description: "Logs visit-related expenses including meals, travel, accommodation, and samples. Auto-flags amounts over Rs. 150 for compliance review."
+
+    actions:
+        log_expense:
+            label: "Log Visit Expense"
+            description: "Creates a Visit_Expense__c record linked to a visit report. Call immediately when the rep mentions any expense amount, lunch, travel cost, or accommodation. Automatically flags expenses over Rs. 150 as a compliance policy violation."
+            require_user_confirmation: False
+            target: "apex://LogExpenseAction"
+            inputs:
+                amount: number
+                    label: "Amount"
+                    description: "Expense amount as a plain number in Indian Rupees (e.g. 450 for 'Rs. 450 ka lunch' or '450 rupees ka bill tha'). Extract only the numeric value."
+                    is_required: True
+                    is_user_input: True
+                category: string
+                    label: "Category"
+                    description: "Expense category. Must be exactly one of: Meal, Travel, Accommodation, Samples, CME / Event, Other. Infer from context: 'lunch' or 'dinner' = Meal; 'cab' or 'auto' or 'petrol' = Travel; 'hotel' = Accommodation; 'samples' = Samples."
+                    is_required: True
+                    is_user_input: True
+                physicianName: string
+                    label: "Physician Name"
+                    description: "Name of the physician this expense is associated with (e.g. 'Dr. Reddy'). Used to automatically find today's visit report."
+                    is_user_input: True
+                hospitalName: string
+                    label: "Hospital or Facility Name"
+                    description: "Hospital or clinic name (e.g. 'HCG Bangalore'). Helps find the correct visit report when multiple visits exist today."
+                    is_user_input: True
+                notes: string
+                    label: "Notes"
+                    description: "Free-text description of the expense (e.g. 'Lunch with Dr. Reddy at HCG Bangalore canteen')."
+                    is_user_input: True
+                visitDate: string
+                    label: "Visit Date (defaults to today)"
+                    description: "Date of the visit in YYYY-MM-DD format. Defaults to today if not provided."
+            outputs:
+                success: boolean
+                    label: "Success"
+                    description: "True if the expense was logged successfully"
+                    is_used_by_planner: True
+                expenseId: string
+                    label: "Expense ID"
+                    description: "Salesforce ID of the created expense record"
+                    filter_from_agent: True
+                policyFlagged: boolean
+                    label: "Policy Flagged"
+                    description: "True if the expense exceeds the Rs. 150 company policy limit. IMPORTANT: tell the rep when this is True."
+                    is_used_by_planner: True
+                resolvedVisitReportId: string
+                    label: "Visit Report ID (resolved)"
+                    description: "ID of the visit report this expense was linked to"
+                    filter_from_agent: True
+                errorMessage: string
+                    label: "Error Message"
+                    description: "Error details if expense logging failed"
+                    filter_from_agent: True
+
+    reasoning:
+        instructions: ->
+            | CALL log_expense IMMEDIATELY with the amount and category inferred from the rep's statement.
+            | Do NOT ask for a Visit Report ID — the action finds today's visit report automatically.
+            |
+            if @variables.physicianName != "":
+                | Linking expense to today's visit for {!@variables.physicianName}.
+            |
+            | After logging, confirm:
+            | English: "Rs. [amount] [category] expense logged."
+            | Hinglish: "Rs. [amount] ka [category] expense log ho gaya."
+            |
+            | COMPLIANCE CHECK: If policyFlagged is True, ALWAYS warn the rep:
+            | "Note: This expense is above the Rs. 150 policy limit and has been flagged for compliance review."
+
+        actions:
+            expense: @actions.log_expense
+                description: "Log the visit expense — call immediately when rep mentions any amount in rupees"
+                with amount = ...
+                with category = ...
+                with physicianName = ...
+                with hospitalName = ...
+                with notes = ...
+
+            to_followup: @utils.transition to @topic.follow_up_tasks
+                description: "Rep also has follow-up commitments to log"
+
+            to_visit: @utils.transition to @topic.post_visit_log
+                description: "Rep wants to also log the physician visit"
+
+topic follow_up_tasks:
+    label: "Follow-Up Tasks"
+    description: "Creates Salesforce Task records from follow-up commitments the rep made during or after the physician visit"
+
+    actions:
+        create_tasks:
+            label: "Create Follow-Up Tasks from Visit"
+            description: "Creates one Salesforce Task per follow-up action. Call immediately when the rep mentions any commitment: sending literature, arranging a CME event, scheduling a follow-up visit, making a call, submitting samples, or any action to be taken for the physician."
+            require_user_confirmation: False
+            target: "apex://CreateFollowUpTasksAction"
+            inputs:
+                followUpActions: string
+                    label: "Follow-Up Actions"
+                    description: "Comma-separated or newline-separated list of all follow-up actions to create as Tasks. Extract EVERY commitment from the rep's statement (e.g. 'Send Tagrisso literature to Dr. Gupta, Arrange CME event next month, Call back next week to confirm formulary status'). Each comma-separated item becomes a separate Task."
+                    is_required: True
+                    is_user_input: True
+                physicianName: string
+                    label: "Physician Name"
+                    description: "Name of the physician the follow-up tasks are for (e.g. 'Dr. Gupta'). Used to link tasks to the correct Account and find today's visit report."
+                    is_user_input: True
+                priority: string
+                    label: "Priority (High / Normal / Low)"
+                    description: "Task priority. Must be exactly one of: High, Normal, Low. Use High only when the rep explicitly indicates urgency. Default is Normal."
+                    is_user_input: True
+                dueDate: string
+                    label: "Due Date (defaults to 3 days from today)"
+                    description: "Due date for the tasks in YYYY-MM-DD format. Defaults to 3 days from today if not specified."
+                    is_user_input: True
+            outputs:
+                success: boolean
+                    label: "Success"
+                    description: "True if tasks were created successfully in Salesforce"
+                    is_used_by_planner: True
+                tasksCreated: number
+                    label: "Tasks Created Count"
+                    description: "Number of Tasks created. Confirm this count to the rep so they know all commitments were captured."
+                    is_used_by_planner: True
+                taskIds: string
+                    label: "Task IDs (comma-separated)"
+                    description: "Comma-separated Salesforce IDs of all created Tasks"
+                    filter_from_agent: True
+                errorMessage: string
+                    label: "Error Message"
+                    description: "Error details if task creation failed"
+                    filter_from_agent: True
+
+    reasoning:
+        instructions: ->
+            | CALL create_tasks IMMEDIATELY with ALL follow-up commitments extracted from the rep's statement.
+            | Parse carefully — multiple commitments should each become a separate task in the list.
+            | Do NOT ask for a Visit Report ID — the action finds today's visit report automatically.
+            |
+            | Hinglish commitment patterns to extract:
+            | "bhejna hai" = need to send (literature, samples)
+            | "arrange karna hai" = need to arrange (CME, meeting)
+            | "dobara jaana hai" = need to revisit
+            | "call karna hai" = need to schedule a call
+            | "bhejunga" = will send
+            |
+            if @variables.physicianName != "":
+                | Creating tasks for {!@variables.physicianName}.
+            |
+            | After creating tasks, confirm:
+            | English: "Created [tasksCreated] follow-up tasks. Here's what was captured: [list each action]."
+            | Hinglish: "[tasksCreated] follow-up tasks bana diye. Yeh tasks create hue: [list]."
+
+        actions:
+            tasks: @actions.create_tasks
+                description: "Create follow-up tasks — call immediately when rep mentions ANY commitments or follow-up actions"
+                with followUpActions = ...
+                with physicianName = ...
+                with priority = ...
+                with dueDate = ...
+
+            to_visit: @utils.transition to @topic.post_visit_log
+                description: "Rep also wants to log the physician visit"
+
+            to_expense: @utils.transition to @topic.expense_log
+                description: "Rep also wants to log an expense"

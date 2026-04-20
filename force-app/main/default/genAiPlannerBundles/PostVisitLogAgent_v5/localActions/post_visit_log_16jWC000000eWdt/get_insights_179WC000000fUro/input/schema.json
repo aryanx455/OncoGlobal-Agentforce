@@ -1,0 +1,14 @@
+{
+  "required" : [ "physicianId" ],
+  "unevaluatedProperties" : false,
+  "properties" : {
+    "physicianId" : {
+      "title" : "Physician Account ID",
+      "description" : "Salesforce Account ID of the physician to retrieve insights for.",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : false
+    }
+  },
+  "lightning:type" : "lightning__objectType"
+}

@@ -1,0 +1,49 @@
+{
+  "required" : [ "amount", "category" ],
+  "unevaluatedProperties" : false,
+  "properties" : {
+    "amount" : {
+      "title" : "Amount",
+      "description" : "Expense amount as a plain number in Indian Rupees (e.g. 450 for 'Rs. 450 ka lunch' or '450 rupees ka bill tha'). Extract only the numeric value.",
+      "lightning:type" : "lightning__numberType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : true
+    },
+    "category" : {
+      "title" : "Category",
+      "description" : "Expense category. Must be exactly one of: Meal, Travel, Accommodation, Samples, CME / Event, Other. Infer from context: 'lunch' or 'dinner' = Meal; 'cab' or 'auto' or 'petrol' = Travel; 'hotel' = Accommodation; 'samples' = Samples.",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : true
+    },
+    "hospitalName" : {
+      "title" : "Hospital or Facility Name",
+      "description" : "Hospital or clinic name (e.g. 'HCG Bangalore'). Helps find the correct visit report when multiple visits exist today.",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : true
+    },
+    "notes" : {
+      "title" : "Notes",
+      "description" : "Free-text description of the expense (e.g. 'Lunch with Dr. Reddy at HCG Bangalore canteen').",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : true
+    },
+    "physicianName" : {
+      "title" : "Physician Name",
+      "description" : "Name of the physician this expense is associated with (e.g. 'Dr. Reddy'). Used to automatically find today's visit report.",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : true
+    },
+    "visitDate" : {
+      "title" : "Visit Date (defaults to today)",
+      "description" : "Date of the visit in YYYY-MM-DD format. Defaults to today if not provided.",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : false
+    }
+  },
+  "lightning:type" : "lightning__objectType"
+}

@@ -1,0 +1,35 @@
+{
+  "required" : [ "followUpActions" ],
+  "unevaluatedProperties" : false,
+  "properties" : {
+    "dueDate" : {
+      "title" : "Due Date (defaults to 3 days from today)",
+      "description" : "Due date for the tasks in YYYY-MM-DD format. Defaults to 3 days from today if not specified.",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : true
+    },
+    "followUpActions" : {
+      "title" : "Follow-Up Actions",
+      "description" : "Comma-separated or newline-separated list of all follow-up actions to create as Tasks. Extract EVERY commitment from the rep's statement (e.g. 'Send Tagrisso literature to Dr. Gupta, Arrange CME event next month, Call back next week to confirm formulary status'). Each comma-separated item becomes a separate Task.",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : true
+    },
+    "physicianName" : {
+      "title" : "Physician Name",
+      "description" : "Name of the physician the follow-up tasks are for (e.g. 'Dr. Gupta'). Used to link tasks to the correct Account and find today's visit report.",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : true
+    },
+    "priority" : {
+      "title" : "Priority (High / Normal / Low)",
+      "description" : "Task priority. Must be exactly one of: High, Normal, Low. Use High only when the rep explicitly indicates urgency. Default is Normal.",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : true
+    }
+  },
+  "lightning:type" : "lightning__objectType"
+}
