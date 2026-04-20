@@ -1,0 +1,78 @@
+<template>
+    <div class="agent-shell">
+
+        <!-- Header -->
+        <div class="agent-header">
+            <div class="agent-avatar">OG</div>
+            <div class="agent-title">
+                <span class="agent-name">OncoGlobal Assistant</span>
+                <span class="agent-status">{statusLabel}</span>
+            </div>
+            <button class="btn-clear" onclick={handleClear} title="New session">↺</button>
+        </div>
+
+        <!-- Chat bubbles -->
+        <div class="chat-area" lwc:ref="chatArea">
+            <template for:each={chatHistory} for:item="msg">
+                <div key={msg.id} class={msg.wrapClass}>
+                    <div class={msg.bubbleClass}>
+                        <p class="msg-text">{msg.text}</p>
+                        <span class="msg-time">{msg.time}</span>
+                    </div>
+                </div>
+            </template>
+
+            <template if:true={isThinking}>
+                <div class="msg-wrap agent-wrap">
+                    <div class="bubble agent-bubble thinking">
+                        <span class="dot"></span><span class="dot"></span><span class="dot"></span>
+                    </div>
+                </div>
+            </template>
+        </div>
+
+        <!-- Transcript preview while listening -->
+        <template if:true={interimText}>
+            <div class="interim-bar">
+                <span class="interim-text">"{interimText}"</span>
+            </div>
+        </template>
+
+        <!-- Input area -->
+        <div class="input-area">
+            <input
+                type="text"
+                class="text-input"
+                placeholder="Type or tap 🎤 to speak…"
+                value={typedText}
+                onchange={handleTyping}
+                onkeydown={handleKeyDown}
+                disabled={isListening}
+            />
+            <button
+                class={micButtonClass}
+                onclick={handleMicToggle}
+                title={micTitle}
+                disabled={isThinking}
+            >
+                <template if:true={isListening}>⏹</template>
+                <template if:false={isListening}>🎤</template>
+            </button>
+            <button
+                class="btn-send"
+                onclick={handleSend}
+                disabled={isSendDisabled}
+                title="Send"
+            >➤</button>
+        </div>
+
+        <!-- TTS toggle -->
+        <div class="tts-row">
+            <label class="tts-label">
+                <input type="checkbox" checked={ttsEnabled} onchange={handleTtsToggle} />
+                &nbsp;Read responses aloud
+            </label>
+        </div>
+
+    </div>
+</template>
