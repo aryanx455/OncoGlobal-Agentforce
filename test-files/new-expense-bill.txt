@@ -1,0 +1,30 @@
+EXPENSE BILL
+
+Vendor: Metro Health Cab Services
+GSTIN: 27AABCM4521F1Z9
+Address: 14 Health Park Road, Mumbai, Maharashtra 400012
+
+Invoice Number: EXP-2026-0425-NEW
+Invoice Date: 2026-04-25
+Payment Method: UPI
+Currency: INR
+
+Employee Name: Avi Agarwal
+Employee ID: EMP-1042
+Doctor Name: Doctor Demo 004
+Hospital / Facility: OG Demo Facility 004
+Expense Category: Travel
+Business Purpose: Post-visit transportation after referral relationship meeting
+
+Line Items
+Item                                  Qty    Unit Price    Total
+Cab ride to OG Demo Facility 004       1        640.00     640.00
+Parking pass                           1         80.00      80.00
+Toll charge                            1        120.00     120.00
+
+Subtotal                                                   840.00
+CGST 2.5%                                                   21.00
+SGST 2.5%                                                   21.00
+Total Amount                                               882.00
+
+Note: Synthetic test bill for Agentforce expense upload validation.
