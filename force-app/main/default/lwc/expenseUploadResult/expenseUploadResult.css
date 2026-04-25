@@ -65,6 +65,18 @@
     margin-bottom: 0.3rem;
 }
 
+.record-link {
+    color: #0f5f9f;
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.record-link:hover,
+.record-link:focus {
+    color: #064d83;
+    text-decoration: underline;
+}
+
 @media (max-width: 768px) {
     .result-grid {
         grid-template-columns: 1fr;

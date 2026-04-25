@@ -8,8 +8,15 @@
 
         <div class="result-grid">
             <div class="result-card">
-                <span class="label">Expense ID</span>
-                <strong>{expenseId}</strong>
+                <span class="label">Expense</span>
+                <template if:true={hasExpenseRecord}>
+                    <a class="record-link" href={expenseRecordUrl} target="_blank" rel="noopener">
+                        {expenseLinkLabel}
+                    </a>
+                </template>
+                <template if:false={hasExpenseRecord}>
+                    <strong>-</strong>
+                </template>
             </div>
             <div class="result-card">
                 <span class="label">Vendor</span>

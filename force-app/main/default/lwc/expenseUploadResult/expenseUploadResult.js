@@ -7,6 +7,18 @@ export default class ExpenseUploadResult extends LightningElement {
         return Boolean(this.value?.expenseId);
     }
 
+    get hasExpenseRecord() {
+        return this.isCreated;
+    }
+
+    get expenseRecordUrl() {
+        return this.hasExpenseRecord ? `/lightning/r/Expense__c/${this.value.expenseId}/view` : null;
+    }
+
+    get expenseLinkLabel() {
+        return this.value?.expenseName || 'Open expense record';
+    }
+
     get shellClass() {
         return `result-shell ${this.isCreated ? 'result-shell--success' : 'result-shell--warning'}`;
     }
