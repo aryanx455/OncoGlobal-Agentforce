@@ -1,0 +1,320 @@
+<template>
+    <div class="expense-shell">
+        <section class="upload-card">
+            <div class="upload-card__top">
+                <div class="upload-card__title">
+                    <div>
+                        <h1>Upload bill</h1>
+                    </div>
+
+                    <div class="status-pill">
+                        <span class={uploadStatusClass}></span>
+                        <span>{uploadStatusText}</span>
+                    </div>
+                </div>
+
+                <div class="upload-card__controls">
+                    <lightning-input
+                        type="file"
+                        label="Receipt or invoice"
+                        accept={acceptedFormats}
+                        onchange={handleFileSelected}
+                        disabled={isBusy}
+                    ></lightning-input>
+
+                    <div class="upload-actions">
+                        <lightning-button
+                            label="Take photo"
+                            icon-name="utility:photo"
+                            onclick={handleCameraClick}
+                            disabled={isBusy}
+                        ></lightning-button>
+                        <lightning-button
+                            label={submitLabel}
+                            variant="brand"
+                            onclick={handleSubmit}
+                            disabled={disableSubmit}
+                        ></lightning-button>
+                    </div>
+
+                    <input
+                        class="camera-input"
+                        type="file"
+                        accept={imageAcceptFormats}
+                        capture="environment"
+                        onchange={handleFileSelected}
+                        data-id="cameraInput"
+                        disabled={isBusy}
+                    />
+                </div>
+
+                <template if:true={uploadedFileName}>
+                    <p class="file-name">{uploadedFileName}</p>
+                </template>
+
+                <template if:true={isBusy}>
+                    <div class="message message--info">
+                        <lightning-spinner alternative-text="Processing expense bill" size="small"></lightning-spinner>
+                        <span>Uploading and extracting bill details...</span>
+                    </div>
+                </template>
+
+                <template if:true={errorMessage}>
+                    <div class="message message--error" role="alert">
+                        <lightning-icon icon-name="utility:error" size="x-small"></lightning-icon>
+                        <span>{errorMessage}</span>
+                    </div>
+                </template>
+            </div>
+
+            <template if:true={rawJson}>
+                <details class="json-preview">
+                    <summary>View extracted JSON</summary>
+                    <pre>{rawJson}</pre>
+                </details>
+            </template>
+        </section>
+
+        <template if:false={hasParsedData}>
+            <span class="sr-only">
+                Upload a PDF, JPG, JPEG, or PNG expense bill, then analyze it before confirming.
+            </span>
+        </template>
+
+        <template if:true={hasParsedData}>
+            <section class="review-shell">
+                <div class="review-shell__header">
+                    <div>
+                        <p class="eyebrow">Review</p>
+                        <h2>Review extracted fields</h2>
+                        <p>Edit anything needed, then click the Agentforce Submit button to create the expense.</p>
+                    </div>
+                </div>
+
+                <article class="detail-card">
+                    <div class="compact-form">
+                        <lightning-input
+                            label="Doctor Name"
+                            value={doctorName}
+                            onchange={handleFieldChange}
+                            data-section="expense_report"
+                            data-field="doctor_name"
+                        ></lightning-input>
+                        <lightning-combobox
+                            label="Category"
+                            value={expenseCategory}
+                            options={categoryOptions}
+                            onchange={handleFieldChange}
+                            data-section="expense_report"
+                            data-field="expense_category"
+                        ></lightning-combobox>
+                        <lightning-input
+                            type="number"
+                            label="Total"
+                            step="0.01"
+                            value={totalAmount}
+                            onchange={handleFieldChange}
+                            data-section="amount_details"
+                            data-field="total_amount"
+                        ></lightning-input>
+                        <lightning-input
+                            label="Purpose"
+                            value={businessPurpose}
+                            onchange={handleFieldChange}
+                            data-section="expense_report"
+                            data-field="business_purpose"
+                        ></lightning-input>
+                    </div>
+                </article>
+
+                <details class="review-details">
+                    <summary>Vendor and invoice</summary>
+                    <div class="compact-form">
+                        <lightning-input
+                            label="Vendor"
+                            value={vendorName}
+                            onchange={handleFieldChange}
+                            data-section="vendor_details"
+                            data-field="vendor_name"
+                        ></lightning-input>
+                        <lightning-input
+                            label="GSTIN"
+                            value={vendorGstin}
+                            onchange={handleFieldChange}
+                            data-section="vendor_details"
+                            data-field="vendor_gstin"
+                        ></lightning-input>
+                        <lightning-input
+                            label="Invoice #"
+                            value={invoiceNumber}
+                            onchange={handleFieldChange}
+                            data-section="invoice_details"
+                            data-field="invoice_number"
+                        ></lightning-input>
+                        <lightning-input
+                            type="date"
+                            label="Invoice Date"
+                            value={invoiceDate}
+                            onchange={handleFieldChange}
+                            data-section="invoice_details"
+                            data-field="invoice_date"
+                        ></lightning-input>
+                        <lightning-input
+                            label="Payment"
+                            value={paymentMethod}
+                            onchange={handleFieldChange}
+                            data-section="invoice_details"
+                            data-field="payment_method"
+                        ></lightning-input>
+                        <lightning-input
+                            label="Currency"
+                            value={currencyCode}
+                            onchange={handleFieldChange}
+                            data-section="invoice_details"
+                            data-field="currency"
+                        ></lightning-input>
+                        <lightning-textarea
+                            label="Vendor Address"
+                            value={vendorAddress}
+                            onchange={handleFieldChange}
+                            data-section="vendor_details"
+                            data-field="vendor_address"
+                        ></lightning-textarea>
+                    </div>
+                </details>
+
+                <details class="review-details">
+                    <summary>Employee, tax, and line items</summary>
+                    <div class="compact-form">
+                        <lightning-input
+                            label="Employee"
+                            value={employeeName}
+                            onchange={handleFieldChange}
+                            data-section="expense_report"
+                            data-field="employee_name"
+                        ></lightning-input>
+                        <lightning-input
+                            label="Employee ID"
+                            value={employeeId}
+                            onchange={handleFieldChange}
+                            data-section="expense_report"
+                            data-field="employee_id"
+                        ></lightning-input>
+                        <lightning-input
+                            type="number"
+                            label="Subtotal"
+                            step="0.01"
+                            value={subtotal}
+                            onchange={handleFieldChange}
+                            data-section="amount_details"
+                            data-field="subtotal"
+                        ></lightning-input>
+                        <lightning-input
+                            type="number"
+                            label="Tax"
+                            step="0.01"
+                            value={taxAmount}
+                            onchange={handleFieldChange}
+                            data-section="amount_details"
+                            data-field="tax"
+                        ></lightning-input>
+                        <lightning-input
+                            type="number"
+                            label="CGST"
+                            step="0.01"
+                            value={cgst}
+                            onchange={handleFieldChange}
+                            data-section="tax_details"
+                            data-field="cgst"
+                        ></lightning-input>
+                        <lightning-input
+                            type="number"
+                            label="SGST"
+                            step="0.01"
+                            value={sgst}
+                            onchange={handleFieldChange}
+                            data-section="tax_details"
+                            data-field="sgst"
+                        ></lightning-input>
+                        <lightning-input
+                            type="number"
+                            label="IGST"
+                            step="0.01"
+                            value={igst}
+                            onchange={handleFieldChange}
+                            data-section="tax_details"
+                            data-field="igst"
+                        ></lightning-input>
+                    </div>
+
+                    <div class="line-item-header">
+                        <h3>Line Items</h3>
+                        <lightning-button
+                            label="Add"
+                            icon-name="utility:add"
+                            onclick={handleAddLineItem}
+                            disabled={isBusy}
+                        ></lightning-button>
+                    </div>
+
+                    <template if:true={hasLineItems}>
+                        <div class="line-item-list">
+                            <template for:each={lineItems} for:item="item">
+                                <div key={item.key} class="line-item-card">
+                                    <div class="line-item-card__header">
+                                        <h4>{item.heading}</h4>
+                                        <lightning-button-icon
+                                            icon-name="utility:delete"
+                                            variant="bare"
+                                            alternative-text="Remove line item"
+                                            title="Remove line item"
+                                            onclick={handleRemoveLineItem}
+                                            data-key={item.key}
+                                        ></lightning-button-icon>
+                                    </div>
+                                    <div class="line-item-fields">
+                                        <lightning-input
+                                            label="Item"
+                                            value={item.item_name}
+                                            data-key={item.key}
+                                            data-field="item_name"
+                                            onchange={handleLineItemChange}
+                                        ></lightning-input>
+                                        <lightning-input
+                                            type="number"
+                                            label="Qty"
+                                            step="0.01"
+                                            value={item.quantity}
+                                            data-key={item.key}
+                                            data-field="quantity"
+                                            onchange={handleLineItemChange}
+                                        ></lightning-input>
+                                        <lightning-input
+                                            type="number"
+                                            label="Unit"
+                                            step="0.01"
+                                            value={item.unit_price}
+                                            data-key={item.key}
+                                            data-field="unit_price"
+                                            onchange={handleLineItemChange}
+                                        ></lightning-input>
+                                        <lightning-input
+                                            type="number"
+                                            label="Total"
+                                            step="0.01"
+                                            value={item.total_price}
+                                            data-key={item.key}
+                                            data-field="total_price"
+                                            onchange={handleLineItemChange}
+                                        ></lightning-input>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+                    </template>
+                </details>
+            </section>
+        </template>
+
+    </div>
+</template>

@@ -1,0 +1,85 @@
+system:
+    instructions: |
+        You are Expense Upload Agent, a focused Agentforce assistant for creating expense records from uploaded receipts and invoices.
+        Your job is to launch the custom expense upload UI whenever the user asks to upload, scan, analyze, or submit an expense bill.
+
+        BEHAVIOR:
+        - Launch the expense upload action immediately for receipt, invoice, bill, or expense upload requests.
+        - Never ask "would you like to proceed" for upload requests.
+        - Never describe a form in chat. The form appears only when you invoke the action's user_input tool.
+        - Do not ask the user to type invoice fields manually.
+        - The custom Lightning Type editor handles file selection, Apex upload, invoice extraction, review, and confirmation.
+        - After confirmation, the Apex action creates the Expense__c record and links the uploaded file.
+        - Keep responses short and practical.
+
+    messages:
+        welcome: "Tell me when you want to upload an expense receipt or invoice."
+        error: "I couldn't complete the expense upload flow. Please try again."
+
+config:
+    developer_name: "ExpenseUploadAgent"
+    agent_label: "Expense Upload Agent"
+    description: "Agentforce agent for uploading expense bills through a custom LWC, extracting invoice data, confirming it with the user, and creating Expense records."
+    agent_type: "AgentforceEmployeeAgent"
+
+language:
+    default_locale: "en_US"
+    additional_locales: "hi"
+    all_additional_locales: False
+
+start_agent topic_selector:
+    description: "Routes expense bill upload requests to the upload topic"
+    reasoning:
+        instructions: |
+            Route immediately to expense_bill_upload when the user asks to upload, scan, analyze, submit, or create an expense from a receipt, bill, invoice image, or PDF.
+            Route ACTION_CONFIRM messages to expense_bill_upload so the custom Lightning Type form submission runs the Apex action.
+            Do not answer directly before routing. Do not ask the user to confirm that they want to proceed.
+        actions:
+            to_expense_bill_upload: @utils.transition to @topic.expense_bill_upload
+                description: "Start the upload, extraction, review, confirmation, and Expense record creation flow."
+
+topic expense_bill_upload:
+    label: "Expense Bill Upload"
+    description: "Collects an uploaded receipt or invoice through a Custom Lightning Type editor, extracts structured data, and creates Expense__c after the user confirms the details."
+
+    actions:
+        create_from_bill_action:
+            label: "Create Expense From Uploaded Bill"
+            description: "Uses the expense bill upload Custom Lightning Type editor to collect a file, upload it through Apex, extract invoice data, review confirmed details, and create the expense record."
+            require_user_confirmation: False
+            target: "apex://ExpenseAgentUiService"
+            inputs:
+                expense_request: object
+                    label: "Expense Bill"
+                    description: "The uploaded expense bill and the structured data extracted from it."
+                    is_required: True
+                    is_user_input: True
+                    complex_data_type_name: "c__expenseBillUpload"
+            outputs:
+                expense_result: object
+                    label: "Created Expense"
+                    description: "Summary of the created expense record."
+                    complex_data_type_name: "c__expenseBillUploadResult"
+                    filter_from_agent: False
+                    is_displayable: True
+                    is_used_by_planner: True
+                expense_id: string
+                    label: "Expense ID"
+                    is_used_by_planner: True
+                    filter_from_agent: True
+
+    reasoning:
+        instructions: ->
+            | If ACTION_CONFIRM, call {!@actions.create_from_bill_action} with the form data. Do NOT ask for confirmation or output any text.
+            | Otherwise, when the user wants to upload an expense bill, receipt, invoice image, or PDF, call {!@actions.create_from_bill_action} action's user_input tool to show the expense upload form. Do NOT output any text.
+            | Do not say "Please upload using the form"; the only correct response is to invoke the user_input tool.
+            | Do not ask "Would you like to proceed?"
+            | The Custom Lightning Type editor handles file selection, Apex file upload, invoice extraction through SocialMediaPostsController, user review, and confirmation.
+            | Do not ask the user to type invoice fields manually in chat.
+            | After the action completes, confirm that the expense was created and mention the vendor, invoice number, and amount when available.
+            | Ask whether the user wants to upload another receipt.
+
+        actions:
+            create_from_bill_action: @actions.create_from_bill_action
+                description: "Use the Custom Lightning Type editor to collect confirmed bill details and create the expense"
+                with expense_request = ...

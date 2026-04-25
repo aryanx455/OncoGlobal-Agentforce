@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Bot xmlns="http://soap.sforce.com/2006/04/metadata">
+    <agentDSLEnabled>true</agentDSLEnabled>
+    <agentType>AgentforceEmployeeAgent</agentType>
+    <botMlDomain>
+        <label>Expense Upload Agent</label>
+        <name>ExpenseUploadAgent</name>
+    </botMlDomain>
+    <botSource>None</botSource>
+    <description>Agentforce agent for uploading expense bills through a custom LWC, extracting invoice data, confirming it with the user, and creating Expense records.</description>
+    <label>Expense Upload Agent</label>
+    <logPrivateConversationData>false</logPrivateConversationData>
+    <richContentEnabled>true</richContentEnabled>
+    <sessionTimeout>0</sessionTimeout>
+    <type>InternalCopilot</type>
+</Bot>

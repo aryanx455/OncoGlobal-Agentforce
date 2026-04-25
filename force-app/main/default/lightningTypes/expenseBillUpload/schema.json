@@ -1,0 +1,5 @@
+{
+  "title": "Expense Bill Upload",
+  "description": "Custom Lightning Type input used to upload, review, and confirm an expense bill before the agent action runs.",
+  "lightning:type": "@apexClassType/c__ExpenseBillInput"
+}

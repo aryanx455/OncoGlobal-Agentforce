@@ -28,7 +28,7 @@ system:
 
         WORKFLOW (always in this order):
         1. Log the visit and auto-extract topics
-        2. Log any expense (flag if above Rs.150)
+        2. Log any expense, or launch receipt/invoice upload when the rep wants to upload a file
         3. Create follow-up tasks
         4. Schedule next visit on calendar if needed
         5. Confirm everything back to the rep
@@ -61,7 +61,8 @@ start_agent topic_selector:
         instructions: |
             Route immediately. Never answer directly.
             - Rep describes a doctor visit, meeting, clinic round, hospital round → to_visit_log
-            - Rep mentions expense, bill, rupees, lunch, cab, hotel, travel → to_expense_log
+            - Rep wants to upload an expense bill, receipt, invoice, image, photo, camera capture, or PDF → to_expense_bill_upload
+            - Rep mentions an expense amount, rupees, lunch, cab, hotel, travel and is NOT asking to upload a file → to_expense_log
             - Rep mentions follow-up, sending literature, arranging CME, calling back → to_followup
             - Rep asks about doctor history, past visits → to_visit_log
             - Rep asks about a drug (Keytruda, Tagrisso, Herceptin, dose, trial, side effect), hospital tips, expense policy, visit best practices, or objection handling → to_knowledge
@@ -71,6 +72,8 @@ start_agent topic_selector:
                 description: "Log a physician visit, extract topics, or get physician insights"
             to_expense_log: @utils.transition to @topic.expense_log
                 description: "Log a visit expense"
+            to_expense_bill_upload: @utils.transition to @topic.expense_bill_upload
+                description: "Upload an expense receipt or invoice, extract the bill data, review it in the custom UI, and create the expense record"
             to_followup: @utils.transition to @topic.follow_up_tasks
                 description: "Create follow-up tasks from visit commitments"
             to_schedule: @utils.transition to @topic.schedule_visit
@@ -354,6 +357,61 @@ topic expense_log:
 
             to_schedule: @utils.transition to @topic.schedule_visit
                 description: "Rep wants to schedule the next physician visit"
+
+            to_expense_bill_upload: @utils.transition to @topic.expense_bill_upload
+                description: "Rep wants to upload a receipt, invoice, photo, or PDF instead of typing expense details"
+
+topic expense_bill_upload:
+    label: "Expense Bill Upload"
+    description: "Collects an uploaded receipt or invoice through a Custom Lightning Type editor, extracts structured data using Prompt Builder, and creates Expense__c after the editor returns confirmed data."
+
+    actions:
+        create_from_bill_action:
+            label: "Create Expense From Uploaded Bill"
+            description: "Uses the expense bill upload Custom Lightning Type editor to collect a file, review extracted data, and return confirmed structured expense details."
+            require_user_confirmation: False
+            target: "apex://ExpenseAgentUiService"
+            inputs:
+                expense_request: object
+                    label: "Expense Bill"
+                    description: "The uploaded expense bill and the structured data extracted from it."
+                    is_required: True
+                    is_user_input: True
+                    complex_data_type_name: "c__expenseBillUpload"
+            outputs:
+                expense_result: object
+                    label: "Created Expense"
+                    description: "Summary of the created expense record."
+                    complex_data_type_name: "c__expenseBillUploadResult"
+                    filter_from_agent: False
+                    is_displayable: True
+                    is_used_by_planner: True
+                expense_id: string
+                    label: "Expense ID"
+                    is_used_by_planner: True
+                    filter_from_agent: True
+
+    reasoning:
+        instructions: ->
+            | When the rep wants to upload an expense bill, receipt, invoice image/photo, camera capture, or PDF, use {!@actions.create_from_bill} to collect the bill data.
+            | The Custom Lightning Type editor handles the full flow inside the LWC: file selection/camera capture, upload, extraction, review, and confirmation.
+            | Do not ask the rep to type bill details manually in chat.
+            | After the action completes, confirm that the expense was created and mention the amount, vendor, doctor, and invoice number when available.
+            | Then ask whether the rep wants to log another visit, another expense, or follow-up tasks.
+
+        actions:
+            create_from_bill: @actions.create_from_bill_action
+                description: "Use the Custom Lightning Type editor to collect confirmed bill details and create the expense"
+                with expense_request = ...
+
+            to_visit: @utils.transition to @topic.post_visit_log
+                description: "Rep wants to log a physician visit"
+
+            to_expense_log: @utils.transition to @topic.expense_log
+                description: "Rep wants to log a simple expense without bill upload"
+
+            to_followup: @utils.transition to @topic.follow_up_tasks
+                description: "Rep wants to create follow-up tasks"
 
 topic follow_up_tasks:
     label: "Follow-Up Tasks"

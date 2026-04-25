@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Sample Expense Invoice</title>
+  <style>
+    body {
+      color: #1f2933;
+      font-family: Helvetica, Arial, sans-serif;
+      margin: 40px;
+    }
+    .header {
+      border-bottom: 2px solid #2563eb;
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 24px;
+      padding-bottom: 14px;
+    }
+    h1 {
+      color: #2563eb;
+      font-size: 28px;
+      margin: 0 0 8px;
+      text-transform: uppercase;
+    }
+    h2 {
+      font-size: 16px;
+      margin: 22px 0 8px;
+    }
+    p {
+      font-size: 12px;
+      line-height: 1.45;
+      margin: 3px 0;
+    }
+    table {
+      border-collapse: collapse;
+      font-size: 12px;
+      margin-top: 10px;
+      width: 100%;
+    }
+    th {
+      background: #eff6ff;
+      color: #1d4ed8;
+      text-align: left;
+    }
+    th,
+    td {
+      border: 1px solid #cbd5e1;
+      padding: 8px;
+    }
+    .right {
+      text-align: right;
+    }
+    .total {
+      background: #f8fafc;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <div>
+      <h1>Invoice</h1>
+      <p><strong>Vendor:</strong> Blue Sparrow Cafe Pvt Ltd</p>
+      <p><strong>GSTIN:</strong> 29ABCDE1234F1Z5</p>
+      <p><strong>Address:</strong> 22 MG Road, Bengaluru, Karnataka 560001</p>
+    </div>
+    <div>
+      <p><strong>Invoice Number:</strong> INV-2026-0418</p>
+      <p><strong>Invoice Date:</strong> 2026-04-18</p>
+      <p><strong>Payment Method:</strong> Corporate Card</p>
+      <p><strong>Currency:</strong> INR</p>
+    </div>
+  </div>
+
+  <h2>Bill To</h2>
+  <p><strong>Employee Name:</strong> Avi Agarwal</p>
+  <p><strong>Employee ID:</strong> EMP-1042</p>
+  <p><strong>Expense Category:</strong> Meals</p>
+  <p><strong>Business Purpose:</strong> Client lunch after product demo</p>
+
+  <h2>Line Items</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Item</th>
+        <th class="right">Qty</th>
+        <th class="right">Unit Price</th>
+        <th class="right">Total</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Business Lunch Combo</td>
+        <td class="right">2</td>
+        <td class="right">850.00</td>
+        <td class="right">1700.00</td>
+      </tr>
+      <tr>
+        <td>Bottled Water</td>
+        <td class="right">2</td>
+        <td class="right">60.00</td>
+        <td class="right">120.00</td>
+      </tr>
+      <tr>
+        <td colspan="3" class="right">Subtotal</td>
+        <td class="right">1820.00</td>
+      </tr>
+      <tr>
+        <td colspan="3" class="right">CGST 2.5%</td>
+        <td class="right">45.50</td>
+      </tr>
+      <tr>
+        <td colspan="3" class="right">SGST 2.5%</td>
+        <td class="right">45.50</td>
+      </tr>
+      <tr class="total">
+        <td colspan="3" class="right">Total Amount</td>
+        <td class="right">1911.00</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <p style="margin-top: 28px;"><strong>Note:</strong> This is a synthetic test invoice for Agentforce expense upload testing.</p>
+</body>
+</html>

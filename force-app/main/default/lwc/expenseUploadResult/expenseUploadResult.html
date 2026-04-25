@@ -1,0 +1,36 @@
+<template>
+    <section class="result-shell">
+        <div class="result-header">
+            <p class="eyebrow">Expense Created</p>
+            <h2>{expenseName}</h2>
+            <p>{statusMessage}</p>
+        </div>
+
+        <div class="result-grid">
+            <div class="result-card">
+                <span class="label">Expense ID</span>
+                <strong>{expenseId}</strong>
+            </div>
+            <div class="result-card">
+                <span class="label">Vendor</span>
+                <strong>{vendorName}</strong>
+            </div>
+            <div class="result-card">
+                <span class="label">Amount</span>
+                <strong>{formattedAmount}</strong>
+            </div>
+            <div class="result-card">
+                <span class="label">Invoice</span>
+                <strong>{invoiceNumber}</strong>
+            </div>
+            <div class="result-card">
+                <span class="label">Invoice Date</span>
+                <strong>{invoiceDate}</strong>
+            </div>
+            <div class="result-card">
+                <span class="label">Line Items</span>
+                <strong>{lineItemCount}</strong>
+            </div>
+        </div>
+    </section>
+</template>
