@@ -79,8 +79,11 @@ public with sharing class HealthCloudProviderBriefAction {
         Id healthcareProviderId;
         Id contactId;
         Id accountId;
+        Id facilityAccountId;
         String name;
         String source;
+        String resolvedFacilityName;
+        String errorMessage;
         String healthCloudDetails;
         Contact contactRecord;
         Account accountRecord;
@@ -123,6 +126,10 @@ public with sharing class HealthCloudProviderBriefAction {
                 res.errorMessage = 'No matching provider found for: ' + req.providerName;
                 return res;
             }
+            if (String.isNotBlank(provider.errorMessage)) {
+                res.errorMessage = provider.errorMessage;
+                return res;
+            }
 
             FacilityMatch facility = resolveFacility(req, provider);
             List<Visit_Report__c> visits = findRecentVisits(provider, facility);
@@ -161,10 +168,36 @@ public with sharing class HealthCloudProviderBriefAction {
             return null;
         }
 
-        ProviderMatch healthCloudProvider = findHealthcareProvider(searchName);
+        ProviderResolutionService.Resolution resolution = ProviderResolutionService.resolveDoctor(
+            req.providerName,
+            req.facilityName,
+            false,
+            true
+        );
+        if (resolution.needsClarification == true || resolution.success != true) {
+            ProviderMatch failed = new ProviderMatch();
+            failed.errorMessage = String.isNotBlank(resolution.clarificationMessage)
+                ? resolution.clarificationMessage
+                : resolution.errorMessage;
+            return failed;
+        }
+
+        ProviderMatch healthCloudProvider = findHealthcareProviderForResolution(resolution, searchName);
         if (healthCloudProvider != null) {
+            applyResolutionContext(healthCloudProvider, resolution);
             enrichProviderFromStandardLookups(healthCloudProvider);
             return healthCloudProvider;
+        }
+
+        ProviderMatch resolvedProvider = buildProviderMatchFromResolution(resolution);
+        if (resolvedProvider != null) {
+            return resolvedProvider;
+        }
+
+        ProviderMatch fallbackHealthCloudProvider = findHealthcareProvider(searchName);
+        if (fallbackHealthCloudProvider != null) {
+            enrichProviderFromStandardLookups(fallbackHealthCloudProvider);
+            return fallbackHealthCloudProvider;
         }
 
         ProviderMatch contactProvider = findContactProvider(searchName);
@@ -223,11 +256,43 @@ public with sharing class HealthCloudProviderBriefAction {
             'ProfessionalTitle, Status FROM HealthcareProvider ' +
             'WHERE Name LIKE :wildcard ORDER BY LastModifiedDate DESC LIMIT 1'
         );
-        if (rows.isEmpty()) {
+        return rows.isEmpty() ? null : buildHealthcareProviderMatch(rows[0]);
+    }
+
+    private static ProviderMatch findHealthcareProviderForResolution(
+        ProviderResolutionService.Resolution resolution,
+        String searchName
+    ) {
+        if (!Schema.getGlobalDescribe().containsKey('HealthcareProvider')) {
             return null;
         }
 
-        SObject row = rows[0];
+        Id contactId = resolution == null ? null : resolution.doctorContactId;
+        Id accountId = resolution == null ? null : resolution.physicianAccountId;
+        List<String> clauses = new List<String>();
+        if (contactId != null) {
+            clauses.add('PractitionerId = :contactId');
+        }
+        if (accountId != null) {
+            clauses.add('AccountId = :accountId');
+        }
+
+        if (!clauses.isEmpty()) {
+            List<SObject> rows = Database.query(
+                'SELECT Id, Name, AccountId, PractitionerId, ProviderType, ProviderClass, ' +
+                'ProfessionalTitle, Status FROM HealthcareProvider WHERE ' +
+                String.join(clauses, ' OR ') +
+                ' ORDER BY LastModifiedDate DESC LIMIT 1'
+            );
+            if (!rows.isEmpty()) {
+                return buildHealthcareProviderMatch(rows[0]);
+            }
+        }
+
+        return findHealthcareProvider(searchName);
+    }
+
+    private static ProviderMatch buildHealthcareProviderMatch(SObject row) {
         ProviderMatch match = new ProviderMatch();
         match.healthcareProviderId = (Id) row.get('Id');
         match.accountId = (Id) row.get('AccountId');
@@ -243,20 +308,49 @@ public with sharing class HealthCloudProviderBriefAction {
         return match;
     }
 
+    private static ProviderMatch buildProviderMatchFromResolution(ProviderResolutionService.Resolution resolution) {
+        if (resolution == null || resolution.success != true) {
+            return null;
+        }
+
+        ProviderMatch match = new ProviderMatch();
+        match.contactId = resolution.doctorContactId;
+        match.accountId = resolution.physicianAccountId;
+        match.facilityAccountId = resolution.facilityAccountId;
+        match.resolvedFacilityName = resolution.facilityName;
+        match.name = String.isNotBlank(resolution.contactName)
+            ? resolution.contactName
+            : resolution.physicianName;
+        match.source = match.contactId != null ? 'Contact' : 'Account';
+        match.contactRecord = findContactById(match.contactId);
+        match.accountRecord = findAccountById(match.accountId);
+        return match;
+    }
+
+    private static void applyResolutionContext(ProviderMatch match, ProviderResolutionService.Resolution resolution) {
+        if (match == null || resolution == null) {
+            return;
+        }
+        if (resolution.doctorContactId != null) {
+            match.contactId = resolution.doctorContactId;
+        }
+        if (resolution.physicianAccountId != null) {
+            match.accountId = resolution.physicianAccountId;
+        }
+        match.facilityAccountId = resolution.facilityAccountId;
+        match.resolvedFacilityName = resolution.facilityName;
+        match.name = String.isNotBlank(resolution.contactName)
+            ? resolution.contactName
+            : resolution.physicianName;
+    }
+
     private static void enrichProviderFromStandardLookups(ProviderMatch match) {
         if (match.contactId != null) {
-            List<Contact> contacts = [
-                SELECT Id, Name, AccountId, Specialty__c, Relationship_Score__c,
-                       Engagement_Score__c, Total_Visits__c, Last_Visit_Date__c,
-                       Influence_Level__c, Prescribing_Potential__c
-                FROM Contact
-                WHERE Id = :match.contactId
-                LIMIT 1
-            ];
-            if (!contacts.isEmpty()) {
-                match.contactRecord = contacts[0];
+            Contact contact = findContactById(match.contactId);
+            if (contact != null) {
+                match.contactRecord = contact;
                 if (match.accountId == null) {
-                    match.accountId = contacts[0].AccountId;
+                    match.accountId = contact.AccountId;
                 }
             }
         }
@@ -288,6 +382,21 @@ public with sharing class HealthCloudProviderBriefAction {
         match.contactRecord = contacts[0];
         match.accountRecord = findAccountById(contacts[0].AccountId);
         return match;
+    }
+
+    private static Contact findContactById(Id contactId) {
+        if (contactId == null) {
+            return null;
+        }
+        List<Contact> contacts = [
+            SELECT Id, Name, AccountId, Specialty__c, Relationship_Score__c,
+                   Engagement_Score__c, Total_Visits__c, Last_Visit_Date__c,
+                   Influence_Level__c, Prescribing_Potential__c
+            FROM Contact
+            WHERE Id = :contactId
+            LIMIT 1
+        ];
+        return contacts.isEmpty() ? null : contacts[0];
     }
 
     private static ProviderMatch findAccountProvider(String searchName) {
@@ -345,6 +454,16 @@ public with sharing class HealthCloudProviderBriefAction {
         FacilityMatch fromProvider = findFacilityFromPractitionerFacility(provider);
         if (fromProvider != null) {
             return fromProvider;
+        }
+
+        if (provider != null && provider.facilityAccountId != null) {
+            Account account = findAccountById(provider.facilityAccountId);
+            FacilityMatch match = new FacilityMatch();
+            match.accountId = provider.facilityAccountId;
+            match.name = account == null ? provider.resolvedFacilityName : account.Name;
+            match.source = 'Account';
+            match.accountRecord = account;
+            return match;
         }
 
         if (provider != null && provider.accountRecord != null) {
@@ -435,27 +554,49 @@ public with sharing class HealthCloudProviderBriefAction {
     }
 
     private static List<Visit_Report__c> findRecentVisits(ProviderMatch provider, FacilityMatch facility) {
-        List<String> conditions = new List<String>();
+        List<String> providerConditions = new List<String>();
         Map<String, Schema.SObjectField> visitFields = Schema.SObjectType.Visit_Report__c.fields.getMap();
         if (provider != null && provider.contactId != null && visitFields.containsKey('Prescriber__c')) {
-            conditions.add('Prescriber__c = \'' + String.escapeSingleQuotes(String.valueOf(provider.contactId)) + '\'');
+            providerConditions.add('Prescriber__c = \'' + String.escapeSingleQuotes(String.valueOf(provider.contactId)) + '\'');
         }
         if (provider != null && provider.accountId != null) {
-            conditions.add('Physician__c = \'' + String.escapeSingleQuotes(String.valueOf(provider.accountId)) + '\'');
+            providerConditions.add('Physician__c = \'' + String.escapeSingleQuotes(String.valueOf(provider.accountId)) + '\'');
         }
+        String facilityCondition = null;
         if (facility != null && facility.accountId != null && visitFields.containsKey('Hospital__c')) {
-            conditions.add('Hospital__c = \'' + String.escapeSingleQuotes(String.valueOf(facility.accountId)) + '\'');
+            facilityCondition = 'Hospital__c = \'' + String.escapeSingleQuotes(String.valueOf(facility.accountId)) + '\'';
         }
-        if (conditions.isEmpty()) {
+
+        String providerWhereClause = providerConditions.isEmpty()
+            ? null
+            : '(' + String.join(providerConditions, ' OR ') + ')';
+        String whereClause;
+        if (!providerConditions.isEmpty()) {
+            whereClause = providerWhereClause;
+            if (String.isNotBlank(facilityCondition)) {
+                whereClause += ' AND ' + facilityCondition;
+            }
+        } else if (String.isNotBlank(facilityCondition)) {
+            whereClause = facilityCondition;
+        } else {
             return new List<Visit_Report__c>();
         }
 
         String query =
             'SELECT Id, Name, Visit_Date__c, Visit_Outcome__c, Discussion_Topics__c, ' +
             'AI_Summary__c, Engagement_Score__c, Next_Best_Action__c, Total_Visit_Expense__c ' +
-            'FROM Visit_Report__c WHERE ' + String.join(conditions, ' OR ') +
+            'FROM Visit_Report__c WHERE ' + whereClause +
             ' ORDER BY Visit_Date__c DESC NULLS LAST, CreatedDate DESC LIMIT ' + MAX_VISITS;
-        return Database.query(query);
+        List<Visit_Report__c> visits = Database.query(query);
+        if (visits.isEmpty() && String.isNotBlank(facilityCondition) && String.isNotBlank(providerWhereClause)) {
+            String fallbackQuery =
+                'SELECT Id, Name, Visit_Date__c, Visit_Outcome__c, Discussion_Topics__c, ' +
+                'AI_Summary__c, Engagement_Score__c, Next_Best_Action__c, Total_Visit_Expense__c ' +
+                'FROM Visit_Report__c WHERE ' + providerWhereClause +
+                ' ORDER BY Visit_Date__c DESC NULLS LAST, CreatedDate DESC LIMIT ' + MAX_VISITS;
+            return Database.query(fallbackQuery);
+        }
+        return visits;
     }
 
     private static List<Task> findOpenTasks(ProviderMatch provider, List<Visit_Report__c> visits) {

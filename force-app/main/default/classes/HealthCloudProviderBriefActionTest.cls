@@ -12,6 +12,7 @@ private class HealthCloudProviderBriefActionTest {
 
         Account physicianAccount = new Account(
             Name = 'Dr. Health Cloud Test',
+            ParentId = facility.Id,
             Specialty__c = 'Oncology',
             Territory__c = 'Mumbai South',
             Relationship_Score__c = 76,
@@ -60,6 +61,37 @@ private class HealthCloudProviderBriefActionTest {
             Status = 'Not Started',
             Priority = 'Normal'
         );
+
+        Account otherPhysician = new Account(
+            Name = 'Dr. Same Facility Peer',
+            ParentId = facility.Id,
+            Specialty__c = 'Radiology',
+            Territory__c = 'Mumbai South'
+        );
+        insert otherPhysician;
+
+        Contact otherPrescriber = new Contact(
+            FirstName = 'Same',
+            LastName = 'Facility Peer',
+            AccountId = otherPhysician.Id,
+            Prescribing_Potential__c = 'Medium'
+        );
+        insert otherPrescriber;
+
+        Visit_Report__c otherReport = new Visit_Report__c(
+            Physician__c = otherPhysician.Id,
+            Rep__c = UserInfo.getUserId(),
+            Visit_Date__c = Date.today().addDays(-3),
+            Visit_Outcome__c = 'Neutral',
+            AI_Summary__c = 'Other doctor leakage sentinel.'
+        );
+        if (Schema.SObjectType.Visit_Report__c.fields.getMap().containsKey('Prescriber__c')) {
+            otherReport.put('Prescriber__c', otherPrescriber.Id);
+        }
+        if (Schema.SObjectType.Visit_Report__c.fields.getMap().containsKey('Hospital__c')) {
+            otherReport.put('Hospital__c', facility.Id);
+        }
+        insert otherReport;
     }
 
     @IsTest
@@ -77,6 +109,10 @@ private class HealthCloudProviderBriefActionTest {
         System.assertEquals(true, results[0].success, 'Expected provider brief by name to succeed.');
         System.assertEquals('Contact', results[0].providerRecordSource);
         System.assert(results[0].recentVisitSummary.contains('Keytruda'), 'Recent visits should be summarized.');
+        System.assert(
+            !results[0].recentVisitSummary.contains('Other doctor leakage sentinel'),
+            'Provider brief should not include visits from other doctors at the same facility.'
+        );
         System.assert(results[0].openTaskSummary.contains('Send Keytruda summary'), 'Open tasks should be summarized.');
         System.assert(String.isNotBlank(results[0].contextSummaryForAgent));
     }
