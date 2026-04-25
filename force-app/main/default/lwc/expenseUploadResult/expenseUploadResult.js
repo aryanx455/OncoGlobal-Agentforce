@@ -3,12 +3,32 @@ import { LightningElement, api } from 'lwc';
 export default class ExpenseUploadResult extends LightningElement {
     @api value;
 
+    get isCreated() {
+        return Boolean(this.value?.expenseId);
+    }
+
+    get shellClass() {
+        return `result-shell ${this.isCreated ? 'result-shell--success' : 'result-shell--warning'}`;
+    }
+
+    get eyebrowText() {
+        return this.isCreated ? 'Expense Created' : 'Expense Not Created';
+    }
+
     get expenseName() {
-        return this.value?.expenseName || 'Expense';
+        if (this.isCreated) {
+            return this.value?.expenseName || 'Expense';
+        }
+        return this.value?.expenseName || 'Needs review';
     }
 
     get statusMessage() {
-        return this.value?.statusMessage || 'The expense and its related line items were created successfully.';
+        if (this.value?.statusMessage) {
+            return this.value.statusMessage;
+        }
+        return this.isCreated
+            ? 'The expense and its related line items were created successfully.'
+            : 'The expense was not created. Review the uploaded bill and try again.';
     }
 
     get expenseId() {

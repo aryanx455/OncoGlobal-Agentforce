@@ -105,6 +105,8 @@ global with sharing class ExpenseAgentUiService {
 
     private static ExpenseAgentUiResponse buildErrorResponse(String message) {
         ExpenseBillResult result = new ExpenseBillResult();
+        result.expenseName = 'Expense not created';
+        result.lineItemCount = 0;
         result.statusMessage = message;
 
         ExpenseAgentUiResponse response = new ExpenseAgentUiResponse();
@@ -124,13 +126,25 @@ global with sharing class ExpenseAgentUiService {
             return new List<ExpenseController.ExpenseLineItemPayload>();
         }
 
-        Object parsed = JSON.deserializeUntyped(serializedLineItems);
+        Object parsed;
+        try {
+            parsed = JSON.deserializeUntyped(serializedLineItems);
+        } catch (JSONException jsonEx) {
+            // Agentforce can occasionally pass a truncated string from the custom UI.
+            // Do not block the main Expense__c record when only line item JSON is malformed.
+            return new List<ExpenseController.ExpenseLineItemPayload>();
+        }
+
         if (!(parsed instanceof List<Object>)) {
             return new List<ExpenseController.ExpenseLineItemPayload>();
         }
 
         List<ExpenseController.ExpenseLineItemPayload> lineItems = new List<ExpenseController.ExpenseLineItemPayload>();
         for (Object rawItem : (List<Object>) parsed) {
+            if (!(rawItem instanceof Map<String, Object>)) {
+                continue;
+            }
+
             Map<String, Object> itemMap = (Map<String, Object>) rawItem;
             ExpenseController.ExpenseLineItemPayload payloadItem = new ExpenseController.ExpenseLineItemPayload();
             payloadItem.item_name = (String) itemMap.get('item_name');
@@ -161,6 +175,15 @@ global with sharing class ExpenseAgentUiService {
             return Decimal.valueOf(String.valueOf(value));
         }
 
-        return Decimal.valueOf(String.valueOf(value));
+        String textValue = String.valueOf(value);
+        if (String.isBlank(textValue)) {
+            return null;
+        }
+
+        try {
+            return Decimal.valueOf(textValue);
+        } catch (TypeException typeEx) {
+            return null;
+        }
     }
 }

@@ -5,10 +5,17 @@
 .result-shell {
     border-radius: 24px;
     border: 1px solid rgba(17, 45, 78, 0.08);
-    background: linear-gradient(135deg, #edf7ef 0%, #ffffff 100%);
     box-shadow: 0 16px 40px rgba(24, 45, 77, 0.08);
     padding: 1.25rem;
     color: #10233b;
+}
+
+.result-shell--success {
+    background: linear-gradient(135deg, #edf7ef 0%, #ffffff 100%);
+}
+
+.result-shell--warning {
+    background: linear-gradient(135deg, #fff7ed 0%, #ffffff 100%);
 }
 
 .result-header h2 {
@@ -23,11 +30,18 @@
 
 .eyebrow {
     margin: 0;
-    color: #2e844a;
     font-size: 0.78rem;
     font-weight: 700;
     letter-spacing: 0.08em;
     text-transform: uppercase;
+}
+
+.result-shell--success .eyebrow {
+    color: #2e844a;
+}
+
+.result-shell--warning .eyebrow {
+    color: #c2410c;
 }
 
 .result-grid {
