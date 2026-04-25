@@ -71,4 +71,37 @@ private class ProviderResolutionServiceTest {
         System.assertEquals(expected.Id, result.doctorContactId);
         System.assertEquals(facilityB.Id, result.facilityAccountId);
     }
+
+    @IsTest
+    static void contactAndMatchingPhysicianAccountCountAsOneDoctor() {
+        Id physicianRTId = Schema.SObjectType.Account
+            .getRecordTypeInfosByDeveloperName().get('Physician').getRecordTypeId();
+        Account facility = new Account(Name = 'Resolver Facility Single');
+        insert facility;
+        Account physicianAccount = new Account(
+            RecordTypeId = physicianRTId,
+            Name = 'Doctor Resolver Single',
+            ParentId = facility.Id
+        );
+        insert physicianAccount;
+        Contact doctorContact = new Contact(
+            FirstName = 'Doctor',
+            LastName = 'Resolver Single',
+            AccountId = physicianAccount.Id
+        );
+        insert doctorContact;
+
+        ProviderResolutionService.Resolution result = ProviderResolutionService.resolveDoctor(
+            'Doctor Resolver Single',
+            'Resolver Facility Single',
+            false,
+            true
+        );
+
+        System.assert(result.success, result.clarificationMessage);
+        System.assertEquals(false, result.needsClarification);
+        System.assertEquals(physicianAccount.Id, result.physicianAccountId);
+        System.assertEquals(doctorContact.Id, result.doctorContactId);
+        System.assertEquals(facility.Id, result.facilityAccountId);
+    }
 }

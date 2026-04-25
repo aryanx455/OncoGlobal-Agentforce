@@ -274,15 +274,52 @@ public with sharing class ProviderResolutionService {
 
     private static List<DoctorCandidate> dedupeCandidates(List<DoctorCandidate> candidates) {
         List<DoctorCandidate> deduped = new List<DoctorCandidate>();
-        Set<String> keys = new Set<String>();
+        Map<String, Integer> indexByKey = new Map<String, Integer>();
         for (DoctorCandidate candidate : candidates) {
-            String key = String.valueOf(candidate.doctorContactId) + '|' + String.valueOf(candidate.physicianAccountId) + '|' + String.valueOf(candidate.facilityAccountId);
-            if (!keys.contains(key)) {
-                keys.add(key);
+            String key = buildCandidateKey(candidate);
+            if (!indexByKey.containsKey(key)) {
+                indexByKey.put(key, deduped.size());
                 deduped.add(candidate);
+            } else {
+                mergeCandidate(deduped[indexByKey.get(key)], candidate);
             }
         }
         return deduped;
+    }
+
+    private static String buildCandidateKey(DoctorCandidate candidate) {
+        if (candidate.physicianAccountId != null) {
+            return 'physician|' + String.valueOf(candidate.physicianAccountId);
+        }
+        if (candidate.doctorContactId != null) {
+            return 'contact|' + String.valueOf(candidate.doctorContactId);
+        }
+
+        String candidateName = String.isNotBlank(candidate.contactName)
+            ? candidate.contactName
+            : candidate.physicianName;
+        return 'name|' + normalize(cleanDoctorName(candidateName)) + '|facility|' + String.valueOf(candidate.facilityAccountId);
+    }
+
+    private static void mergeCandidate(DoctorCandidate existing, DoctorCandidate incoming) {
+        if (existing.doctorContactId == null && incoming.doctorContactId != null) {
+            existing.doctorContactId = incoming.doctorContactId;
+        }
+        if (String.isBlank(existing.contactName) && String.isNotBlank(incoming.contactName)) {
+            existing.contactName = incoming.contactName;
+        }
+        if (existing.physicianAccountId == null && incoming.physicianAccountId != null) {
+            existing.physicianAccountId = incoming.physicianAccountId;
+        }
+        if (existing.facilityAccountId == null && incoming.facilityAccountId != null) {
+            existing.facilityAccountId = incoming.facilityAccountId;
+        }
+        if (String.isBlank(existing.facilityName) && String.isNotBlank(incoming.facilityName)) {
+            existing.facilityName = incoming.facilityName;
+        }
+        if (String.isBlank(existing.physicianName) && String.isNotBlank(incoming.physicianName)) {
+            existing.physicianName = incoming.physicianName;
+        }
     }
 
     private static Account createPhysicianAccountForContact(DoctorCandidate selected) {
