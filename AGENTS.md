@@ -4,6 +4,27 @@
 Salesforce Agentforce solution for OncoGlobal (Indian pharma company) hackathon.
 A voice-first AI agent that lets medical reps log physician visits, expenses, and follow-up tasks by speaking naturally after a visit — in English or Hinglish.
 
+## Git Workflow Rules
+This repo is shared by Aryan and Avi. Protect `main`; never commit or push directly to `main`.
+
+Every change must use this flow:
+```bash
+git checkout main
+git pull origin main
+git checkout -b avi/<short-feature-name>
+# make one focused feature change
+git push origin avi/<short-feature-name>
+gh pr create --title "..." --body "..."
+```
+
+Rules:
+- Use one PR per feature. Do not bundle unrelated changes.
+- Branch naming: `avi/expense-upload`, `avi/data-model-fix`, `avi/prompt-template`, etc.
+- Commit messages must explain what changed and why.
+- Never force-push to `main`.
+- Aryan reviews Avi's PRs before merge.
+- Before opening a PR, verify Apex compile/deploy checks, no hardcoded org IDs or credentials, deployed object/field API names match `hackathon-sandbox`, and update `CLAUDE.md` when deployed component status changes.
+
 ## Target Org
 - **Alias:** `hackathon-sandbox`
 - **URL:** `https://orgfarm-a5659b3ee2--hackathon.sandbox.my.salesforce.com`

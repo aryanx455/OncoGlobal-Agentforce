@@ -32,7 +32,30 @@ All via conversational AI — no Salesforce IDs needed from the rep.
 
 ---
 
-## 3. Current Status (as of April 2026)
+## 3. Git Collaboration Workflow
+
+`main` is protected by convention. Do not commit or push directly to `main`.
+
+Use this flow for every feature:
+```bash
+git checkout main
+git pull origin main
+git checkout -b avi/<short-feature-name>
+# make one focused feature change
+git push origin avi/<short-feature-name>
+gh pr create --title "..." --body "..."
+```
+
+Rules for AI assistants and humans:
+- One PR per feature; keep unrelated changes separate.
+- Avi branches use `avi/<short-feature-name>`, for example `avi/expense-upload`.
+- Aryan reviews Avi's PRs before merge.
+- Never force-push to `main`.
+- Before opening a PR, verify Apex compile/deploy checks, no hardcoded org IDs or credentials, deployed API names match `hackathon-sandbox`, and `CLAUDE.md` is updated when deployed component status changes.
+
+---
+
+## 4. Current Status (as of April 2026)
 
 ### What Is Deployed and Working
 | Component | Status |
@@ -67,7 +90,7 @@ All via conversational AI — no Salesforce IDs needed from the rep.
 
 ---
 
-## 4. Project Structure
+## 5. Project Structure
 
 ```
 force-app/main/default/
@@ -95,7 +118,7 @@ force-app/main/default/
 
 ---
 
-## 5. Target Org
+## 6. Target Org
 
 | Setting | Value |
 |---|---|
@@ -114,7 +137,7 @@ sf org display --target-org hackathon-sandbox  # verify correct org
 
 ---
 
-## 6. Deploy Commands
+## 7. Deploy Commands
 
 ```bash
 # Verify you're targeting the right org first
@@ -140,7 +163,7 @@ sf project deploy start --source-dir force-app/main/default/genAiPlannerBundles 
 
 ---
 
-## 7. Metadata Deploy Gotchas
+## 8. Metadata Deploy Gotchas
 
 These are hard-won lessons. Read before touching deploy.
 
@@ -165,7 +188,7 @@ These are hard-won lessons. Read before touching deploy.
 
 ---
 
-## 8. Test the Agent
+## 9. Test the Agent
 
 Once deployed and Builder UI wiring is done:
 
@@ -194,7 +217,7 @@ Dr. Gupta ko Tagrisso literature bhejna hai aur ek CME arrange karna hai.
 
 ---
 
-## 9. Where to Contribute
+## 10. Where to Contribute
 
 ### High Priority
 1. **Fix the agent** — Complete the Builder UI action wiring step (Section 3)
@@ -210,7 +233,7 @@ Dr. Gupta ko Tagrisso literature bhejna hai aur ek CME arrange karna hai.
 
 ---
 
-## 10. Hinglish Reference
+## 11. Hinglish Reference
 
 | Hinglish phrase | English meaning |
 |---|---|
@@ -228,7 +251,7 @@ Dr. Gupta ko Tagrisso literature bhejna hai aur ek CME arrange karna hai.
 
 ---
 
-## 11. Key Salesforce Concepts (for non-SF LLMs)
+## 12. Key Salesforce Concepts (for non-SF LLMs)
 
 - **Agentforce**: Salesforce's AI agent platform. Agents are configured in a Builder UI and powered by a large language model.
 - **GenAiFunction**: Exposes an Apex `@InvocableMethod` to the Agentforce agent as a callable tool.
