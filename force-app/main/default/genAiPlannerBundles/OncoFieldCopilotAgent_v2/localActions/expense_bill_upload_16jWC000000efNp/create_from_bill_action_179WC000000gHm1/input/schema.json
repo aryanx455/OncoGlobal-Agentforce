@@ -1,0 +1,14 @@
+{
+  "required" : [ "expense_request" ],
+  "unevaluatedProperties" : false,
+  "properties" : {
+    "expense_request" : {
+      "title" : "Expense Bill",
+      "description" : "Uploaded bill and structured data extracted by the LWC.",
+      "lightning:type" : "c__expenseBillUpload",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : true
+    }
+  },
+  "lightning:type" : "lightning__objectType"
+}

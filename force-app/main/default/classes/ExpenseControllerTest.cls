@@ -45,7 +45,7 @@ private class ExpenseControllerTest {
         System.assertEquals(Date.newInstance(2026, 4, 10), expense.Invoice_Date__c);
 
         List<Expense_Line_Item__c> lineItems = [
-            SELECT Name, Quantity__c, Unit_Price__c
+            SELECT Name, Quantity__c, Unit_Price__c, Total_Price__c
             FROM Expense_Line_Item__c
             WHERE Expense__c = :expense.Id
         ];
@@ -53,6 +53,7 @@ private class ExpenseControllerTest {
         System.assertEquals('Cab Ride', lineItems[0].Name);
         System.assertEquals(1, lineItems[0].Quantity__c);
         System.assertEquals(450, lineItems[0].Unit_Price__c);
+        System.assertEquals(450, lineItems[0].Total_Price__c);
 
         List<ContentDocumentLink> links = [
             SELECT Id
@@ -92,5 +93,27 @@ private class ExpenseControllerTest {
         System.assertEquals('Dr. Meera Shah', response.payload.expense_report.doctor_name);
         System.assertEquals('MEAL-101', response.payload.invoice_details.invoice_number);
         System.assertEquals(990, response.payload.amount_details.total_amount);
+    }
+
+    @IsTest
+    static void createExpenseRecordBlocksDuplicateInvoice() {
+        Expense__c existing = new Expense__c(
+            Vendor__c = 'Duplicate Cafe',
+            Amount__c = 250,
+            Invoice_Number__c = 'DUP-101',
+            Invoice_Date__c = Date.today()
+        );
+        insert existing;
+
+        String payload = '{"expense_report":{"expense_category":"Meals","business_purpose":"Doctor meeting"},"vendor_details":{"vendor_name":"Duplicate Cafe"},"invoice_details":{"invoice_number":"DUP-101","invoice_date":"' + String.valueOf(Date.today()) + '"},"amount_details":{"total_amount":250},"tax_details":{},"line_items":[]}';
+
+        Test.startTest();
+        try {
+            ExpenseController.createExpenseRecord(payload, null);
+            System.assert(false, 'Expected duplicate creation to be blocked.');
+        } catch (AuraHandledException ex) {
+            System.assertNotEquals(null, ex, 'Expected duplicate exception.');
+        }
+        Test.stopTest();
     }
 }

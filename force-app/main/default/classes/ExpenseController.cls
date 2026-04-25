@@ -82,6 +82,19 @@ public with sharing class ExpenseController {
 
         try {
             ExpensePayload payload = parseExpensePayload(expenseData);
+            Date invoiceDate = parseInvoiceDate(payload.invoice_details.invoice_date);
+            Id duplicateExpenseId = ExpenseGuardrailAction.findDuplicateExpenseId(
+                payload.invoice_details.invoice_number,
+                payload.vendor_details.vendor_name,
+                payload.amount_details.total_amount,
+                invoiceDate
+            );
+            if (duplicateExpenseId != null) {
+                throw new AuraHandledException(
+                    'Potential duplicate expense detected. Existing expense record: ' + String.valueOf(duplicateExpenseId)
+                );
+            }
+
             Expense__c expense = buildExpenseRecord(payload);
             insert expense;
 
@@ -187,7 +200,7 @@ public with sharing class ExpenseController {
         expense.Invoice_Number__c = payload.invoice_details.invoice_number;
 
         if (String.isNotBlank(payload.invoice_details.invoice_date)) {
-            expense.Invoice_Date__c = Date.valueOf(payload.invoice_details.invoice_date);
+            expense.Invoice_Date__c = parseInvoiceDate(payload.invoice_details.invoice_date);
         }
 
         return expense;
@@ -330,6 +343,13 @@ public with sharing class ExpenseController {
             title = title.substring(0, extensionIndex);
         }
         return String.isBlank(title) ? 'Expense Bill' : title;
+    }
+
+    private static Date parseInvoiceDate(String invoiceDate) {
+        if (String.isBlank(invoiceDate)) {
+            return null;
+        }
+        return Date.valueOf(invoiceDate);
     }
 
     public class ExpenseProcessingResponse {

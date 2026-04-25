@@ -20,6 +20,7 @@ system:
         3. Create follow-up Tasks when commitments are detected.
         4. Log typed expenses, or launch the receipt upload LWC for file/image/PDF expenses.
         5. Schedule follow-up visits using Event and ServiceAppointment where available.
+        6. Help managers with weekly summaries, flagged expenses, route plans, and relationship heat.
 
     messages:
         welcome: "Hi, I'm Onco Field Copilot. I can brief you before a doctor visit, log the visit afterward, create follow-up tasks, schedule the next meeting, and upload expense receipts."
@@ -50,6 +51,9 @@ start_agent topic_selector:
         instructions: |
             Route immediately. Do not answer directly from the selector.
             - If the rep asks for doctor history, last visit, relationship score, provider brief, referral context, or meeting preparation, route to provider_brief.
+            - If the rep asks for a route, route plan, "who should I visit", "plan tomorrow", or territory plan, route to route_planner.
+            - If the rep asks for weekly summary, daily summary, manager summary, dashboard, performance, flagged expenses, or open follow-ups, route to manager_summary.
+            - If the message came from WhatsApp/SMS/digital engagement, mentions inbound media, or asks to process a WhatsApp receipt, route to digital_engagement_intake.
             - If the rep describes a completed doctor visit, clinic visit, hospital round, medical discussion, or visit outcome, route to post_visit_log.
             - If the rep asks to upload, scan, photograph, attach, or submit a receipt, bill, invoice, image, camera photo, or PDF, route to expense_bill_upload.
             - If the rep mentions an expense amount but does not ask to upload a file, route to expense_log.
@@ -59,6 +63,12 @@ start_agent topic_selector:
         actions:
             to_provider_brief: @utils.transition to @topic.provider_brief
                 description: "Brief the rep on a doctor/provider using Health Cloud and visit history"
+            to_route_planner: @utils.transition to @topic.route_planner
+                description: "Plan a territory route using standard Account, Contact, Task, Event, and Health Cloud context"
+            to_manager_summary: @utils.transition to @topic.manager_summary
+                description: "Summarize visits, expenses, flagged items, open tasks, and high-potential doctors"
+            to_digital_engagement_intake: @utils.transition to @topic.digital_engagement_intake
+                description: "Process WhatsApp/SMS style messages and receipt media"
             to_post_visit_log: @utils.transition to @topic.post_visit_log
                 description: "Log a visit, extract topics, and create follow-up artifacts"
             to_expense_bill_upload: @utils.transition to @topic.expense_bill_upload
@@ -112,6 +122,9 @@ topic provider_brief:
                 relationshipSnapshot: string
                     label: "Relationship Snapshot"
                     is_used_by_planner: True
+                relationshipHeatScore: string
+                    label: "Relationship Heat Score"
+                    is_used_by_planner: True
                 recentVisitSummary: string
                     label: "Recent Visit Summary"
                     is_used_by_planner: True
@@ -131,7 +144,7 @@ topic provider_brief:
     reasoning:
         instructions: ->
             | When the user asks for a doctor/provider brief, call {!@actions.get_provider_brief}.
-            | Summarize the output in a compact mobile-friendly format: relationship snapshot, recent visits, open tasks, and next best action.
+            | Summarize the output in a compact mobile-friendly format: relationship heat, relationship snapshot, recent visits, open tasks, and next best action.
             | Mention whether Health Cloud standard records were found. If only Account/Contact fallback was used, say that briefly.
             | Do not invent referral history. Use only the action output.
             | If the action fails, ask for the doctor or facility name in one short sentence.
@@ -139,6 +152,180 @@ topic provider_brief:
         actions:
             get_provider_brief: @actions.get_provider_brief
                 description: "Get standard Health Cloud and visit-history context"
+                with providerName = ...
+                with facilityName = ...
+
+topic route_planner:
+    label: "Route Planner"
+    description: "Builds a high-impact territory route using standard Contact, Account, Task, Event, ServiceAppointment, and Health Cloud context."
+
+    actions:
+        plan_route:
+            label: "Plan Field Route"
+            description: "Suggests doctors to visit based on territory, open follow-ups, stale relationships, prescribing potential, and visit history."
+            require_user_confirmation: False
+            target: "apex://FieldRoutePlannerAction"
+            inputs:
+                territory: string
+                    label: "Territory"
+                    description: "Territory or city area, such as Mumbai South or Delhi NCR."
+                    is_user_input: True
+                plannedDate: string
+                    label: "Planned Date"
+                    description: "Date in YYYY-MM-DD format. Defaults to tomorrow."
+                    is_user_input: True
+                maxStops: number
+                    label: "Maximum Stops"
+                    description: "Maximum number of doctors to recommend."
+                    is_user_input: True
+            outputs:
+                success: boolean
+                    is_used_by_planner: True
+                routeDate: string
+                    is_used_by_planner: True
+                territory: string
+                    is_used_by_planner: True
+                recommendedStops: string
+                    is_used_by_planner: True
+                routeSummary: string
+                    is_used_by_planner: True
+                standardObjectUsage: string
+                    is_used_by_planner: True
+                errorMessage: string
+                    filter_from_agent: True
+
+    reasoning:
+        instructions: ->
+            | When the rep asks who to visit or asks for a route plan, call {!@actions.plan_route}.
+            | Return a numbered route with doctor, facility, reason, and score.
+            | Mention the standard objects used so the Health Cloud story is visible.
+            | If no route is found, ask for a territory name.
+
+        actions:
+            plan_route: @actions.plan_route
+                description: "Plan the rep route"
+                with territory = ...
+                with plannedDate = ...
+                with maxStops = ...
+
+topic manager_summary:
+    label: "Manager Summary"
+    description: "Creates a dashboard-like summary for the rep or manager: visits, expenses, flags, open tasks, and high-potential doctors."
+
+    actions:
+        summarize_activity:
+            label: "Summarize Field Activity"
+            description: "Summarizes visit activity, typed expenses, uploaded expenses, flagged expenses, open tasks, and high-potential doctors."
+            require_user_confirmation: False
+            target: "apex://FieldManagerSummaryAction"
+            inputs:
+                startDate: string
+                    label: "Start Date"
+                    description: "Start date in YYYY-MM-DD. Defaults to start of current week."
+                    is_user_input: True
+                endDate: string
+                    label: "End Date"
+                    description: "End date in YYYY-MM-DD. Defaults to today."
+                    is_user_input: True
+            outputs:
+                success: boolean
+                    is_used_by_planner: True
+                summaryWindow: string
+                    is_used_by_planner: True
+                visitCount: number
+                    is_used_by_planner: True
+                typedExpenseCount: number
+                    is_used_by_planner: True
+                uploadedExpenseCount: number
+                    is_used_by_planner: True
+                flaggedExpenseCount: number
+                    is_used_by_planner: True
+                openTaskCount: number
+                    is_used_by_planner: True
+                highPotentialDoctors: string
+                    is_used_by_planner: True
+                managerSummary: string
+                    is_used_by_planner: True
+                errorMessage: string
+                    filter_from_agent: True
+
+    reasoning:
+        instructions: ->
+            | When the user asks for a manager summary, weekly report, dashboard, or performance summary, call {!@actions.summarize_activity}.
+            | Format the answer as a compact dashboard: visits, expenses, flags, open tasks, high-potential doctors, and next action.
+            | Do not invent metrics outside the action output.
+
+        actions:
+            summarize_activity: @actions.summarize_activity
+                description: "Summarize rep field activity"
+                with startDate = ...
+                with endDate = ...
+
+topic digital_engagement_intake:
+    label: "Digital Engagement Intake"
+    description: "Processes WhatsApp/SMS style messages and receipt media using standard Messaging and ContentDocument concepts."
+
+    actions:
+        process_digital_message:
+            label: "Process Digital Engagement Intake"
+            description: "Classifies WhatsApp/SMS messages and processes receipt media when a ContentDocument is available."
+            require_user_confirmation: False
+            target: "apex://DigitalEngagementIntakeAction"
+            inputs:
+                channel: string
+                    label: "Channel"
+                    description: "WhatsApp, SMS, mobile, or chat."
+                    is_user_input: True
+                senderName: string
+                    label: "Sender Name"
+                    is_user_input: True
+                senderAddress: string
+                    label: "Sender Address"
+                    is_user_input: True
+                messageText: string
+                    label: "Message Text"
+                    is_user_input: True
+                contentDocumentId: string
+                    label: "Media Content Document ID"
+                providerName: string
+                    label: "Doctor or Provider Name"
+                    is_user_input: True
+                facilityName: string
+                    label: "Facility Name"
+                    is_user_input: True
+            outputs:
+                success: boolean
+                    is_used_by_planner: True
+                detectedIntent: string
+                    is_used_by_planner: True
+                recommendedTopic: string
+                    is_used_by_planner: True
+                mediaProcessed: boolean
+                    is_used_by_planner: True
+                extractedExpenseJson: string
+                    is_used_by_planner: True
+                standardObjectUsage: string
+                    is_used_by_planner: True
+                responseGuidance: string
+                    is_used_by_planner: True
+                errorMessage: string
+                    filter_from_agent: True
+
+    reasoning:
+        instructions: ->
+            | When the input is from WhatsApp, SMS, Digital Engagement, or a message with media, call {!@actions.process_digital_message}.
+            | If mediaProcessed is true, summarize the extracted receipt and ask the user to confirm before creating an expense.
+            | If mediaProcessed is false, route the user verbally toward the recommended topic.
+            | Mention the standard Messaging and ContentDocument object story briefly.
+
+        actions:
+            process_digital_message: @actions.process_digital_message
+                description: "Normalize digital engagement intake"
+                with channel = ...
+                with senderName = ...
+                with senderAddress = ...
+                with messageText = ...
+                with contentDocumentId = ...
                 with providerName = ...
                 with facilityName = ...
 
@@ -238,12 +425,160 @@ topic post_visit_log:
                 errorMessage: string
                     filter_from_agent: True
 
+        create_followups:
+            label: "Create Follow-Up Tasks from Visit"
+            description: "Creates standard Task records when the visit transcript includes commitments."
+            require_user_confirmation: False
+            target: "apex://CreateFollowUpTasksAction"
+            inputs:
+                followUpActions: string
+                    label: "Follow-Up Actions"
+                    is_required: True
+                    is_user_input: True
+                physicianName: string
+                    label: "Physician Name"
+                    is_user_input: True
+                visitReportId: string
+                    label: "Visit Report ID"
+                dueDate: date
+                    label: "Due Date"
+                    is_user_input: True
+                priority: string
+                    label: "Priority"
+                    is_user_input: True
+            outputs:
+                tasksCreated: number
+                    is_used_by_planner: True
+                success: boolean
+                    is_used_by_planner: True
+                taskIds: string
+                    filter_from_agent: True
+                errorMessage: string
+                    filter_from_agent: True
+
+        review_expense_risk:
+            label: "Review Expense Risk"
+            description: "Checks duplicate risk and explains policy limits before logging a mentioned expense."
+            require_user_confirmation: False
+            target: "apex://ExpenseGuardrailAction"
+            inputs:
+                invoiceNumber: string
+                    label: "Invoice Number"
+                    is_user_input: True
+                vendorName: string
+                    label: "Vendor Name"
+                    is_user_input: True
+                amount: number
+                    label: "Amount"
+                    is_user_input: True
+                category: string
+                    label: "Category"
+                    is_user_input: True
+                expenseDate: string
+                    label: "Expense Date"
+                    is_user_input: True
+                doctorName: string
+                    label: "Doctor Name"
+                    is_user_input: True
+            outputs:
+                duplicateFound: boolean
+                    is_used_by_planner: True
+                policyFlagged: boolean
+                    is_used_by_planner: True
+                policyExplanation: string
+                    is_used_by_planner: True
+                riskSummary: string
+                    is_used_by_planner: True
+                recommendedAction: string
+                    is_used_by_planner: True
+
+        log_expense:
+            label: "Log Visit Expense"
+            description: "Creates a Visit_Expense__c when the same voice/text note includes a typed expense."
+            require_user_confirmation: False
+            target: "apex://LogExpenseAction"
+            inputs:
+                amount: number
+                    label: "Amount"
+                    is_required: True
+                    is_user_input: True
+                category: string
+                    label: "Category"
+                    is_required: True
+                    is_user_input: True
+                visitReportId: string
+                    label: "Visit Report ID"
+                physicianName: string
+                    label: "Physician Name"
+                    is_user_input: True
+                hospitalName: string
+                    label: "Hospital or Facility Name"
+                    is_user_input: True
+                notes: string
+                    label: "Notes"
+                    is_user_input: True
+            outputs:
+                success: boolean
+                    is_used_by_planner: True
+                expenseId: string
+                    filter_from_agent: True
+                    is_used_by_planner: True
+                policyFlagged: boolean
+                    is_used_by_planner: True
+                resolvedVisitReportId: string
+                    filter_from_agent: True
+                    is_used_by_planner: True
+                errorMessage: string
+                    filter_from_agent: True
+
+        schedule_visit:
+            label: "Schedule Visit Appointment"
+            description: "Schedules the next visit as Event and ServiceAppointment when the transcript asks for scheduling."
+            require_user_confirmation: False
+            target: "apex://ScheduleVisitAction"
+            inputs:
+                physicianName: string
+                    label: "Physician Name"
+                    is_required: True
+                    is_user_input: True
+                hospitalName: string
+                    label: "Hospital or Clinic Name"
+                    is_user_input: True
+                visitReportId: string
+                    label: "Visit Report ID"
+                preferredDate: string
+                    label: "Preferred Date"
+                    is_user_input: True
+                preferredTime: string
+                    label: "Preferred Time"
+                    is_user_input: True
+                notes: string
+                    label: "Notes"
+                    is_user_input: True
+            outputs:
+                success: boolean
+                    is_used_by_planner: True
+                eventId: string
+                    filter_from_agent: True
+                    is_used_by_planner: True
+                serviceAppointmentId: string
+                    filter_from_agent: True
+                    is_used_by_planner: True
+                scheduledDateTime: string
+                    is_used_by_planner: True
+                conflictWarning: string
+                    is_used_by_planner: True
+                errorMessage: string
+                    filter_from_agent: True
+
     reasoning:
         instructions: ->
             | For any completed visit summary, call {!@actions.log_visit} first.
             | If log_visit succeeds, call {!@actions.extract_topics} using the new visitReportId.
-            | Confirm the visit record name and summarize the doctor, facility, outcome, topics, and next best action.
-            | If the rep mentioned follow-up tasks or expenses, tell the rep you can log those next and route on the next turn.
+            | If the same message includes follow-up commitments, call {!@actions.create_followups}.
+            | If the same message includes a typed expense amount and category, call {!@actions.review_expense_risk}; if no duplicate is found, call {!@actions.log_expense}.
+            | If the same message includes a next-visit scheduling request, call {!@actions.schedule_visit}.
+            | Confirm the visit record name and summarize the doctor, facility, outcome, topics, next best action, tasks, expenses, and schedule in one concise response.
             | Do not ask for record IDs.
 
         actions:
@@ -264,6 +599,37 @@ topic post_visit_log:
                 with engagementScore = ...
                 with aiSummary = ...
                 with needsReview = ...
+            create_followups: @actions.create_followups
+                description: "Create standard follow-up tasks"
+                with followUpActions = ...
+                with physicianName = ...
+                with visitReportId = ...
+                with dueDate = ...
+                with priority = ...
+            review_expense_risk: @actions.review_expense_risk
+                description: "Check duplicate and policy risk for same-message expense"
+                with invoiceNumber = ...
+                with vendorName = ...
+                with amount = ...
+                with category = ...
+                with expenseDate = ...
+                with doctorName = ...
+            log_expense: @actions.log_expense
+                description: "Create same-message typed expense"
+                with amount = ...
+                with category = ...
+                with visitReportId = ...
+                with physicianName = ...
+                with hospitalName = ...
+                with notes = ...
+            schedule_visit: @actions.schedule_visit
+                description: "Schedule same-message next visit"
+                with physicianName = ...
+                with hospitalName = ...
+                with visitReportId = ...
+                with preferredDate = ...
+                with preferredTime = ...
+                with notes = ...
 
 topic expense_bill_upload:
     label: "Expense Bill Upload"
@@ -301,6 +667,7 @@ topic expense_bill_upload:
             | Otherwise, when the user wants to upload a receipt, bill, invoice, image, photo, camera capture, or PDF, call the action's user_input tool immediately.
             | Do not ask "Would you like to proceed?"
             | Do not ask the user to type invoice fields manually in chat.
+            | The Apex creation path blocks exact duplicate invoices and returns a duplicate warning if one already exists.
             | After creation, confirm the expense and mention vendor, invoice number, and amount when available.
 
         actions:
@@ -313,6 +680,49 @@ topic expense_log:
     description: "Logs simple expenses mentioned in conversation when no file upload is requested."
 
     actions:
+        review_expense_risk:
+            label: "Review Expense Risk"
+            description: "Checks duplicate risk and explains policy limits before logging a typed expense."
+            require_user_confirmation: False
+            target: "apex://ExpenseGuardrailAction"
+            inputs:
+                invoiceNumber: string
+                    label: "Invoice Number"
+                    is_user_input: True
+                vendorName: string
+                    label: "Vendor Name"
+                    is_user_input: True
+                amount: number
+                    label: "Amount"
+                    is_user_input: True
+                category: string
+                    label: "Category"
+                    is_user_input: True
+                expenseDate: string
+                    label: "Expense Date"
+                    is_user_input: True
+                doctorName: string
+                    label: "Doctor Name"
+                    is_user_input: True
+            outputs:
+                duplicateFound: boolean
+                    is_used_by_planner: True
+                duplicateRecordId: string
+                    filter_from_agent: True
+                    is_used_by_planner: True
+                duplicateObject: string
+                    is_used_by_planner: True
+                policyFlagged: boolean
+                    is_used_by_planner: True
+                policyLimit: number
+                    is_used_by_planner: True
+                policyExplanation: string
+                    is_used_by_planner: True
+                riskSummary: string
+                    is_used_by_planner: True
+                recommendedAction: string
+                    is_used_by_planner: True
+
         log_expense:
             label: "Log Visit Expense"
             description: "Creates a Visit_Expense__c linked to the visit when possible."
@@ -373,12 +783,22 @@ topic expense_log:
 
     reasoning:
         instructions: ->
-            | If the user mentions an amount and category without file upload, call {!@actions.log_expense}.
+            | If the user mentions an amount and category without file upload, first call {!@actions.review_expense_risk}.
+            | If duplicateFound is true, warn the user and ask for confirmation before creating another expense.
+            | If duplicateFound is false, call {!@actions.log_expense}.
             | Use the spoken amount exactly. Do not recalculate totals.
-            | If policyFlagged is true, clearly mention that it was flagged by policy.
+            | If policyFlagged is true, clearly mention the policyExplanation.
             | If the user wants to upload a receipt instead, route back to expense_bill_upload on the next turn.
 
         actions:
+            review_expense_risk: @actions.review_expense_risk
+                description: "Check policy and duplicate risk"
+                with invoiceNumber = ...
+                with vendorName = ...
+                with amount = ...
+                with category = ...
+                with expenseDate = ...
+                with doctorName = ...
             log_expense: @actions.log_expense
                 description: "Create typed visit expense"
                 with amount = ...

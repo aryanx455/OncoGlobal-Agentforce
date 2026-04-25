@@ -59,6 +59,9 @@ public with sharing class HealthCloudProviderBriefAction {
         @InvocableVariable(label='Relationship Snapshot')
         public String relationshipSnapshot;
 
+        @InvocableVariable(label='Relationship Heat Score')
+        public String relationshipHeatScore;
+
         @InvocableVariable(label='Recent Visit Summary')
         public String recentVisitSummary;
 
@@ -136,6 +139,7 @@ public with sharing class HealthCloudProviderBriefAction {
             res.relationshipSnapshot = buildRelationshipSnapshot(provider);
             res.recentVisitSummary = buildRecentVisitSummary(visits);
             res.openTaskSummary = buildOpenTaskSummary(tasks);
+            res.relationshipHeatScore = buildRelationshipHeatScore(provider, visits, tasks);
             res.nextBestActions = buildNextBestActions(provider, visits, tasks);
             res.contextSummaryForAgent = buildAgentContext(res);
         } catch (Exception e) {
@@ -556,6 +560,45 @@ public with sharing class HealthCloudProviderBriefAction {
         return String.join(rows, '\n');
     }
 
+    private static String buildRelationshipHeatScore(ProviderMatch provider, List<Visit_Report__c> visits, List<Task> tasks) {
+        Integer score = 50;
+        List<String> reasons = new List<String>();
+
+        Decimal relationshipScore = null;
+        if (provider.contactRecord != null && provider.contactRecord.Relationship_Score__c != null) {
+            relationshipScore = provider.contactRecord.Relationship_Score__c;
+        } else if (provider.accountRecord != null && provider.accountRecord.Relationship_Score__c != null) {
+            relationshipScore = provider.accountRecord.Relationship_Score__c;
+        }
+        if (relationshipScore != null) {
+            score = Integer.valueOf(relationshipScore);
+            reasons.add('relationship score ' + score);
+        }
+
+        if (!visits.isEmpty() && visits[0].Visit_Date__c != null) {
+            Integer daysSinceVisit = visits[0].Visit_Date__c.daysBetween(Date.today());
+            if (daysSinceVisit <= 14) {
+                score += 10;
+                reasons.add('recent visit within 14 days');
+            } else if (daysSinceVisit > 45) {
+                score -= 15;
+                reasons.add('no recent visit in 45+ days');
+            }
+        } else {
+            score -= 10;
+            reasons.add('no visit history');
+        }
+
+        if (!tasks.isEmpty()) {
+            score -= Math.min(15, tasks.size() * 3);
+            reasons.add(tasks.size() + ' open follow-up task(s)');
+        }
+
+        score = Math.max(0, Math.min(100, score));
+        String band = score >= 75 ? 'Hot' : score >= 55 ? 'Warm' : score >= 35 ? 'Cold' : 'Needs Attention';
+        return band + ' (' + score + '/100)' + (reasons.isEmpty() ? '' : ' - ' + String.join(reasons, ', '));
+    }
+
     private static String buildOpenTaskSummary(List<Task> tasks) {
         if (tasks.isEmpty()) {
             return 'No open follow-up tasks found.';
@@ -606,6 +649,7 @@ public with sharing class HealthCloudProviderBriefAction {
             'Provider: ' + res.providerName + ' via ' + res.providerRecordSource,
             String.isBlank(res.facilityName) ? null : 'Facility: ' + res.facilityName + ' via ' + res.facilityRecordSource,
             res.relationshipSnapshot,
+            res.relationshipHeatScore,
             res.recentVisitSummary,
             res.openTaskSummary,
             res.nextBestActions
