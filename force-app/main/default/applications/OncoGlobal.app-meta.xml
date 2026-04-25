@@ -11,7 +11,7 @@
     <navType>Standard</navType>
     <!-- Custom Onco Global objects -->
     <tabs>Visit_Report__c</tabs>
-    <tabs>Visit_Expense__c</tabs>
+    <tabs>Expense__c</tabs>
     <!-- Health Cloud objects -->
     <tabs>standard-HealthcareProvider</tabs>
     <tabs>standard-Visit</tabs>

@@ -290,7 +290,7 @@ topic expense_log:
     actions:
         log_expense:
             label: "Log Visit Expense"
-            description: "Creates a Visit_Expense__c record. Call immediately when the rep mentions any expense amount."
+            description: "Creates an Expense__c record. Call immediately when the rep mentions any expense amount."
             require_user_confirmation: False
             target: "apex://LogExpenseAction"
             inputs:

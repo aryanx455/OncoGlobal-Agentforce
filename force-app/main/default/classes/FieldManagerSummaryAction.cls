@@ -71,7 +71,7 @@ public with sharing class FieldManagerSummaryAction {
 
             List<Visit_Report__c> visits = [
                 SELECT Id, Name, Physician__r.Name, Visit_Date__c,
-                       Visit_Outcome__c, Engagement_Score__c, Total_Visit_Expense__c
+                       Visit_Outcome__c, Engagement_Score__c, Total_Expense_Amount__c
                 FROM Visit_Report__c
                 WHERE Visit_Date__c >= :startDate
                 AND Visit_Date__c <= :endDate
@@ -85,25 +85,14 @@ public with sharing class FieldManagerSummaryAction {
                 visitIds.add(visit.Id);
             }
 
-            List<Visit_Expense__c> typedExpenses = visitIds.isEmpty()
-                ? new List<Visit_Expense__c>()
+            List<Expense__c> typedExpenses = visitIds.isEmpty()
+                ? new List<Expense__c>()
                 : [
                     SELECT Id, Amount__c, Policy_Flag__c
-                    FROM Visit_Expense__c
+                    FROM Expense__c
                     WHERE Visit_Report__c IN :visitIds
                     LIMIT 500
                 ];
-
-            Datetime startDt = Datetime.newInstance(startDate, Time.newInstance(0, 0, 0, 0));
-            Datetime endDt = Datetime.newInstance(endDate.addDays(1), Time.newInstance(0, 0, 0, 0));
-            List<Expense__c> uploadedExpenses = [
-                SELECT Id, Amount__c, Doctor__r.Name, Vendor__c
-                FROM Expense__c
-                WHERE CreatedById = :UserInfo.getUserId()
-                AND CreatedDate >= :startDt
-                AND CreatedDate < :endDt
-                LIMIT 500
-            ];
 
             List<Task> openTasks = [
                 SELECT Id, Subject, ActivityDate
@@ -116,7 +105,7 @@ public with sharing class FieldManagerSummaryAction {
 
             res.visitCount = visits.size();
             res.typedExpenseCount = typedExpenses.size();
-            res.uploadedExpenseCount = uploadedExpenses.size();
+            res.uploadedExpenseCount = 0;
             res.flaggedExpenseCount = countFlagged(typedExpenses);
             res.openTaskCount = openTasks.size();
             res.summaryWindow = startDate.format() + ' to ' + endDate.format();
@@ -130,9 +119,9 @@ public with sharing class FieldManagerSummaryAction {
         return res;
     }
 
-    private static Integer countFlagged(List<Visit_Expense__c> expenses) {
+    private static Integer countFlagged(List<Expense__c> expenses) {
         Integer count = 0;
-        for (Visit_Expense__c expense : expenses) {
+        for (Expense__c expense : expenses) {
             if (expense.Policy_Flag__c == true) {
                 count++;
             }

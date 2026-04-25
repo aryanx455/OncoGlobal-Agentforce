@@ -36,7 +36,7 @@
             </layoutItems>
             <layoutItems>
                 <behavior>Readonly</behavior>
-                <field>Total_Visit_Expense__c</field>
+                <field>Total_Expense_Amount__c</field>
             </layoutItems>
         </layoutColumns>
         <layoutColumns>

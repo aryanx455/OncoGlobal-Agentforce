@@ -126,7 +126,7 @@ public with sharing class VisitReportTriggerHandler {
         }
 
         for (Visit_Report__c vr : [
-            SELECT Id, Prescriber__c, Visit_Date__c, Engagement_Score__c, Total_Visit_Expense__c
+            SELECT Id, Prescriber__c, Visit_Date__c, Engagement_Score__c, Total_Expense_Amount__c
             FROM   Visit_Report__c
             WHERE  Prescriber__c IN :contactIds
             ORDER  BY Visit_Date__c DESC NULLS LAST
@@ -149,8 +149,8 @@ public with sharing class VisitReportTriggerHandler {
                     scoreSum  += visits[i].Engagement_Score__c;
                     scoreCount++;
                 }
-                if (visits[i].Total_Visit_Expense__c != null) {
-                    expenseSum += visits[i].Total_Visit_Expense__c;
+                if (visits[i].Total_Expense_Amount__c != null) {
+                    expenseSum += visits[i].Total_Expense_Amount__c;
                 }
             }
             con.Relationship_Score__c = scoreCount > 0 ? (scoreSum / scoreCount).setScale(1) : null;
@@ -170,7 +170,7 @@ public with sharing class VisitReportTriggerHandler {
         }
 
         for (AggregateResult ar : [
-            SELECT Hospital__c accId, SUM(Total_Visit_Expense__c) total
+            SELECT Hospital__c accId, SUM(Total_Expense_Amount__c) total
             FROM   Visit_Report__c
             WHERE  Hospital__c IN :hospitalIds
             GROUP  BY Hospital__c

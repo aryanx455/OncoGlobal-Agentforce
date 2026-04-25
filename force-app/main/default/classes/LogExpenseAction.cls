@@ -1,12 +1,4 @@
-/**
- * LogExpenseAction
- * Creates Visit_Expense__c records. Accepts total bill amount as-is.
- * GST fields (rate, SGST, CGST, invoice number) are optional — only stored
- * when the rep explicitly provides them from the receipt.
- */
 public without sharing class LogExpenseAction {
-
-    // ─── INPUT / OUTPUT ────────────────────────────────────────────────────────
 
     public class Request {
         @InvocableVariable(required=true label='Amount'
@@ -14,7 +6,7 @@ public without sharing class LogExpenseAction {
         public Decimal amount;
 
         @InvocableVariable(required=true label='Category'
-            description='Expense category. Must be exactly one of: Meal, Travel, Accommodation, Samples, CME / Event, Other.')
+            description='Expense category. Must be exactly one of: Meal, Travel, Accommodation, Samples, CME / Event, Office Supplies, Other.')
         public String category;
 
         @InvocableVariable(label='Visit Report ID'
@@ -40,7 +32,7 @@ public without sharing class LogExpenseAction {
         public String receiptUrl;
 
         @InvocableVariable(label='GST Rate (%)'
-            description='GST percentage from the receipt — only when rep explicitly states it (e.g. "bill mein 5% GST tha"). Leave blank otherwise.')
+            description='GST percentage from the receipt — only when rep explicitly states it. Leave blank otherwise.')
         public Decimal gstRate;
 
         @InvocableVariable(label='SGST Amount (Rs.)'
@@ -51,9 +43,9 @@ public without sharing class LogExpenseAction {
             description='CGST amount from receipt — only when rep explicitly reads it out. Leave blank otherwise.')
         public Decimal cgstAmount;
 
-        @InvocableVariable(label='GST Invoice Number'
+        @InvocableVariable(label='Invoice Number'
             description='Invoice/bill number from the receipt, if rep provides it.')
-        public String gstInvoiceNumber;
+        public String invoiceNumber;
     }
 
     public class Result {
@@ -94,15 +86,13 @@ public without sharing class LogExpenseAction {
         String clarificationMessage;
     }
 
-    // ─── INVOCABLE ENTRY POINT ─────────────────────────────────────────────────
-
     @InvocableMethod(
         label='Log Visit Expense'
-        description='Creates a Visit_Expense__c record. Required: Amount (total bill in Rs.) and Category (Meal/Travel/Accommodation/Samples/CME Event/Other). Accepts Physician Name to auto-link to today\'s visit report. Auto-flags amounts over Rs.150. GST fields optional — only stored if rep explicitly provides them.'
+        description='Creates an Expense__c record. Required: Amount (total bill in Rs.) and Category (Meal/Travel/Accommodation/Samples/CME Event/Other). Accepts Physician Name to auto-link to today\'s visit report. Auto-flags amounts over Rs.150.'
         category='OncoGlobal Visit Management'
     )
     public static List<Result> execute(List<Request> requests) {
-        List<Visit_Expense__c> expensesToInsert = new List<Visit_Expense__c>();
+        List<Expense__c> expensesToInsert = new List<Expense__c>();
         List<Result> results = new List<Result>();
         List<Integer> validIndexes = new List<Integer>();
 
@@ -123,7 +113,6 @@ public without sharing class LogExpenseAction {
                 continue;
             }
 
-            // ── Resolve visit report ─────────────────────────────────────────
             Id resolvedVisitReportId = req.visitReportId;
             if (resolvedVisitReportId == null) {
                 VisitResolution visitResolution = findOrCreateVisitReport(req.physicianName, req.hospitalName, req.visitDate);
@@ -140,26 +129,17 @@ public without sharing class LogExpenseAction {
             }
             res.resolvedVisitReportId = resolvedVisitReportId;
 
-            Map<String, Schema.SObjectField> expenseFields = Schema.SObjectType.Visit_Expense__c.fields.getMap();
-            Visit_Expense__c exp = new Visit_Expense__c(
-                Visit_Report__c       = resolvedVisitReportId,
-                Amount__c             = req.amount,
-                Category__c           = req.category,
-                Notes__c              = req.notes,
-                Receipt_URL__c        = req.receiptUrl
+            Expense__c exp = new Expense__c(
+                Visit_Report__c   = resolvedVisitReportId,
+                Amount__c         = req.amount,
+                Category__c       = req.category,
+                Notes__c          = req.notes,
+                Receipt_URL__c    = req.receiptUrl,
+                GST_Rate__c       = req.gstRate,
+                SGST_Amount__c    = req.sgstAmount,
+                CGST_Amount__c    = req.cgstAmount,
+                Invoice_Number__c = req.invoiceNumber
             );
-            if (expenseFields.containsKey('GST_Rate__c')) {
-                exp.put('GST_Rate__c', req.gstRate);
-            }
-            if (expenseFields.containsKey('SGST_Amount__c')) {
-                exp.put('SGST_Amount__c', req.sgstAmount);
-            }
-            if (expenseFields.containsKey('CGST_Amount__c')) {
-                exp.put('CGST_Amount__c', req.cgstAmount);
-            }
-            if (expenseFields.containsKey('GST_Invoice_Number__c')) {
-                exp.put('GST_Invoice_Number__c', req.gstInvoiceNumber);
-            }
 
             expensesToInsert.add(exp);
             validIndexes.add(i);
@@ -177,7 +157,7 @@ public without sharing class LogExpenseAction {
                     res.expenseId = sr.getId();
                     try {
                         res.policyFlagged = [
-                            SELECT Policy_Flag__c FROM Visit_Expense__c
+                            SELECT Policy_Flag__c FROM Expense__c
                             WHERE Id = :sr.getId() LIMIT 1
                         ].Policy_Flag__c;
                     } catch (Exception e) {
@@ -192,8 +172,6 @@ public without sharing class LogExpenseAction {
 
         return results;
     }
-
-    // ─── HELPERS ──────────────────────────────────────────────────────────────
 
     @TestVisible
     private static VisitResolution findOrCreateVisitReport(String physicianName, String hospitalName, Date visitDate) {
