@@ -69,6 +69,68 @@ private class LogVisitActionTest {
     }
 
     @IsTest
+    static void testExecute_doctorNameResolvesContactAndCreatesMeaningfulPhysicianAccount() {
+        Account facility = new Account(Name = 'Log Visit Facility 004');
+        insert facility;
+        Contact doctor = new Contact(
+            FirstName = 'Doctor',
+            LastName = 'Demo 004',
+            AccountId = facility.Id
+        );
+        insert doctor;
+
+        LogVisitAction.Request req = new LogVisitAction.Request();
+        req.physicianName = 'Doctor Demo 004';
+        req.transcript = 'Recently visited doctor demo 004. He was very happy and will send patients.';
+        req.visitOutcome = 'Positive';
+        req.aiSummary = 'Doctor Demo 004 reacted positively and plans to send patient referrals.';
+
+        Test.startTest();
+        List<LogVisitAction.Result> results = LogVisitAction.execute(
+            new List<LogVisitAction.Request>{ req }
+        );
+        Test.stopTest();
+
+        System.assert(results[0].success, results[0].errorMessage);
+        System.assertEquals(doctor.Id, results[0].prescriberContactId);
+        System.assertEquals(facility.Id, results[0].hospitalAccountId);
+        System.assertNotEquals(null, results[0].physicianAccountId);
+
+        Visit_Report__c visit = [
+            SELECT Physician__c, Visit_Outcome__c, AI_Summary__c
+            FROM Visit_Report__c
+            WHERE Id = :results[0].visitReportId
+        ];
+        System.assertEquals(results[0].physicianAccountId, visit.Physician__c);
+        System.assertEquals('Positive', visit.Visit_Outcome__c);
+    }
+
+    @IsTest
+    static void testExecute_duplicateDoctorNameRequestsHospitalClarification() {
+        Account facilityA = new Account(Name = 'Log Visit Facility A');
+        Account facilityB = new Account(Name = 'Log Visit Facility B');
+        insert new List<Account>{ facilityA, facilityB };
+        insert new List<Contact>{
+            new Contact(FirstName = 'Doctor', LastName = 'Same Name', AccountId = facilityA.Id),
+            new Contact(FirstName = 'Doctor', LastName = 'Same Name', AccountId = facilityB.Id)
+        };
+
+        LogVisitAction.Request req = new LogVisitAction.Request();
+        req.physicianName = 'Doctor Same Name';
+        req.transcript = 'Visited Doctor Same Name and discussed referrals.';
+
+        Test.startTest();
+        List<LogVisitAction.Result> results = LogVisitAction.execute(
+            new List<LogVisitAction.Request>{ req }
+        );
+        Test.stopTest();
+
+        System.assertEquals(false, results[0].success);
+        System.assert(results[0].needsClarification, 'Duplicate doctors should not create a weak visit.');
+        System.assertEquals(null, results[0].visitReportId);
+    }
+
+    @IsTest
     static void testExecute_defaultsApplied_whenOptionalFieldsBlank() {
         Account physician = [SELECT Id FROM Account LIMIT 1];
 

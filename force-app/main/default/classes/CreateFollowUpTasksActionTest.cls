@@ -63,9 +63,14 @@ private class CreateFollowUpTasksActionTest {
     }
 
     @IsTest
-    static void testExecute_missingReportId_createsTasksWithoutVisitLink() {
+    static void testExecute_missingReportId_linksTaskToPhysicianAccount() {
+        Id physicianRTId = Schema.SObjectType.Account
+            .getRecordTypeInfosByDeveloperName().get('Physician').getRecordTypeId();
+        Account physician = new Account(RecordTypeId = physicianRTId, Name = 'Dr. Task No Visit');
+        insert physician;
+
         CreateFollowUpTasksAction.Request req = new CreateFollowUpTasksAction.Request();
-        req.physicianId     = [SELECT Id FROM Account LIMIT 1].Id;
+        req.physicianId     = physician.Id;
         req.followUpActions = 'Do something';
 
         Test.startTest();
@@ -83,7 +88,7 @@ private class CreateFollowUpTasksActionTest {
             WHERE Id = :results[0].taskIds
         ];
         System.assertEquals('Do something', createdTask.Subject);
-        System.assertEquals(null, createdTask.WhatId, 'Task should still be created without a visit report link');
+        System.assertEquals(physician.Id, createdTask.WhatId, 'Task should link to the physician account when no visit report is available');
     }
 
     @IsTest

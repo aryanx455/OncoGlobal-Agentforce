@@ -1,0 +1,28 @@
+{
+  "required" : [ ],
+  "unevaluatedProperties" : false,
+  "properties" : {
+    "maxStops" : {
+      "title" : "Maximum Stops",
+      "description" : "Maximum number of doctors to recommend.",
+      "lightning:type" : "lightning__numberType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : true
+    },
+    "plannedDate" : {
+      "title" : "Planned Date",
+      "description" : "Date in YYYY-MM-DD format. Defaults to tomorrow.",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : true
+    },
+    "territory" : {
+      "title" : "Territory",
+      "description" : "Territory or city area, such as Mumbai South or Delhi NCR.",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : true
+    }
+  },
+  "lightning:type" : "lightning__objectType"
+}

@@ -1,0 +1,91 @@
+{
+  "required" : [ "amount", "category" ],
+  "unevaluatedProperties" : false,
+  "properties" : {
+    "amount" : {
+      "title" : "Amount",
+      "description" : "Amount",
+      "lightning:type" : "lightning__numberType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : true
+    },
+    "category" : {
+      "title" : "Category",
+      "description" : "One of: Meal, Travel, Accommodation, Samples, CME / Event, Other.",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : true
+    },
+    "cgstAmount" : {
+      "title" : "CGST Amount",
+      "description" : "Cgst Amount",
+      "lightning:type" : "lightning__numberType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : true
+    },
+    "gstInvoiceNumber" : {
+      "title" : "GST Invoice Number",
+      "description" : "Gst Invoice Number",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : true
+    },
+    "gstRate" : {
+      "title" : "GST Rate",
+      "description" : "Gst Rate",
+      "lightning:type" : "lightning__numberType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : true
+    },
+    "hospitalName" : {
+      "title" : "Hospital or Facility Name",
+      "description" : "Hospital Name",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : true
+    },
+    "notes" : {
+      "title" : "Notes",
+      "description" : "Notes",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : true
+    },
+    "physicianName" : {
+      "title" : "Physician Name",
+      "description" : "Physician Name",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : true
+    },
+    "receiptUrl" : {
+      "title" : "Receipt URL",
+      "description" : "Receipt Url",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : true
+    },
+    "sgstAmount" : {
+      "title" : "SGST Amount",
+      "description" : "Sgst Amount",
+      "lightning:type" : "lightning__numberType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : true
+    },
+    "visitDate" : {
+      "title" : "Visit Date",
+      "description" : "Visit Date",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : true
+    },
+    "visitReportId" : {
+      "title" : "Visit Report ID",
+      "description" : "Visit Report Id",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : false
+    }
+  },
+  "lightning:type" : "lightning__objectType"
+}

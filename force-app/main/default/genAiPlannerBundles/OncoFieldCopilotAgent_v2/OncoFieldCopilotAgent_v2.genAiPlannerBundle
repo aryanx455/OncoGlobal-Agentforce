@@ -1,0 +1,670 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<GenAiPlannerBundle xmlns="http://soap.sforce.com/2006/04/metadata">
+    <description>Health Cloud-first Agentforce assistant for Onco Global reps to brief providers, log post-visit notes, create tasks, schedule visits, and upload expense receipts.</description>
+    <localTopicLinks>
+        <genAiPluginName>digital_engagement_intake_16jWC000000efNp</genAiPluginName>
+    </localTopicLinks>
+    <localTopicLinks>
+        <genAiPluginName>expense_bill_upload_16jWC000000efNp</genAiPluginName>
+    </localTopicLinks>
+    <localTopicLinks>
+        <genAiPluginName>expense_log_16jWC000000efNp</genAiPluginName>
+    </localTopicLinks>
+    <localTopicLinks>
+        <genAiPluginName>follow_up_tasks_16jWC000000efNp</genAiPluginName>
+    </localTopicLinks>
+    <localTopicLinks>
+        <genAiPluginName>knowledge_search_16jWC000000efNp</genAiPluginName>
+    </localTopicLinks>
+    <localTopicLinks>
+        <genAiPluginName>manager_summary_16jWC000000efNp</genAiPluginName>
+    </localTopicLinks>
+    <localTopicLinks>
+        <genAiPluginName>post_visit_log_16jWC000000efNp</genAiPluginName>
+    </localTopicLinks>
+    <localTopicLinks>
+        <genAiPluginName>provider_brief_16jWC000000efNp</genAiPluginName>
+    </localTopicLinks>
+    <localTopicLinks>
+        <genAiPluginName>route_planner_16jWC000000efNp</genAiPluginName>
+    </localTopicLinks>
+    <localTopicLinks>
+        <genAiPluginName>schedule_visit_16jWC000000efNp</genAiPluginName>
+    </localTopicLinks>
+    <localTopicLinks>
+        <genAiPluginName>topic_selector_16jWC000000efNp</genAiPluginName>
+    </localTopicLinks>
+    <localTopics>
+        <fullName>route_planner_16jWC000000efNp</fullName>
+        <canEscalate>false</canEscalate>
+        <description>Builds a high-impact territory route using standard Contact, Account, Task, Event, ServiceAppointment, and Health Cloud context.</description>
+        <developerName>route_planner_16jWC000000efNp</developerName>
+        <genAiPluginInstructions>
+            <description>You are Onco Field Copilot, a Health Cloud-first Agentforce assistant for Onco Global field executives.
+You help reps before and after physician visits without changing the existing PostVisitLogAgent or ExpenseUploadAgent.
+
+LANGUAGE: Always respond in English only.
+
+OPERATING PRINCIPLES:
+- Prefer standard Salesforce and Health Cloud context first: HealthcareProvider, HealthcareFacility, HealthcarePractitionerFacility, ServiceAppointment, Event, Task, ContentDocument, Account, and Contact.
+- Use the existing OncoGlobal custom objects only where the current solution already uses them: Visit_Report__c, Visit_Expense__c, Expense__c, and Expense_Line_Item__c.
+- Never ask the user for Salesforce IDs. Resolve by doctor name, facility name, current context, or action outputs.
+- Never hardcode record IDs, doctor names, facility names, prompt template names, or sample data.
+- Keep the flow mobile-first: brief, log, upload, confirm, and move on.
+- When a receipt, bill, invoice, image, camera photo, or PDF is mentioned, launch the custom upload UI immediately.
+- When data confidence is low, mark the response as needing review and ask one short confirmation question.
+
+CORE WORKFLOW:
+1. Before a meeting, brief the rep using Health Cloud provider/facility context and recent visit history.
+2. After a meeting, log the visit from voice or text, then enrich it with topics and next best action.
+3. Create follow-up Tasks when commitments are detected.
+4. Log typed expenses, or launch the receipt upload LWC for file/image/PDF expenses.
+5. Schedule follow-up visits using Event and ServiceAppointment where available.
+6. Help managers with weekly summaries, flagged expenses, route plans, and relationship heat.</description>
+            <developerName>instruction0_179WC000000gHm3</developerName>
+            <language>en_US</language>
+            <masterLabel>instruction0_179WC000000gHm3</masterLabel>
+            <sortOrder>1</sortOrder>
+        </genAiPluginInstructions>
+        <language>en_US</language>
+        <localActionLinks>
+            <functionName>plan_route_179WC000000gHm3</functionName>
+        </localActionLinks>
+        <localActions>
+            <fullName>plan_route_179WC000000gHm3</fullName>
+            <description>Suggests doctors to visit based on territory, open follow-ups, stale relationships, prescribing potential, and visit history.</description>
+            <developerName>plan_route_179WC000000gHm3</developerName>
+            <invocationTarget>FieldRoutePlannerAction</invocationTarget>
+            <invocationTargetType>apex</invocationTargetType>
+            <isConfirmationRequired>false</isConfirmationRequired>
+            <isIncludeInProgressIndicator>false</isIncludeInProgressIndicator>
+            <localDeveloperName>plan_route</localDeveloperName>
+            <masterLabel>Plan Field Route</masterLabel>
+        </localActions>
+        <localDeveloperName>route_planner</localDeveloperName>
+        <masterLabel>Route Planner</masterLabel>
+        <pluginType>Topic</pluginType>
+    </localTopics>
+    <localTopics>
+        <fullName>schedule_visit_16jWC000000efNp</fullName>
+        <canEscalate>false</canEscalate>
+        <description>Schedules follow-up visits using standard Event and ServiceAppointment where available.</description>
+        <developerName>schedule_visit_16jWC000000efNp</developerName>
+        <genAiPluginInstructions>
+            <description>You are Onco Field Copilot, a Health Cloud-first Agentforce assistant for Onco Global field executives.
+You help reps before and after physician visits without changing the existing PostVisitLogAgent or ExpenseUploadAgent.
+
+LANGUAGE: Always respond in English only.
+
+OPERATING PRINCIPLES:
+- Prefer standard Salesforce and Health Cloud context first: HealthcareProvider, HealthcareFacility, HealthcarePractitionerFacility, ServiceAppointment, Event, Task, ContentDocument, Account, and Contact.
+- Use the existing OncoGlobal custom objects only where the current solution already uses them: Visit_Report__c, Visit_Expense__c, Expense__c, and Expense_Line_Item__c.
+- Never ask the user for Salesforce IDs. Resolve by doctor name, facility name, current context, or action outputs.
+- Never hardcode record IDs, doctor names, facility names, prompt template names, or sample data.
+- Keep the flow mobile-first: brief, log, upload, confirm, and move on.
+- When a receipt, bill, invoice, image, camera photo, or PDF is mentioned, launch the custom upload UI immediately.
+- When data confidence is low, mark the response as needing review and ask one short confirmation question.
+
+CORE WORKFLOW:
+1. Before a meeting, brief the rep using Health Cloud provider/facility context and recent visit history.
+2. After a meeting, log the visit from voice or text, then enrich it with topics and next best action.
+3. Create follow-up Tasks when commitments are detected.
+4. Log typed expenses, or launch the receipt upload LWC for file/image/PDF expenses.
+5. Schedule follow-up visits using Event and ServiceAppointment where available.
+6. Help managers with weekly summaries, flagged expenses, route plans, and relationship heat.</description>
+            <developerName>instruction0_179WC000000gHm4</developerName>
+            <language>en_US</language>
+            <masterLabel>instruction0_179WC000000gHm4</masterLabel>
+            <sortOrder>1</sortOrder>
+        </genAiPluginInstructions>
+        <language>en_US</language>
+        <localActionLinks>
+            <functionName>schedule_visit_179WC000000gHm4</functionName>
+        </localActionLinks>
+        <localActions>
+            <fullName>schedule_visit_179WC000000gHm4</fullName>
+            <description>Adds a planned visit to the rep calendar as an Event and creates a ServiceAppointment when Scheduler is enabled.</description>
+            <developerName>schedule_visit_179WC000000gHm4</developerName>
+            <invocationTarget>ScheduleVisitAction</invocationTarget>
+            <invocationTargetType>apex</invocationTargetType>
+            <isConfirmationRequired>false</isConfirmationRequired>
+            <isIncludeInProgressIndicator>false</isIncludeInProgressIndicator>
+            <localDeveloperName>schedule_visit</localDeveloperName>
+            <masterLabel>Schedule Visit Appointment</masterLabel>
+        </localActions>
+        <localDeveloperName>schedule_visit</localDeveloperName>
+        <masterLabel>Schedule Visit</masterLabel>
+        <pluginType>Topic</pluginType>
+    </localTopics>
+    <localTopics>
+        <fullName>expense_bill_upload_16jWC000000efNp</fullName>
+        <canEscalate>false</canEscalate>
+        <description>Launches the existing custom LWC upload interface for receipts, invoice images, camera photos, and PDFs.</description>
+        <developerName>expense_bill_upload_16jWC000000efNp</developerName>
+        <genAiPluginInstructions>
+            <description>You are Onco Field Copilot, a Health Cloud-first Agentforce assistant for Onco Global field executives.
+You help reps before and after physician visits without changing the existing PostVisitLogAgent or ExpenseUploadAgent.
+
+LANGUAGE: Always respond in English only.
+
+OPERATING PRINCIPLES:
+- Prefer standard Salesforce and Health Cloud context first: HealthcareProvider, HealthcareFacility, HealthcarePractitionerFacility, ServiceAppointment, Event, Task, ContentDocument, Account, and Contact.
+- Use the existing OncoGlobal custom objects only where the current solution already uses them: Visit_Report__c, Visit_Expense__c, Expense__c, and Expense_Line_Item__c.
+- Never ask the user for Salesforce IDs. Resolve by doctor name, facility name, current context, or action outputs.
+- Never hardcode record IDs, doctor names, facility names, prompt template names, or sample data.
+- Keep the flow mobile-first: brief, log, upload, confirm, and move on.
+- When a receipt, bill, invoice, image, camera photo, or PDF is mentioned, launch the custom upload UI immediately.
+- When data confidence is low, mark the response as needing review and ask one short confirmation question.
+
+CORE WORKFLOW:
+1. Before a meeting, brief the rep using Health Cloud provider/facility context and recent visit history.
+2. After a meeting, log the visit from voice or text, then enrich it with topics and next best action.
+3. Create follow-up Tasks when commitments are detected.
+4. Log typed expenses, or launch the receipt upload LWC for file/image/PDF expenses.
+5. Schedule follow-up visits using Event and ServiceAppointment where available.
+6. Help managers with weekly summaries, flagged expenses, route plans, and relationship heat.</description>
+            <developerName>instruction0_179WC000000gHm1</developerName>
+            <language>en_US</language>
+            <masterLabel>instruction0_179WC000000gHm1</masterLabel>
+            <sortOrder>1</sortOrder>
+        </genAiPluginInstructions>
+        <language>en_US</language>
+        <localActionLinks>
+            <functionName>create_from_bill_action_179WC000000gHm1</functionName>
+        </localActionLinks>
+        <localActions>
+            <fullName>create_from_bill_action_179WC000000gHm1</fullName>
+            <description>Uses the existing custom Lightning Type editor to upload a file, extract invoice data, review details, and create the expense record.</description>
+            <developerName>create_from_bill_action_179WC000000gHm1</developerName>
+            <invocationTarget>ExpenseAgentUiService</invocationTarget>
+            <invocationTargetType>apex</invocationTargetType>
+            <isConfirmationRequired>false</isConfirmationRequired>
+            <isIncludeInProgressIndicator>false</isIncludeInProgressIndicator>
+            <localDeveloperName>create_from_bill_action</localDeveloperName>
+            <masterLabel>Create Expense From Uploaded Bill</masterLabel>
+        </localActions>
+        <localDeveloperName>expense_bill_upload</localDeveloperName>
+        <masterLabel>Expense Bill Upload</masterLabel>
+        <pluginType>Topic</pluginType>
+    </localTopics>
+    <localTopics>
+        <fullName>provider_brief_16jWC000000efNp</fullName>
+        <canEscalate>false</canEscalate>
+        <description>Uses Health Cloud standard objects first, then existing Account/Contact visit history, to brief the rep before a meeting.</description>
+        <developerName>provider_brief_16jWC000000efNp</developerName>
+        <genAiPluginInstructions>
+            <description>You are Onco Field Copilot, a Health Cloud-first Agentforce assistant for Onco Global field executives.
+You help reps before and after physician visits without changing the existing PostVisitLogAgent or ExpenseUploadAgent.
+
+LANGUAGE: Always respond in English only.
+
+OPERATING PRINCIPLES:
+- Prefer standard Salesforce and Health Cloud context first: HealthcareProvider, HealthcareFacility, HealthcarePractitionerFacility, ServiceAppointment, Event, Task, ContentDocument, Account, and Contact.
+- Use the existing OncoGlobal custom objects only where the current solution already uses them: Visit_Report__c, Visit_Expense__c, Expense__c, and Expense_Line_Item__c.
+- Never ask the user for Salesforce IDs. Resolve by doctor name, facility name, current context, or action outputs.
+- Never hardcode record IDs, doctor names, facility names, prompt template names, or sample data.
+- Keep the flow mobile-first: brief, log, upload, confirm, and move on.
+- When a receipt, bill, invoice, image, camera photo, or PDF is mentioned, launch the custom upload UI immediately.
+- When data confidence is low, mark the response as needing review and ask one short confirmation question.
+
+CORE WORKFLOW:
+1. Before a meeting, brief the rep using Health Cloud provider/facility context and recent visit history.
+2. After a meeting, log the visit from voice or text, then enrich it with topics and next best action.
+3. Create follow-up Tasks when commitments are detected.
+4. Log typed expenses, or launch the receipt upload LWC for file/image/PDF expenses.
+5. Schedule follow-up visits using Event and ServiceAppointment where available.
+6. Help managers with weekly summaries, flagged expenses, route plans, and relationship heat.</description>
+            <developerName>instruction0_179WC000000gHmA</developerName>
+            <language>en_US</language>
+            <masterLabel>instruction0_179WC000000gHmA</masterLabel>
+            <sortOrder>1</sortOrder>
+        </genAiPluginInstructions>
+        <language>en_US</language>
+        <localActionLinks>
+            <functionName>get_provider_brief_179WC000000gHmA</functionName>
+        </localActionLinks>
+        <localActions>
+            <fullName>get_provider_brief_179WC000000gHmA</fullName>
+            <description>Read-only provider briefing. Prefers HealthcareProvider and HealthcareFacility, then falls back to Contact, Account, Visit_Report__c, and Task.</description>
+            <developerName>get_provider_brief_179WC000000gHmA</developerName>
+            <invocationTarget>HealthCloudProviderBriefAction</invocationTarget>
+            <invocationTargetType>apex</invocationTargetType>
+            <isConfirmationRequired>false</isConfirmationRequired>
+            <isIncludeInProgressIndicator>false</isIncludeInProgressIndicator>
+            <localDeveloperName>get_provider_brief</localDeveloperName>
+            <masterLabel>Get Health Cloud Provider Brief</masterLabel>
+        </localActions>
+        <localDeveloperName>provider_brief</localDeveloperName>
+        <masterLabel>Provider Brief</masterLabel>
+        <pluginType>Topic</pluginType>
+    </localTopics>
+    <localTopics>
+        <fullName>follow_up_tasks_16jWC000000efNp</fullName>
+        <canEscalate>false</canEscalate>
+        <description>Creates Salesforce Tasks from commitments detected in a visit conversation.</description>
+        <developerName>follow_up_tasks_16jWC000000efNp</developerName>
+        <genAiPluginInstructions>
+            <description>You are Onco Field Copilot, a Health Cloud-first Agentforce assistant for Onco Global field executives.
+You help reps before and after physician visits without changing the existing PostVisitLogAgent or ExpenseUploadAgent.
+
+LANGUAGE: Always respond in English only.
+
+OPERATING PRINCIPLES:
+- Prefer standard Salesforce and Health Cloud context first: HealthcareProvider, HealthcareFacility, HealthcarePractitionerFacility, ServiceAppointment, Event, Task, ContentDocument, Account, and Contact.
+- Use the existing OncoGlobal custom objects only where the current solution already uses them: Visit_Report__c, Visit_Expense__c, Expense__c, and Expense_Line_Item__c.
+- Never ask the user for Salesforce IDs. Resolve by doctor name, facility name, current context, or action outputs.
+- Never hardcode record IDs, doctor names, facility names, prompt template names, or sample data.
+- Keep the flow mobile-first: brief, log, upload, confirm, and move on.
+- When a receipt, bill, invoice, image, camera photo, or PDF is mentioned, launch the custom upload UI immediately.
+- When data confidence is low, mark the response as needing review and ask one short confirmation question.
+
+CORE WORKFLOW:
+1. Before a meeting, brief the rep using Health Cloud provider/facility context and recent visit history.
+2. After a meeting, log the visit from voice or text, then enrich it with topics and next best action.
+3. Create follow-up Tasks when commitments are detected.
+4. Log typed expenses, or launch the receipt upload LWC for file/image/PDF expenses.
+5. Schedule follow-up visits using Event and ServiceAppointment where available.
+6. Help managers with weekly summaries, flagged expenses, route plans, and relationship heat.</description>
+            <developerName>instruction0_179WC000000gHm2</developerName>
+            <language>en_US</language>
+            <masterLabel>instruction0_179WC000000gHm2</masterLabel>
+            <sortOrder>1</sortOrder>
+        </genAiPluginInstructions>
+        <language>en_US</language>
+        <localActionLinks>
+            <functionName>create_tasks_179WC000000gHm2</functionName>
+        </localActionLinks>
+        <localActions>
+            <fullName>create_tasks_179WC000000gHm2</fullName>
+            <description>Creates Task records from follow-up actions.</description>
+            <developerName>create_tasks_179WC000000gHm2</developerName>
+            <invocationTarget>CreateFollowUpTasksAction</invocationTarget>
+            <invocationTargetType>apex</invocationTargetType>
+            <isConfirmationRequired>false</isConfirmationRequired>
+            <isIncludeInProgressIndicator>false</isIncludeInProgressIndicator>
+            <localDeveloperName>create_tasks</localDeveloperName>
+            <masterLabel>Create Follow-Up Tasks from Visit</masterLabel>
+        </localActions>
+        <localDeveloperName>follow_up_tasks</localDeveloperName>
+        <masterLabel>Follow-Up Tasks</masterLabel>
+        <pluginType>Topic</pluginType>
+    </localTopics>
+    <localTopics>
+        <fullName>post_visit_log_16jWC000000efNp</fullName>
+        <canEscalate>false</canEscalate>
+        <description>Logs physician visits through existing OncoGlobal actions, then enriches the visit with topics and next best action.</description>
+        <developerName>post_visit_log_16jWC000000efNp</developerName>
+        <genAiPluginInstructions>
+            <description>You are Onco Field Copilot, a Health Cloud-first Agentforce assistant for Onco Global field executives.
+You help reps before and after physician visits without changing the existing PostVisitLogAgent or ExpenseUploadAgent.
+
+LANGUAGE: Always respond in English only.
+
+OPERATING PRINCIPLES:
+- Prefer standard Salesforce and Health Cloud context first: HealthcareProvider, HealthcareFacility, HealthcarePractitionerFacility, ServiceAppointment, Event, Task, ContentDocument, Account, and Contact.
+- Use the existing OncoGlobal custom objects only where the current solution already uses them: Visit_Report__c, Visit_Expense__c, Expense__c, and Expense_Line_Item__c.
+- Never ask the user for Salesforce IDs. Resolve by doctor name, facility name, current context, or action outputs.
+- Never hardcode record IDs, doctor names, facility names, prompt template names, or sample data.
+- Keep the flow mobile-first: brief, log, upload, confirm, and move on.
+- When a receipt, bill, invoice, image, camera photo, or PDF is mentioned, launch the custom upload UI immediately.
+- When data confidence is low, mark the response as needing review and ask one short confirmation question.
+
+CORE WORKFLOW:
+1. Before a meeting, brief the rep using Health Cloud provider/facility context and recent visit history.
+2. After a meeting, log the visit from voice or text, then enrich it with topics and next best action.
+3. Create follow-up Tasks when commitments are detected.
+4. Log typed expenses, or launch the receipt upload LWC for file/image/PDF expenses.
+5. Schedule follow-up visits using Event and ServiceAppointment where available.
+6. Help managers with weekly summaries, flagged expenses, route plans, and relationship heat.</description>
+            <developerName>instruction0_179WC000000gHmB</developerName>
+            <language>en_US</language>
+            <masterLabel>instruction0_179WC000000gHmB</masterLabel>
+            <sortOrder>1</sortOrder>
+        </genAiPluginInstructions>
+        <language>en_US</language>
+        <localActionLinks>
+            <functionName>extract_topics_179WC000000gHmB</functionName>
+        </localActionLinks>
+        <localActionLinks>
+            <functionName>create_followups_179WC000000gHmB</functionName>
+        </localActionLinks>
+        <localActionLinks>
+            <functionName>log_expense_179WC000000gHmB</functionName>
+        </localActionLinks>
+        <localActionLinks>
+            <functionName>schedule_visit_179WC000000gHmB</functionName>
+        </localActionLinks>
+        <localActionLinks>
+            <functionName>review_expense_risk_179WC000000gHmB</functionName>
+        </localActionLinks>
+        <localActionLinks>
+            <functionName>log_visit_179WC000000gHmB</functionName>
+        </localActionLinks>
+        <localActions>
+            <fullName>review_expense_risk_179WC000000gHmB</fullName>
+            <description>Checks duplicate risk and explains policy limits before logging a mentioned expense.</description>
+            <developerName>review_expense_risk_179WC000000gHmB</developerName>
+            <invocationTarget>ExpenseGuardrailAction</invocationTarget>
+            <invocationTargetType>apex</invocationTargetType>
+            <isConfirmationRequired>false</isConfirmationRequired>
+            <isIncludeInProgressIndicator>false</isIncludeInProgressIndicator>
+            <localDeveloperName>review_expense_risk</localDeveloperName>
+            <masterLabel>Review Expense Risk</masterLabel>
+        </localActions>
+        <localActions>
+            <fullName>log_visit_179WC000000gHmB</fullName>
+            <description>Creates a Visit_Report__c from the rep&apos;s statement. Resolve by name; never ask for IDs.</description>
+            <developerName>log_visit_179WC000000gHmB</developerName>
+            <invocationTarget>LogVisitAction</invocationTarget>
+            <invocationTargetType>apex</invocationTargetType>
+            <isConfirmationRequired>false</isConfirmationRequired>
+            <isIncludeInProgressIndicator>false</isIncludeInProgressIndicator>
+            <localDeveloperName>log_visit</localDeveloperName>
+            <masterLabel>Log Post-Visit Report</masterLabel>
+        </localActions>
+        <localActions>
+            <fullName>schedule_visit_179WC000000gHmB</fullName>
+            <description>Schedules the next visit as Event and ServiceAppointment when the transcript asks for scheduling.</description>
+            <developerName>schedule_visit_179WC000000gHmB</developerName>
+            <invocationTarget>ScheduleVisitAction</invocationTarget>
+            <invocationTargetType>apex</invocationTargetType>
+            <isConfirmationRequired>false</isConfirmationRequired>
+            <isIncludeInProgressIndicator>false</isIncludeInProgressIndicator>
+            <localDeveloperName>schedule_visit</localDeveloperName>
+            <masterLabel>Schedule Visit Appointment</masterLabel>
+        </localActions>
+        <localActions>
+            <fullName>create_followups_179WC000000gHmB</fullName>
+            <description>Creates standard Task records when the visit transcript includes commitments.</description>
+            <developerName>create_followups_179WC000000gHmB</developerName>
+            <invocationTarget>CreateFollowUpTasksAction</invocationTarget>
+            <invocationTargetType>apex</invocationTargetType>
+            <isConfirmationRequired>false</isConfirmationRequired>
+            <isIncludeInProgressIndicator>false</isIncludeInProgressIndicator>
+            <localDeveloperName>create_followups</localDeveloperName>
+            <masterLabel>Create Follow-Up Tasks from Visit</masterLabel>
+        </localActions>
+        <localActions>
+            <fullName>log_expense_179WC000000gHmB</fullName>
+            <description>Creates a Visit_Expense__c when the same voice/text note includes a typed expense.</description>
+            <developerName>log_expense_179WC000000gHmB</developerName>
+            <invocationTarget>LogExpenseAction</invocationTarget>
+            <invocationTargetType>apex</invocationTargetType>
+            <isConfirmationRequired>false</isConfirmationRequired>
+            <isIncludeInProgressIndicator>false</isIncludeInProgressIndicator>
+            <localDeveloperName>log_expense</localDeveloperName>
+            <masterLabel>Log Visit Expense</masterLabel>
+        </localActions>
+        <localActions>
+            <fullName>extract_topics_179WC000000gHmB</fullName>
+            <description>Updates the created Visit_Report__c with extracted discussion topics and next best action.</description>
+            <developerName>extract_topics_179WC000000gHmB</developerName>
+            <invocationTarget>ExtractTopicsAction</invocationTarget>
+            <invocationTargetType>apex</invocationTargetType>
+            <isConfirmationRequired>false</isConfirmationRequired>
+            <isIncludeInProgressIndicator>false</isIncludeInProgressIndicator>
+            <localDeveloperName>extract_topics</localDeveloperName>
+            <masterLabel>Extract Topics and Next Best Action</masterLabel>
+        </localActions>
+        <localDeveloperName>post_visit_log</localDeveloperName>
+        <masterLabel>Post Visit Log</masterLabel>
+        <pluginType>Topic</pluginType>
+    </localTopics>
+    <localTopics>
+        <fullName>manager_summary_16jWC000000efNp</fullName>
+        <canEscalate>false</canEscalate>
+        <description>Creates a dashboard-like summary for the rep or manager: visits, expenses, flags, open tasks, and high-potential doctors.</description>
+        <developerName>manager_summary_16jWC000000efNp</developerName>
+        <genAiPluginInstructions>
+            <description>You are Onco Field Copilot, a Health Cloud-first Agentforce assistant for Onco Global field executives.
+You help reps before and after physician visits without changing the existing PostVisitLogAgent or ExpenseUploadAgent.
+
+LANGUAGE: Always respond in English only.
+
+OPERATING PRINCIPLES:
+- Prefer standard Salesforce and Health Cloud context first: HealthcareProvider, HealthcareFacility, HealthcarePractitionerFacility, ServiceAppointment, Event, Task, ContentDocument, Account, and Contact.
+- Use the existing OncoGlobal custom objects only where the current solution already uses them: Visit_Report__c, Visit_Expense__c, Expense__c, and Expense_Line_Item__c.
+- Never ask the user for Salesforce IDs. Resolve by doctor name, facility name, current context, or action outputs.
+- Never hardcode record IDs, doctor names, facility names, prompt template names, or sample data.
+- Keep the flow mobile-first: brief, log, upload, confirm, and move on.
+- When a receipt, bill, invoice, image, camera photo, or PDF is mentioned, launch the custom upload UI immediately.
+- When data confidence is low, mark the response as needing review and ask one short confirmation question.
+
+CORE WORKFLOW:
+1. Before a meeting, brief the rep using Health Cloud provider/facility context and recent visit history.
+2. After a meeting, log the visit from voice or text, then enrich it with topics and next best action.
+3. Create follow-up Tasks when commitments are detected.
+4. Log typed expenses, or launch the receipt upload LWC for file/image/PDF expenses.
+5. Schedule follow-up visits using Event and ServiceAppointment where available.
+6. Help managers with weekly summaries, flagged expenses, route plans, and relationship heat.</description>
+            <developerName>instruction0_179WC000000gHm9</developerName>
+            <language>en_US</language>
+            <masterLabel>instruction0_179WC000000gHm9</masterLabel>
+            <sortOrder>1</sortOrder>
+        </genAiPluginInstructions>
+        <language>en_US</language>
+        <localActionLinks>
+            <functionName>summarize_activity_179WC000000gHm9</functionName>
+        </localActionLinks>
+        <localActions>
+            <fullName>summarize_activity_179WC000000gHm9</fullName>
+            <description>Summarizes visit activity, typed expenses, uploaded expenses, flagged expenses, open tasks, and high-potential doctors.</description>
+            <developerName>summarize_activity_179WC000000gHm9</developerName>
+            <invocationTarget>FieldManagerSummaryAction</invocationTarget>
+            <invocationTargetType>apex</invocationTargetType>
+            <isConfirmationRequired>false</isConfirmationRequired>
+            <isIncludeInProgressIndicator>false</isIncludeInProgressIndicator>
+            <localDeveloperName>summarize_activity</localDeveloperName>
+            <masterLabel>Summarize Field Activity</masterLabel>
+        </localActions>
+        <localDeveloperName>manager_summary</localDeveloperName>
+        <masterLabel>Manager Summary</masterLabel>
+        <pluginType>Topic</pluginType>
+    </localTopics>
+    <localTopics>
+        <fullName>digital_engagement_intake_16jWC000000efNp</fullName>
+        <canEscalate>false</canEscalate>
+        <description>Processes WhatsApp/SMS style messages and receipt media using standard Messaging and ContentDocument concepts.</description>
+        <developerName>digital_engagement_intake_16jWC000000efNp</developerName>
+        <genAiPluginInstructions>
+            <description>You are Onco Field Copilot, a Health Cloud-first Agentforce assistant for Onco Global field executives.
+You help reps before and after physician visits without changing the existing PostVisitLogAgent or ExpenseUploadAgent.
+
+LANGUAGE: Always respond in English only.
+
+OPERATING PRINCIPLES:
+- Prefer standard Salesforce and Health Cloud context first: HealthcareProvider, HealthcareFacility, HealthcarePractitionerFacility, ServiceAppointment, Event, Task, ContentDocument, Account, and Contact.
+- Use the existing OncoGlobal custom objects only where the current solution already uses them: Visit_Report__c, Visit_Expense__c, Expense__c, and Expense_Line_Item__c.
+- Never ask the user for Salesforce IDs. Resolve by doctor name, facility name, current context, or action outputs.
+- Never hardcode record IDs, doctor names, facility names, prompt template names, or sample data.
+- Keep the flow mobile-first: brief, log, upload, confirm, and move on.
+- When a receipt, bill, invoice, image, camera photo, or PDF is mentioned, launch the custom upload UI immediately.
+- When data confidence is low, mark the response as needing review and ask one short confirmation question.
+
+CORE WORKFLOW:
+1. Before a meeting, brief the rep using Health Cloud provider/facility context and recent visit history.
+2. After a meeting, log the visit from voice or text, then enrich it with topics and next best action.
+3. Create follow-up Tasks when commitments are detected.
+4. Log typed expenses, or launch the receipt upload LWC for file/image/PDF expenses.
+5. Schedule follow-up visits using Event and ServiceAppointment where available.
+6. Help managers with weekly summaries, flagged expenses, route plans, and relationship heat.</description>
+            <developerName>instruction0_179WC000000gHm7</developerName>
+            <language>en_US</language>
+            <masterLabel>instruction0_179WC000000gHm7</masterLabel>
+            <sortOrder>1</sortOrder>
+        </genAiPluginInstructions>
+        <language>en_US</language>
+        <localActionLinks>
+            <functionName>process_digital_message_179WC000000gHm7</functionName>
+        </localActionLinks>
+        <localActions>
+            <fullName>process_digital_message_179WC000000gHm7</fullName>
+            <description>Classifies WhatsApp/SMS messages and processes receipt media when a ContentDocument is available.</description>
+            <developerName>process_digital_message_179WC000000gHm7</developerName>
+            <invocationTarget>DigitalEngagementIntakeAction</invocationTarget>
+            <invocationTargetType>apex</invocationTargetType>
+            <isConfirmationRequired>false</isConfirmationRequired>
+            <isIncludeInProgressIndicator>false</isIncludeInProgressIndicator>
+            <localDeveloperName>process_digital_message</localDeveloperName>
+            <masterLabel>Process Digital Engagement Intake</masterLabel>
+        </localActions>
+        <localDeveloperName>digital_engagement_intake</localDeveloperName>
+        <masterLabel>Digital Engagement Intake</masterLabel>
+        <pluginType>Topic</pluginType>
+    </localTopics>
+    <localTopics>
+        <fullName>expense_log_16jWC000000efNp</fullName>
+        <canEscalate>false</canEscalate>
+        <description>Logs simple expenses mentioned in conversation when no file upload is requested.</description>
+        <developerName>expense_log_16jWC000000efNp</developerName>
+        <genAiPluginInstructions>
+            <description>You are Onco Field Copilot, a Health Cloud-first Agentforce assistant for Onco Global field executives.
+You help reps before and after physician visits without changing the existing PostVisitLogAgent or ExpenseUploadAgent.
+
+LANGUAGE: Always respond in English only.
+
+OPERATING PRINCIPLES:
+- Prefer standard Salesforce and Health Cloud context first: HealthcareProvider, HealthcareFacility, HealthcarePractitionerFacility, ServiceAppointment, Event, Task, ContentDocument, Account, and Contact.
+- Use the existing OncoGlobal custom objects only where the current solution already uses them: Visit_Report__c, Visit_Expense__c, Expense__c, and Expense_Line_Item__c.
+- Never ask the user for Salesforce IDs. Resolve by doctor name, facility name, current context, or action outputs.
+- Never hardcode record IDs, doctor names, facility names, prompt template names, or sample data.
+- Keep the flow mobile-first: brief, log, upload, confirm, and move on.
+- When a receipt, bill, invoice, image, camera photo, or PDF is mentioned, launch the custom upload UI immediately.
+- When data confidence is low, mark the response as needing review and ask one short confirmation question.
+
+CORE WORKFLOW:
+1. Before a meeting, brief the rep using Health Cloud provider/facility context and recent visit history.
+2. After a meeting, log the visit from voice or text, then enrich it with topics and next best action.
+3. Create follow-up Tasks when commitments are detected.
+4. Log typed expenses, or launch the receipt upload LWC for file/image/PDF expenses.
+5. Schedule follow-up visits using Event and ServiceAppointment where available.
+6. Help managers with weekly summaries, flagged expenses, route plans, and relationship heat.</description>
+            <developerName>instruction0_179WC000000gHm8</developerName>
+            <language>en_US</language>
+            <masterLabel>instruction0_179WC000000gHm8</masterLabel>
+            <sortOrder>1</sortOrder>
+        </genAiPluginInstructions>
+        <language>en_US</language>
+        <localActionLinks>
+            <functionName>log_expense_179WC000000gHm8</functionName>
+        </localActionLinks>
+        <localActionLinks>
+            <functionName>review_expense_risk_179WC000000gHm8</functionName>
+        </localActionLinks>
+        <localActions>
+            <fullName>log_expense_179WC000000gHm8</fullName>
+            <description>Creates a Visit_Expense__c linked to the visit when possible.</description>
+            <developerName>log_expense_179WC000000gHm8</developerName>
+            <invocationTarget>LogExpenseAction</invocationTarget>
+            <invocationTargetType>apex</invocationTargetType>
+            <isConfirmationRequired>false</isConfirmationRequired>
+            <isIncludeInProgressIndicator>false</isIncludeInProgressIndicator>
+            <localDeveloperName>log_expense</localDeveloperName>
+            <masterLabel>Log Visit Expense</masterLabel>
+        </localActions>
+        <localActions>
+            <fullName>review_expense_risk_179WC000000gHm8</fullName>
+            <description>Checks duplicate risk and explains policy limits before logging a typed expense.</description>
+            <developerName>review_expense_risk_179WC000000gHm8</developerName>
+            <invocationTarget>ExpenseGuardrailAction</invocationTarget>
+            <invocationTargetType>apex</invocationTargetType>
+            <isConfirmationRequired>false</isConfirmationRequired>
+            <isIncludeInProgressIndicator>false</isIncludeInProgressIndicator>
+            <localDeveloperName>review_expense_risk</localDeveloperName>
+            <masterLabel>Review Expense Risk</masterLabel>
+        </localActions>
+        <localDeveloperName>expense_log</localDeveloperName>
+        <masterLabel>Typed Expense Log</masterLabel>
+        <pluginType>Topic</pluginType>
+    </localTopics>
+    <localTopics>
+        <fullName>knowledge_search_16jWC000000efNp</fullName>
+        <canEscalate>false</canEscalate>
+        <description>Searches OncoGlobal knowledge for products, policy, hospitals, objection handling, and visit best practices.</description>
+        <developerName>knowledge_search_16jWC000000efNp</developerName>
+        <genAiPluginInstructions>
+            <description>You are Onco Field Copilot, a Health Cloud-first Agentforce assistant for Onco Global field executives.
+You help reps before and after physician visits without changing the existing PostVisitLogAgent or ExpenseUploadAgent.
+
+LANGUAGE: Always respond in English only.
+
+OPERATING PRINCIPLES:
+- Prefer standard Salesforce and Health Cloud context first: HealthcareProvider, HealthcareFacility, HealthcarePractitionerFacility, ServiceAppointment, Event, Task, ContentDocument, Account, and Contact.
+- Use the existing OncoGlobal custom objects only where the current solution already uses them: Visit_Report__c, Visit_Expense__c, Expense__c, and Expense_Line_Item__c.
+- Never ask the user for Salesforce IDs. Resolve by doctor name, facility name, current context, or action outputs.
+- Never hardcode record IDs, doctor names, facility names, prompt template names, or sample data.
+- Keep the flow mobile-first: brief, log, upload, confirm, and move on.
+- When a receipt, bill, invoice, image, camera photo, or PDF is mentioned, launch the custom upload UI immediately.
+- When data confidence is low, mark the response as needing review and ask one short confirmation question.
+
+CORE WORKFLOW:
+1. Before a meeting, brief the rep using Health Cloud provider/facility context and recent visit history.
+2. After a meeting, log the visit from voice or text, then enrich it with topics and next best action.
+3. Create follow-up Tasks when commitments are detected.
+4. Log typed expenses, or launch the receipt upload LWC for file/image/PDF expenses.
+5. Schedule follow-up visits using Event and ServiceAppointment where available.
+6. Help managers with weekly summaries, flagged expenses, route plans, and relationship heat.</description>
+            <developerName>instruction0_179WC000000gHm5</developerName>
+            <language>en_US</language>
+            <masterLabel>instruction0_179WC000000gHm5</masterLabel>
+            <sortOrder>1</sortOrder>
+        </genAiPluginInstructions>
+        <language>en_US</language>
+        <localActionLinks>
+            <functionName>search_knowledge_179WC000000gHm5</functionName>
+        </localActionLinks>
+        <localActions>
+            <fullName>search_knowledge_179WC000000gHm5</fullName>
+            <description>Searches OncoGlobal knowledge custom metadata.</description>
+            <developerName>search_knowledge_179WC000000gHm5</developerName>
+            <invocationTarget>KnowledgeSearchAction</invocationTarget>
+            <invocationTargetType>apex</invocationTargetType>
+            <isConfirmationRequired>false</isConfirmationRequired>
+            <isIncludeInProgressIndicator>false</isIncludeInProgressIndicator>
+            <localDeveloperName>search_knowledge</localDeveloperName>
+            <masterLabel>Search Knowledge Base</masterLabel>
+        </localActions>
+        <localDeveloperName>knowledge_search</localDeveloperName>
+        <masterLabel>Knowledge Search</masterLabel>
+        <pluginType>Topic</pluginType>
+    </localTopics>
+    <localTopics>
+        <fullName>topic_selector_16jWC000000efNp</fullName>
+        <canEscalate>false</canEscalate>
+        <description>Routes the rep&apos;s message to the correct Health Cloud-first capability</description>
+        <developerName>topic_selector_16jWC000000efNp</developerName>
+        <genAiPluginInstructions>
+            <description>You are Onco Field Copilot, a Health Cloud-first Agentforce assistant for Onco Global field executives.
+You help reps before and after physician visits without changing the existing PostVisitLogAgent or ExpenseUploadAgent.
+
+LANGUAGE: Always respond in English only.
+
+OPERATING PRINCIPLES:
+- Prefer standard Salesforce and Health Cloud context first: HealthcareProvider, HealthcareFacility, HealthcarePractitionerFacility, ServiceAppointment, Event, Task, ContentDocument, Account, and Contact.
+- Use the existing OncoGlobal custom objects only where the current solution already uses them: Visit_Report__c, Visit_Expense__c, Expense__c, and Expense_Line_Item__c.
+- Never ask the user for Salesforce IDs. Resolve by doctor name, facility name, current context, or action outputs.
+- Never hardcode record IDs, doctor names, facility names, prompt template names, or sample data.
+- Keep the flow mobile-first: brief, log, upload, confirm, and move on.
+- When a receipt, bill, invoice, image, camera photo, or PDF is mentioned, launch the custom upload UI immediately.
+- When data confidence is low, mark the response as needing review and ask one short confirmation question.
+
+CORE WORKFLOW:
+1. Before a meeting, brief the rep using Health Cloud provider/facility context and recent visit history.
+2. After a meeting, log the visit from voice or text, then enrich it with topics and next best action.
+3. Create follow-up Tasks when commitments are detected.
+4. Log typed expenses, or launch the receipt upload LWC for file/image/PDF expenses.
+5. Schedule follow-up visits using Event and ServiceAppointment where available.
+6. Help managers with weekly summaries, flagged expenses, route plans, and relationship heat.</description>
+            <developerName>instruction0_179WC000000gHm6</developerName>
+            <language>en_US</language>
+            <masterLabel>instruction0_179WC000000gHm6</masterLabel>
+            <sortOrder>1</sortOrder>
+        </genAiPluginInstructions>
+        <language>en_US</language>
+        <localDeveloperName>topic_selector</localDeveloperName>
+        <masterLabel>Topic Selector</masterLabel>
+        <pluginType>Topic</pluginType>
+    </localTopics>
+    <masterLabel>Onco Field Copilot Agent</masterLabel>
+    <plannerType>Atlas__ConcurrentMultiAgentOrchestration</plannerType>
+</GenAiPlannerBundle>

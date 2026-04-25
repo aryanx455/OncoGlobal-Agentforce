@@ -1,0 +1,56 @@
+{
+  "required" : [ ],
+  "unevaluatedProperties" : false,
+  "properties" : {
+    "channel" : {
+      "title" : "Channel",
+      "description" : "WhatsApp, SMS, mobile, or chat.",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : true
+    },
+    "contentDocumentId" : {
+      "title" : "Media Content Document ID",
+      "description" : "Content Document Id",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : false
+    },
+    "facilityName" : {
+      "title" : "Facility Name",
+      "description" : "Facility Name",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : true
+    },
+    "messageText" : {
+      "title" : "Message Text",
+      "description" : "Message Text",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : true
+    },
+    "providerName" : {
+      "title" : "Doctor or Provider Name",
+      "description" : "Provider Name",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : true
+    },
+    "senderAddress" : {
+      "title" : "Sender Address",
+      "description" : "Sender Address",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : true
+    },
+    "senderName" : {
+      "title" : "Sender Name",
+      "description" : "Sender Name",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : true
+    }
+  },
+  "lightning:type" : "lightning__objectType"
+}

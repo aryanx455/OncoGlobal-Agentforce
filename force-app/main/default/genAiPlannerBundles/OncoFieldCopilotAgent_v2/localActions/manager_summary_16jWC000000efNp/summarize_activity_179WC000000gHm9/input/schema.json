@@ -1,0 +1,21 @@
+{
+  "required" : [ ],
+  "unevaluatedProperties" : false,
+  "properties" : {
+    "endDate" : {
+      "title" : "End Date",
+      "description" : "End date in YYYY-MM-DD. Defaults to today.",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : true
+    },
+    "startDate" : {
+      "title" : "Start Date",
+      "description" : "Start date in YYYY-MM-DD. Defaults to start of current week.",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : true
+    }
+  },
+  "lightning:type" : "lightning__objectType"
+}

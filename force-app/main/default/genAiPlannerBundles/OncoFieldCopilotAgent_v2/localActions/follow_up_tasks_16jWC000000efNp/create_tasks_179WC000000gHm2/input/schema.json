@@ -1,0 +1,49 @@
+{
+  "required" : [ "followUpActions" ],
+  "unevaluatedProperties" : false,
+  "properties" : {
+    "dueDate" : {
+      "title" : "Due Date",
+      "description" : "Due Date",
+      "lightning:type" : "lightning__dateType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : true
+    },
+    "followUpActions" : {
+      "title" : "Follow-Up Actions",
+      "description" : "Follow Up Actions",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : true
+    },
+    "physicianId" : {
+      "title" : "Physician Account ID",
+      "description" : "Physician Id",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : false
+    },
+    "physicianName" : {
+      "title" : "Physician Name",
+      "description" : "Physician Name",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : true
+    },
+    "priority" : {
+      "title" : "Priority",
+      "description" : "Priority",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : true
+    },
+    "visitReportId" : {
+      "title" : "Visit Report ID",
+      "description" : "Visit Report Id",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : false
+    }
+  },
+  "lightning:type" : "lightning__objectType"
+}

@@ -100,6 +100,13 @@
                             data-section="expense_report"
                             data-field="doctor_name"
                         ></lightning-input>
+                        <lightning-input
+                            label="Hospital / Clinic"
+                            value={hospitalName}
+                            onchange={handleFieldChange}
+                            data-section="expense_report"
+                            data-field="facility_name"
+                        ></lightning-input>
                         <lightning-combobox
                             label="Category"
                             value={expenseCategory}

@@ -61,6 +61,18 @@ public without sharing class ScheduleVisitAction {
 
         @InvocableVariable(label='Calendar Conflict Warning')
         public String conflictWarning;
+
+        @InvocableVariable(label='Needs Clarification')
+        public Boolean needsClarification;
+
+        @InvocableVariable(label='Clarification Message')
+        public String clarificationMessage;
+
+        @InvocableVariable(label='Resolved Physician Name')
+        public String resolvedPhysicianName;
+
+        @InvocableVariable(label='Resolved Facility Name')
+        public String resolvedFacilityName;
     }
 
     // ─── INVOCABLE ────────────────────────────────────────────────────────────
@@ -76,10 +88,33 @@ public without sharing class ScheduleVisitAction {
         for (Request req : requests) {
             Result res = new Result();
             res.success = false;
+            res.needsClarification = false;
 
             try {
-                Id physicianContactId = resolvePhysicianContact(req.physicianName);
-                Id hospitalAccountId  = resolveHospitalAccount(req.hospitalName);
+                ProviderResolutionService.Resolution resolution = ProviderResolutionService.resolveDoctor(
+                    req.physicianName,
+                    req.hospitalName,
+                    false,
+                    true
+                );
+                if (resolution.success != true) {
+                    res.needsClarification = true;
+                    res.clarificationMessage = resolution.clarificationMessage;
+                    res.errorMessage = resolution.errorMessage;
+                    results.add(res);
+                    continue;
+                }
+
+                Id physicianContactId = resolution.doctorContactId;
+                Id hospitalAccountId  = resolution.facilityAccountId != null
+                    ? resolution.facilityAccountId
+                    : resolution.physicianAccountId;
+                String resolvedPhysicianName = String.isNotBlank(resolution.contactName)
+                    ? resolution.contactName
+                    : resolution.physicianName;
+                String resolvedFacilityName = resolution.facilityName;
+                res.resolvedPhysicianName = resolvedPhysicianName;
+                res.resolvedFacilityName = resolvedFacilityName;
 
                 Datetime startDt = buildStartDatetime(req.preferredDate, req.preferredTime);
                 Integer  durMins = (req.durationMinutes != null && req.durationMinutes > 0)
@@ -93,13 +128,13 @@ public without sharing class ScheduleVisitAction {
                 Id whatId = req.visitReportId != null ? req.visitReportId : hospitalAccountId;
 
                 Event evt = new Event(
-                    Subject       = buildSubject(req.physicianName, req.hospitalName),
+                    Subject       = buildSubject(resolvedPhysicianName, String.isNotBlank(req.hospitalName) ? req.hospitalName : resolvedFacilityName),
                     StartDateTime = startDt,
                     EndDateTime   = endDt,
                     WhoId         = physicianContactId,
                     WhatId        = whatId,
                     OwnerId       = UserInfo.getUserId(),
-                    Location      = req.hospitalName,
+                    Location      = String.isNotBlank(req.hospitalName) ? req.hospitalName : resolvedFacilityName,
                     Description   = buildDescription(req, physicianContactId),
                     ShowAs        = 'Busy'
                 );
@@ -111,7 +146,7 @@ public without sharing class ScheduleVisitAction {
 
                 // Try IAM / Salesforce Scheduler — skipped silently if not configured
                 try {
-                    String saId = createIAMAppointment(req, startDt, endDt, physicianContactId, hospitalAccountId);
+                    String saId = createIAMAppointment(req, startDt, endDt, physicianContactId, hospitalAccountId, resolvedPhysicianName, resolvedFacilityName);
                     if (saId != null) res.serviceAppointmentId = saId;
                 } catch (Exception iam) {
                     // Scheduler not provisioned in this org — Event is sufficient
@@ -130,7 +165,7 @@ public without sharing class ScheduleVisitAction {
     // ─── IAM / Salesforce Scheduler ───────────────────────────────────────────
 
     private static String createIAMAppointment(Request req, Datetime startDt, Datetime endDt,
-            Id physicianContactId, Id hospitalAccountId) {
+            Id physicianContactId, Id hospitalAccountId, String resolvedPhysicianName, String resolvedFacilityName) {
 
         // Guard: exit early if FSL/Scheduler objects are not deployed in this org
         Map<String, Schema.SObjectType> gd = Schema.getGlobalDescribe();
@@ -157,7 +192,7 @@ public without sharing class ScheduleVisitAction {
         Integer durMins  = (Integer)(durationMs / 60000);
 
         SObject sa = (SObject) Type.forName('ServiceAppointment').newInstance();
-        sa.put('Subject',            buildSubject(req.physicianName, req.hospitalName));
+        sa.put('Subject',            buildSubject(resolvedPhysicianName, String.isNotBlank(req.hospitalName) ? req.hospitalName : resolvedFacilityName));
         sa.put('SchedStartTime',     startDt);
         sa.put('SchedEndTime',       endDt);
         sa.put('Duration',           durMins);
@@ -211,22 +246,6 @@ public without sharing class ScheduleVisitAction {
             labels.add(e.Subject + ' (' + e.StartDateTime.format('hh:mm a') + ')');
         }
         return String.join(labels, '; ');
-    }
-
-    // ─── Record resolution ────────────────────────────────────────────────────
-
-    private static Id resolvePhysicianContact(String physicianName) {
-        if (String.isBlank(physicianName)) return null;
-        String wildcard = '%' + physicianName.replaceAll('(?i)^dr\\.?\\s+', '').trim() + '%';
-        List<Contact> contacts = [SELECT Id FROM Contact WHERE Name LIKE :wildcard LIMIT 1];
-        return contacts.isEmpty() ? null : contacts[0].Id;
-    }
-
-    private static Id resolveHospitalAccount(String hospitalName) {
-        if (String.isBlank(hospitalName)) return null;
-        String wildcard = '%' + hospitalName.trim() + '%';
-        List<Account> accounts = [SELECT Id FROM Account WHERE Name LIKE :wildcard LIMIT 1];
-        return accounts.isEmpty() ? null : accounts[0].Id;
     }
 
     // ─── String builders ──────────────────────────────────────────────────────

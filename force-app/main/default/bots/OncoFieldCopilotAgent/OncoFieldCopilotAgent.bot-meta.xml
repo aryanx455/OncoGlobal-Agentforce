@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Bot xmlns="http://soap.sforce.com/2006/04/metadata">
+    <agentDSLEnabled>true</agentDSLEnabled>
+    <agentType>AgentforceEmployeeAgent</agentType>
+    <botMlDomain>
+        <label>Onco Field Copilot Agent</label>
+        <name>OncoFieldCopilotAgent</name>
+    </botMlDomain>
+    <botSource>None</botSource>
+    <description>Health Cloud-first Agentforce assistant for Onco Global reps to brief providers, log post-visit notes, create tasks, schedule visits, and upload expense receipts.</description>
+    <label>Onco Field Copilot Agent</label>
+    <logPrivateConversationData>false</logPrivateConversationData>
+    <richContentEnabled>true</richContentEnabled>
+    <sessionTimeout>0</sessionTimeout>
+    <type>InternalCopilot</type>
+</Bot>

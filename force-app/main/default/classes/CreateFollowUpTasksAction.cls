@@ -21,6 +21,10 @@ public without sharing class CreateFollowUpTasksAction {
             description='Name of the physician as spoken by the rep (e.g. "Dr. Gupta"). Used to link tasks to the correct account when Visit Report ID is not available.')
         public String physicianName;
 
+        @InvocableVariable(label='Hospital or Facility Name'
+            description='Hospital/clinic name only when needed to disambiguate duplicate doctors.')
+        public String hospitalName;
+
         @InvocableVariable(label='Visit Report ID'
             description='Salesforce ID of the Visit Report to link tasks to. Optional — if not provided, the agent will search for today\'s visit report for the named physician.')
         public Id visitReportId;
@@ -46,6 +50,18 @@ public without sharing class CreateFollowUpTasksAction {
         @InvocableVariable(label='Error Message')
         public String errorMessage;
 
+        @InvocableVariable(label='Needs Clarification')
+        public Boolean needsClarification;
+
+        @InvocableVariable(label='Clarification Message')
+        public String clarificationMessage;
+
+        @InvocableVariable(label='Resolved Physician Name')
+        public String resolvedPhysicianName;
+
+        @InvocableVariable(label='Resolved Facility Name')
+        public String resolvedFacilityName;
+
         @InvocableVariable(label='Task IDs (comma-separated)')
         public String taskIds;
     }
@@ -66,6 +82,7 @@ public without sharing class CreateFollowUpTasksAction {
         for (Request req : requests) {
             Result res = new Result();
             res.success = false;
+            res.needsClarification = false;
 
             if (String.isBlank(req.followUpActions)) {
                 res.errorMessage = 'Follow-Up Actions are required.';
@@ -84,16 +101,39 @@ public without sharing class CreateFollowUpTasksAction {
                 continue;
             }
 
-            // ── Resolve what the task WhatId should point to ─────────────────
+            // ── Resolve doctor context before creating tasks ─────────────────
             Id whatId = req.visitReportId;
-            if (whatId == null && String.isNotBlank(req.physicianName)) {
-                whatId = findTodaysVisitReport(req.physicianName);
+            Id whoId;
+            Id physicianId = req.physicianId;
+            if (String.isNotBlank(req.physicianName)) {
+                ProviderResolutionService.Resolution resolution = ProviderResolutionService.resolveDoctor(
+                    req.physicianName,
+                    req.hospitalName,
+                    false,
+                    true
+                );
+                if (resolution.success != true) {
+                    res.needsClarification = true;
+                    res.clarificationMessage = resolution.clarificationMessage;
+                    res.errorMessage = resolution.errorMessage;
+                    results.add(res);
+                    resultStartIndex.add(-1);
+                    resultTaskCount.add(0);
+                    continue;
+                }
+                physicianId = resolution.physicianAccountId != null ? resolution.physicianAccountId : physicianId;
+                whoId = resolution.doctorContactId;
+                res.resolvedPhysicianName = String.isNotBlank(resolution.physicianName)
+                    ? resolution.physicianName
+                    : resolution.contactName;
+                res.resolvedFacilityName = resolution.facilityName;
             }
 
-            // ── Resolve physician WhoId / WhatId ─────────────────────────────
-            Id physicianId = req.physicianId;
-            if (physicianId == null && String.isNotBlank(req.physicianName)) {
-                physicianId = resolvePhysician(req.physicianName);
+            if (whatId == null && physicianId != null) {
+                whatId = findTodaysVisitReport(physicianId);
+            }
+            if (whatId == null && physicianId != null) {
+                whatId = physicianId;
             }
 
             Date taskDueDate = req.dueDate != null ? req.dueDate : Date.today().addDays(DEFAULT_DUE_DAYS);
@@ -105,7 +145,8 @@ public without sharing class CreateFollowUpTasksAction {
             for (String action : actionItems) {
                 allTasks.add(new Task(
                     Subject         = action.abbreviate(255),
-                    WhatId          = whatId,          // Visit Report or null
+                    WhoId           = whoId,
+                    WhatId          = whatId,
                     OwnerId         = UserInfo.getUserId(),
                     ActivityDate    = taskDueDate,
                     Priority        = taskPriority,
@@ -176,27 +217,16 @@ public without sharing class CreateFollowUpTasksAction {
         return actions;
     }
 
-    private static Id findTodaysVisitReport(String physicianName) {
-        String nameWildcard = '%' + physicianName.replaceAll('(?i)^dr\\.?\\s+', '').trim() + '%';
+    private static Id findTodaysVisitReport(Id physicianId) {
+        Id currentUserId = UserInfo.getUserId();
         List<Visit_Report__c> reports = [
             SELECT Id FROM Visit_Report__c
             WHERE Visit_Date__c = :Date.today()
-            AND Physician__r.Name LIKE :nameWildcard
-            AND OwnerId = :UserInfo.getUserId()
+            AND Physician__c = :physicianId
+            AND (OwnerId = :currentUserId OR Rep__c = :currentUserId)
             ORDER BY CreatedDate DESC
             LIMIT 1
         ];
         return reports.isEmpty() ? null : reports[0].Id;
-    }
-
-    private static Id resolvePhysician(String physicianName) {
-        String nameWildcard = '%' + physicianName.replaceAll('(?i)^dr\\.?\\s+', '').trim() + '%';
-        List<Account> accounts = [
-            SELECT Id FROM Account
-            WHERE Name LIKE :nameWildcard
-            ORDER BY LastModifiedDate DESC
-            LIMIT 1
-        ];
-        return accounts.isEmpty() ? null : accounts[0].Id;
     }
 }
