@@ -104,6 +104,19 @@ public with sharing class ProviderResolutionService {
     }
 
     public static Id ensureDoctorContactForExpense(String doctorContactId, String doctorName, String facilityName) {
+        return ensureDoctorContactForExpenseInternal(doctorContactId, doctorName, facilityName, true);
+    }
+
+    public static Id ensureDoctorContactForExpenseForAgent(String doctorContactId, String doctorName, String facilityName) {
+        return ensureDoctorContactForExpenseInternal(doctorContactId, doctorName, facilityName, false);
+    }
+
+    private static Id ensureDoctorContactForExpenseInternal(
+        String doctorContactId,
+        String doctorName,
+        String facilityName,
+        Boolean useAuraException
+    ) {
         if (String.isNotBlank(doctorContactId)) {
             try {
                 Id contactId = (Id) doctorContactId;
@@ -112,7 +125,7 @@ public with sharing class ProviderResolutionService {
                     return contactId;
                 }
             } catch (Exception ex) {
-                throw new AuraHandledException('The selected doctor contact is not a valid Salesforce Contact.');
+                raiseExpenseError('The selected doctor contact is not a valid Salesforce Contact.', useAuraException);
             }
         }
 
@@ -122,7 +135,7 @@ public with sharing class ProviderResolutionService {
 
         Resolution resolution = resolveDoctor(doctorName, facilityName, true, true);
         if (resolution.needsClarification == true || resolution.success != true) {
-            throw new AuraHandledException(resolution.clarificationMessage);
+            raiseExpenseError(resolution.clarificationMessage, useAuraException);
         }
         if (resolution.doctorContactId != null) {
             return resolution.doctorContactId;
@@ -131,6 +144,13 @@ public with sharing class ProviderResolutionService {
         Contact contact = buildContactForResolvedAccount(resolution.physicianAccountId, resolution.physicianName);
         insert contact;
         return contact.Id;
+    }
+
+    private static void raiseExpenseError(String message, Boolean useAuraException) {
+        if (useAuraException == true) {
+            throw new AuraHandledException(message);
+        }
+        throw new ExpenseActionException(message);
     }
 
     private static Resolution clarification(Resolution result, String message) {

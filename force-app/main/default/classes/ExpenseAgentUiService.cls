@@ -9,85 +9,114 @@ global with sharing class ExpenseAgentUiService {
 
         for (ExpenseAgentUiRequest request : requests) {
             ExpenseBillInput input = request == null ? null : request.expense_request;
-            validateExpenseBillInput(input);
+            String validationMessage = validateExpenseBillInput(input);
+            if (String.isNotBlank(validationMessage)) {
+                responses.add(buildErrorResponse(validationMessage));
+                continue;
+            }
 
-            ExpenseController.ExpensePayload payload = new ExpenseController.ExpensePayload();
-            payload.expense_report = new ExpenseController.ExpenseReportPayload();
-            payload.expense_report.employee_name = input.employeeName;
-            payload.expense_report.employee_id = input.employeeId;
-            payload.expense_report.doctor_name = input.doctorName;
-            payload.expense_report.doctor_contact_id = input.doctorContactId;
-            payload.expense_report.facility_name = input.hospitalName;
-            payload.expense_report.expense_category = input.expenseCategory;
-            payload.expense_report.business_purpose = input.businessPurpose;
-
-            payload.vendor_details = new ExpenseController.VendorDetailsPayload();
-            payload.vendor_details.vendor_name = input.vendorName;
-            payload.vendor_details.vendor_gstin = input.vendorGstin;
-            payload.vendor_details.vendor_address = input.vendorAddress;
-
-            payload.invoice_details = new ExpenseController.InvoiceDetailsPayload();
-            payload.invoice_details.invoice_number = input.invoiceNumber;
-            payload.invoice_details.invoice_date = input.invoiceDate;
-            payload.invoice_details.payment_method = input.paymentMethod;
-
-            payload.amount_details = new ExpenseController.AmountDetailsPayload();
-            payload.amount_details.subtotal = input.subtotal;
-            payload.amount_details.tax = input.taxAmount;
-            payload.amount_details.total_amount = input.totalAmount;
-
-            payload.tax_details = new ExpenseController.TaxDetailsPayload();
-            payload.tax_details.cgst = input.cgst;
-            payload.tax_details.sgst = input.sgst;
-            payload.tax_details.igst = input.igst;
-
-            payload.line_items = parseLineItems(input.lineItemsJson);
-
-            ExpenseController.ExpenseCreateResponse createResponse = ExpenseController.createExpenseRecord(
-                JSON.serialize(payload),
-                input.contentDocumentId
-            );
-
-            Expense__c expense = [
-                SELECT Id, Name, Doctor__c, Doctor__r.Name, Vendor__c, Amount__c, Invoice_Number__c, Invoice_Date__c
-                FROM Expense__c
-                WHERE Id = :createResponse.expenseId
-                LIMIT 1
-            ];
-
-            ExpenseBillResult result = new ExpenseBillResult();
-            result.expenseId = expense.Id;
-            result.expenseName = expense.Name;
-            result.doctorContactId = expense.Doctor__c;
-            result.doctorName = expense.Doctor__r == null ? input.doctorName : expense.Doctor__r.Name;
-            result.hospitalName = input.hospitalName;
-            result.vendorName = expense.Vendor__c;
-            result.invoiceNumber = expense.Invoice_Number__c;
-            result.invoiceDate = expense.Invoice_Date__c == null ? null : String.valueOf(expense.Invoice_Date__c);
-            result.currencyCode = String.isBlank(input.currencyCode) ? UserInfo.getDefaultCurrency() : input.currencyCode;
-            result.totalAmount = expense.Amount__c;
-            result.lineItemCount = createResponse.lineItemCount;
-            result.statusMessage = 'Expense record created after bill extraction and user confirmation.';
-
-            ExpenseAgentUiResponse response = new ExpenseAgentUiResponse();
-            response.expense_result = result;
-            response.expense_id = expense.Id;
-            responses.add(response);
+            try {
+                responses.add(createExpenseResponse(input));
+            } catch (Exception ex) {
+                responses.add(buildErrorResponse(cleanErrorMessage(ex)));
+            }
         }
 
         return responses;
     }
 
-    private static void validateExpenseBillInput(ExpenseBillInput input) {
+    private static ExpenseAgentUiResponse createExpenseResponse(ExpenseBillInput input) {
+        ExpenseController.ExpensePayload payload = new ExpenseController.ExpensePayload();
+        payload.expense_report = new ExpenseController.ExpenseReportPayload();
+        payload.expense_report.employee_name = input.employeeName;
+        payload.expense_report.employee_id = input.employeeId;
+        payload.expense_report.doctor_name = input.doctorName;
+        payload.expense_report.doctor_contact_id = input.doctorContactId;
+        payload.expense_report.facility_name = input.hospitalName;
+        payload.expense_report.expense_category = input.expenseCategory;
+        payload.expense_report.business_purpose = input.businessPurpose;
+
+        payload.vendor_details = new ExpenseController.VendorDetailsPayload();
+        payload.vendor_details.vendor_name = input.vendorName;
+        payload.vendor_details.vendor_gstin = input.vendorGstin;
+        payload.vendor_details.vendor_address = input.vendorAddress;
+
+        payload.invoice_details = new ExpenseController.InvoiceDetailsPayload();
+        payload.invoice_details.invoice_number = input.invoiceNumber;
+        payload.invoice_details.invoice_date = input.invoiceDate;
+        payload.invoice_details.payment_method = input.paymentMethod;
+
+        payload.amount_details = new ExpenseController.AmountDetailsPayload();
+        payload.amount_details.subtotal = input.subtotal;
+        payload.amount_details.tax = input.taxAmount;
+        payload.amount_details.total_amount = input.totalAmount;
+
+        payload.tax_details = new ExpenseController.TaxDetailsPayload();
+        payload.tax_details.cgst = input.cgst;
+        payload.tax_details.sgst = input.sgst;
+        payload.tax_details.igst = input.igst;
+
+        payload.line_items = parseLineItems(input.lineItemsJson);
+
+        ExpenseController.ExpenseCreateResponse createResponse = ExpenseController.createExpenseRecordForAgent(
+            JSON.serialize(payload),
+            input.contentDocumentId
+        );
+
+        Expense__c expense = [
+            SELECT Id, Name, Doctor__c, Doctor__r.Name, Vendor__c, Amount__c, Invoice_Number__c, Invoice_Date__c
+            FROM Expense__c
+            WHERE Id = :createResponse.expenseId
+            LIMIT 1
+        ];
+
+        ExpenseBillResult result = new ExpenseBillResult();
+        result.expenseId = expense.Id;
+        result.expenseName = expense.Name;
+        result.doctorContactId = expense.Doctor__c;
+        result.doctorName = expense.Doctor__r == null ? input.doctorName : expense.Doctor__r.Name;
+        result.hospitalName = input.hospitalName;
+        result.vendorName = expense.Vendor__c;
+        result.invoiceNumber = expense.Invoice_Number__c;
+        result.invoiceDate = expense.Invoice_Date__c == null ? null : String.valueOf(expense.Invoice_Date__c);
+        result.currencyCode = String.isBlank(input.currencyCode) ? UserInfo.getDefaultCurrency() : input.currencyCode;
+        result.totalAmount = expense.Amount__c;
+        result.lineItemCount = createResponse.lineItemCount;
+        result.statusMessage = 'Expense record created after bill extraction and user confirmation.';
+
+        ExpenseAgentUiResponse response = new ExpenseAgentUiResponse();
+        response.expense_result = result;
+        response.expense_id = expense.Id;
+        return response;
+    }
+
+    private static String validateExpenseBillInput(ExpenseBillInput input) {
         if (input == null) {
-            throw new AuraHandledException('Expense bill input is required.');
+            return 'Expense bill input is required. Open the upload form, upload a bill, review the extracted fields, and then submit.';
         }
         if (input.confirmedByUser != true) {
-            throw new AuraHandledException('Review and confirm the extracted expense details before creating the expense record.');
+            return 'Review and confirm the extracted expense details before creating the expense record.';
         }
         if (String.isBlank(input.contentDocumentId)) {
-            throw new AuraHandledException('Upload a receipt or invoice before confirming the expense bill.');
+            return 'Upload a receipt or invoice before confirming the expense bill.';
         }
+        return null;
+    }
+
+    private static ExpenseAgentUiResponse buildErrorResponse(String message) {
+        ExpenseBillResult result = new ExpenseBillResult();
+        result.statusMessage = message;
+
+        ExpenseAgentUiResponse response = new ExpenseAgentUiResponse();
+        response.expense_result = result;
+        return response;
+    }
+
+    private static String cleanErrorMessage(Exception ex) {
+        String message = ex == null ? null : ex.getMessage();
+        return String.isBlank(message)
+            ? 'Expense creation did not complete. Please review the uploaded bill and try again.'
+            : message;
     }
 
     private static List<ExpenseController.ExpenseLineItemPayload> parseLineItems(String serializedLineItems) {

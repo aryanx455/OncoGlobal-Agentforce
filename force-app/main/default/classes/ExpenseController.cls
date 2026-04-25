@@ -76,12 +76,24 @@ public with sharing class ExpenseController {
 
     @AuraEnabled
     public static ExpenseCreateResponse createExpenseRecord(String expenseData, Id contentDocumentId) {
+        return createExpenseRecordInternal(expenseData, contentDocumentId, true);
+    }
+
+    public static ExpenseCreateResponse createExpenseRecordForAgent(String expenseData, Id contentDocumentId) {
+        return createExpenseRecordInternal(expenseData, contentDocumentId, false);
+    }
+
+    private static ExpenseCreateResponse createExpenseRecordInternal(
+        String expenseData,
+        Id contentDocumentId,
+        Boolean useAuraException
+    ) {
         if (String.isBlank(expenseData)) {
-            throw new AuraHandledException('Expense data is required to create records.');
+            raiseExpenseError('Expense data is required to create records.', useAuraException);
         }
 
         try {
-            ExpensePayload payload = parseExpensePayload(expenseData);
+            ExpensePayload payload = parseExpensePayloadInternal(expenseData, useAuraException);
             Date invoiceDate = parseInvoiceDate(payload.invoice_details.invoice_date);
             Id duplicateExpenseId = ExpenseGuardrailAction.findDuplicateExpenseId(
                 payload.invoice_details.invoice_number,
@@ -90,12 +102,13 @@ public with sharing class ExpenseController {
                 invoiceDate
             );
             if (duplicateExpenseId != null) {
-                throw new AuraHandledException(
-                    'Potential duplicate expense detected. Existing expense record: ' + String.valueOf(duplicateExpenseId)
+                raiseExpenseError(
+                    'Potential duplicate expense detected. Existing expense record: ' + String.valueOf(duplicateExpenseId),
+                    useAuraException
                 );
             }
 
-            Expense__c expense = buildExpenseRecord(payload);
+            Expense__c expense = buildExpenseRecord(payload, useAuraException);
             insert expense;
 
             List<Expense_Line_Item__c> lineItems = buildLineItems(payload, expense.Id);
@@ -114,11 +127,15 @@ public with sharing class ExpenseController {
             return response;
         } catch (AuraHandledException exceptionToRethrow) {
             throw exceptionToRethrow;
+        } catch (ExpenseActionException exceptionToRethrow) {
+            throw exceptionToRethrow;
         } catch (DmlException dmlEx) {
-            throw new AuraHandledException('Expense creation failed. ' + dmlEx.getDmlMessage(0));
+            raiseExpenseError('Expense creation failed. ' + dmlEx.getDmlMessage(0), useAuraException);
         } catch (Exception ex) {
-            throw new AuraHandledException('Expense creation failed. ' + ex.getMessage());
+            raiseExpenseError('Expense creation failed. ' + ex.getMessage(), useAuraException);
         }
+
+        return null;
     }
 
     @TestVisible
@@ -152,24 +169,34 @@ public with sharing class ExpenseController {
 
     @TestVisible
     private static ExpensePayload parseExpensePayload(String rawPayload) {
-        String sanitizedPayload = sanitizeJsonResponse(rawPayload);
+        return parseExpensePayloadInternal(rawPayload, true);
+    }
+
+    private static ExpensePayload parseExpensePayloadInternal(String rawPayload, Boolean useAuraException) {
+        String sanitizedPayload = sanitizeJsonResponseInternal(rawPayload, useAuraException);
         try {
             ExpensePayload parsedPayload = (ExpensePayload) JSON.deserialize(sanitizedPayload, ExpensePayload.class);
             if (parsedPayload == null) {
-                throw new AuraHandledException('Invoice extraction returned an empty JSON payload.');
+                raiseExpenseError('Invoice extraction returned an empty JSON payload.', useAuraException);
             }
 
             parsedPayload.ensureCollections();
             return parsedPayload;
         } catch (JSONException jsonEx) {
-            throw new AuraHandledException('Invoice extraction returned invalid JSON. ' + jsonEx.getMessage());
+            raiseExpenseError('Invoice extraction returned invalid JSON. ' + jsonEx.getMessage(), useAuraException);
         }
+
+        return null;
     }
 
     @TestVisible
     private static String sanitizeJsonResponse(String rawPayload) {
+        return sanitizeJsonResponseInternal(rawPayload, true);
+    }
+
+    private static String sanitizeJsonResponseInternal(String rawPayload, Boolean useAuraException) {
         if (String.isBlank(rawPayload)) {
-            throw new AuraHandledException('Invoice extraction returned a blank response.');
+            raiseExpenseError('Invoice extraction returned a blank response.', useAuraException);
         }
 
         String sanitized = rawPayload.trim();
@@ -181,20 +208,21 @@ public with sharing class ExpenseController {
         Integer firstBrace = sanitized.indexOf('{');
         Integer lastBrace = sanitized.lastIndexOf('}');
         if (firstBrace < 0 || lastBrace <= firstBrace) {
-            throw new AuraHandledException('Invoice extraction response did not contain strict JSON.');
+            raiseExpenseError('Invoice extraction response did not contain strict JSON.', useAuraException);
         }
 
         return sanitized.substring(firstBrace, lastBrace + 1);
     }
 
-    private static Expense__c buildExpenseRecord(ExpensePayload payload) {
+    private static Expense__c buildExpenseRecord(ExpensePayload payload, Boolean useAuraException) {
         Expense__c expense = new Expense__c();
         expense.Category__c = payload.expense_report.expense_category;
         expense.Description__c = payload.expense_report.business_purpose;
         expense.Doctor__c = resolveDoctorContactId(
             payload.expense_report.doctor_contact_id,
             payload.expense_report.doctor_name,
-            payload.expense_report.facility_name
+            payload.expense_report.facility_name,
+            useAuraException
         );
         expense.Vendor__c = payload.vendor_details.vendor_name;
         expense.Amount__c = payload.amount_details.total_amount;
@@ -207,8 +235,22 @@ public with sharing class ExpenseController {
         return expense;
     }
 
-    private static Id resolveDoctorContactId(String doctorContactId, String doctorName, String facilityName) {
-        return ProviderResolutionService.ensureDoctorContactForExpense(doctorContactId, doctorName, facilityName);
+    private static Id resolveDoctorContactId(
+        String doctorContactId,
+        String doctorName,
+        String facilityName,
+        Boolean useAuraException
+    ) {
+        return useAuraException == true
+            ? ProviderResolutionService.ensureDoctorContactForExpense(doctorContactId, doctorName, facilityName)
+            : ProviderResolutionService.ensureDoctorContactForExpenseForAgent(doctorContactId, doctorName, facilityName);
+    }
+
+    private static void raiseExpenseError(String message, Boolean useAuraException) {
+        if (useAuraException == true) {
+            throw new AuraHandledException(message);
+        }
+        throw new ExpenseActionException(message);
     }
 
     private static List<Expense_Line_Item__c> buildLineItems(ExpensePayload payload, Id expenseId) {

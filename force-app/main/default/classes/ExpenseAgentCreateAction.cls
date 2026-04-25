@@ -13,6 +13,9 @@ public with sharing class ExpenseAgentCreateAction {
 
         @InvocableVariable
         public Integer lineItemCount;
+
+        @InvocableVariable
+        public String errorMessage;
     }
 
     @InvocableMethod(
@@ -23,14 +26,17 @@ public with sharing class ExpenseAgentCreateAction {
     public static List<Response> createExpenseRecords(List<Request> requests) {
         List<Response> responses = new List<Response>();
         for (Request request : requests) {
-            ExpenseController.ExpenseCreateResponse createResult = ExpenseController.createExpenseRecord(
-                request.expenseJson,
-                request.contentDocumentId
-            );
-
             Response response = new Response();
-            response.expenseId = createResult.expenseId;
-            response.lineItemCount = createResult.lineItemCount;
+            try {
+                ExpenseController.ExpenseCreateResponse createResult = ExpenseController.createExpenseRecordForAgent(
+                    request.expenseJson,
+                    request.contentDocumentId
+                );
+                response.expenseId = createResult.expenseId;
+                response.lineItemCount = createResult.lineItemCount;
+            } catch (Exception ex) {
+                response.errorMessage = ex.getMessage();
+            }
             responses.add(response);
         }
 
