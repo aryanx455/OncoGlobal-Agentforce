@@ -1,0 +1,276 @@
+/* ── Wrapper ─────────────────────────────────────────────── */
+.cal-wrap {
+    font-family: 'Salesforce Sans', Arial, sans-serif;
+    background: #f0f4f8;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+}
+
+/* ── Header ──────────────────────────────────────────────── */
+.cal-header {
+    background: linear-gradient(135deg, #0c2461, #1a56b0);
+    color: #fff;
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.cal-header-left { display: flex; align-items: center; gap: 12px; }
+
+.cal-logo {
+    width: 40px;
+    height: 40px;
+    background: #e74c3c;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 14px;
+    color: #fff;
+    flex-shrink: 0;
+}
+
+.cal-title { font-size: 16px; font-weight: 700; }
+.cal-sub   { font-size: 11px; opacity: 0.75; margin-top: 2px; }
+
+.cal-header-right {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.cal-badge {
+    font-size: 10px;
+    font-weight: 600;
+    padding: 3px 8px;
+    border-radius: 12px;
+    background: rgba(255,255,255,0.15);
+    color: #fff;
+}
+
+.event-badge { color: #93c5fd; }
+.pos-badge   { color: #86efac; }
+.fu-badge    { color: #fcd34d; }
+.neg-badge   { color: #fca5a5; }
+
+/* ── Month navigation ────────────────────────────────────── */
+.cal-month-nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 20px 8px;
+    background: #fff;
+}
+
+.cal-nav-btn {
+    background: none;
+    border: 1px solid #d0d5dd;
+    border-radius: 6px;
+    width: 32px;
+    height: 32px;
+    cursor: pointer;
+    font-size: 18px;
+    color: #1a56b0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.15s;
+}
+
+.cal-nav-btn:hover { background: #e8f0fe; }
+
+.cal-month-label {
+    font-size: 15px;
+    font-weight: 700;
+    color: #1a1a2e;
+}
+
+/* ── Grid ────────────────────────────────────────────────── */
+.cal-grid-wrap {
+    background: #fff;
+    padding: 0 12px 12px;
+}
+
+.cal-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 2px;
+}
+
+.cal-dow {
+    text-align: center;
+    font-size: 10px;
+    font-weight: 700;
+    color: #888;
+    text-transform: uppercase;
+    padding: 6px 0;
+}
+
+/* ── Day cells ───────────────────────────────────────────── */
+.cal-cell {
+    min-height: 52px;
+    padding: 4px;
+    border-radius: 6px;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    transition: background 0.12s;
+    position: relative;
+}
+
+.cal-cell:hover    { background: #e8f0fe; }
+.cal-blank         { cursor: default; pointer-events: none; }
+.cal-blank:hover   { background: transparent; }
+
+.cal-has-entry     { background: #f5f7ff; }
+.cal-today         { background: #1a56b0 !important; }
+.cal-today .cal-day-num { color: #fff !important; font-weight: 800; }
+
+.cal-selected      { background: #0c2461 !important; }
+.cal-selected .cal-day-num { color: #fff !important; }
+
+.cal-day-num {
+    font-size: 13px;
+    font-weight: 600;
+    color: #1a1a2e;
+    margin-top: 4px;
+}
+
+/* ── Dots ────────────────────────────────────────────────── */
+.cal-dots {
+    display: flex;
+    gap: 2px;
+    margin-top: 4px;
+}
+
+.dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+}
+
+.dot-event   { background: #3b82f6; }
+.dot-pos     { background: #22c55e; }
+.dot-fu      { background: #f59e0b; }
+.dot-neg     { background: #ef4444; }
+.dot-neutral { background: #94a3b8; }
+
+/* ── Day detail panel ────────────────────────────────────── */
+.cal-day-detail {
+    background: #fff;
+    border-top: 1px solid #e5e7eb;
+    padding: 14px 16px;
+}
+
+.cal-detail-header {
+    font-size: 13px;
+    font-weight: 700;
+    color: #0c2461;
+    margin-bottom: 10px;
+}
+
+/* ── Sections ────────────────────────────────────────────── */
+.cal-section {
+    background: #fff;
+    border-top: 6px solid #f0f4f8;
+    padding: 14px 16px;
+}
+
+.cal-section-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: #0c2461;
+    margin-bottom: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* ── Entry cards ─────────────────────────────────────────── */
+.entry-card {
+    border-radius: 8px;
+    padding: 10px 12px;
+    margin-bottom: 8px;
+    border-left: 4px solid transparent;
+}
+
+.entry-event   { background: #eff6ff; border-left-color: #3b82f6; }
+.entry-pos     { background: #f0fdf4; border-left-color: #22c55e; }
+.entry-neg     { background: #fef2f2; border-left-color: #ef4444; }
+.entry-fu      { background: #fffbeb; border-left-color: #f59e0b; }
+.entry-neutral { background: #f8fafc; border-left-color: #94a3b8; }
+
+.entry-date-pill {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 700;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 4px;
+}
+
+.entry-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 8px;
+}
+
+.entry-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: #1a1a2e;
+}
+
+.entry-meta {
+    font-size: 11px;
+    color: #555;
+    margin-top: 2px;
+}
+
+.entry-summary {
+    font-size: 11px;
+    color: #666;
+    margin-top: 4px;
+    font-style: italic;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+}
+
+.entry-time {
+    font-size: 11px;
+    color: #3b82f6;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.entry-outcome-badge {
+    font-size: 10px;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 10px;
+    background: rgba(0,0,0,0.07);
+    color: #333;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+/* ── States ──────────────────────────────────────────────── */
+.cal-loading, .cal-empty, .cal-error {
+    text-align: center;
+    padding: 24px 16px;
+    font-size: 13px;
+    color: #666;
+    background: #fff;
+    border-top: 6px solid #f0f4f8;
+}
+
+.cal-error { color: #ef4444; }

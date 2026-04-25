@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomMetadata xmlns="http://soap.sforce.com/2006/04/metadata" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+    <label>Herceptin</label>
+    <protected>false</protected>
+    <values>
+        <field>Category__c</field>
+        <value xsi:type="xsd:string">Products</value>
+    </values>
+    <values>
+        <field>Keywords__c</field>
+        <value xsi:type="xsd:string">herceptin,trastuzumab,her2,breast cancer,gastric,hera,totem</value>
+    </values>
+    <values>
+        <field>Content_English__c</field>
+        <value xsi:type="xsd:string">HERCEPTIN (trastuzumab) — HER2-targeted Monoclonal Antibody
+
+MECHANISM: Binds HER2 extracellular domain (domain IV). Inhibits HER2-mediated signaling, ADCC activation, and prevents HER2 cleavage. HER2 overexpression drives aggressive tumor growth.
+
+KEY INDICATIONS:
+- Early breast cancer: Adjuvant post-surgery (HER2+ stage I-III) — 1 year treatment
+- Metastatic breast cancer: 1st line with taxane ± pertuzumab (CLEOPATRA), 2nd line monotherapy
+- HER2+ gastric/gastroesophageal junction: 1st line with capecitabine + cisplatin (ToGA trial)
+
+DOSING: Loading 8 mg/kg IV → maintenance 6 mg/kg Q3W; OR 4 mg/kg → 2 mg/kg QW. SC formulation (600 mg fixed SC Q3W) available — patient convenience.
+
+KEY TRIAL DATA:
+- HERA: 50% reduction in recurrence in adjuvant EBC at 1 year
+- CLEOPATRA: OS 57.1 months (Herceptin + pertuzumab + docetaxel) — landmark HER2+ MBC
+- ToGA: 13.8 vs 11.1 months OS in HER2+ gastric cancer
+
+BIOMARKER: HER2 IHC 3+ or FISH amplified. IHC 2+ needs FISH confirmation. Testing mandatory.
+
+CARDIAC MONITORING: LVEF baseline and Q3 months. Hold if LVEF drops &gt;10 points OR below 50%. Cardiotoxicity is additive with anthracyclines.
+
+BIOSIMILARS IN INDIA: Several trastuzumab biosimilars available (Hertraz, Biceltis, Canmab). Herceptin remains originator reference.</value>
+    </values>
+    <values>
+        <field>Content_Hinglish__c</field>
+        <value xsi:type="xsd:string">HERCEPTIN (trastuzumab) — Rep ke liye
+
+KYA HAI: HER2-targeted therapy — jab tumor cells pe HER2 protein zyada hota hai, Herceptin usse block karta hai. Breast cancer aur stomach cancer dono mein use hota hai.
+
+KAHAN USE HOTA HAI:
+- Breast cancer surgery ke baad: HER2+ patients mein 1 saal treatment — cancer wapas aane se rokta hai
+- Metastatic breast cancer: Taxane ke saath first line mein
+- HER2+ stomach cancer: Chemo ke saath first line
+
+DOSE: IV infusion — pehli baar 8 mg/kg phir har 3 hafte 6 mg/kg. SC injection bhi available hai (600 mg) — patient ke liye easy.
+
+DOCTOR SE KAISE BAAT KAREIN:
+- "Dr. saab, HER2 testing ho rahi hai aapke breast cancer patients mein? HERA data mein 50% recurrence kam hua 1 saal Herceptin se."
+- "CLEOPATRA: Pertuzumab ke saath OS 57 months — bahut strong data."
+- "ToGA trial — HER2+ gastric cancer mein bhi approve hai, kya aap gastric patients mein HER2 test karte hain?"
+
+IMPORTANT — Dil ki care: Herceptin se heart function affect ho sakti hai, especially agar pehle anthracyclines liye hain. LVEF monitor karna zaroori hai.
+
+BIOSIMILARS: India mein kai biosimilars hain (Hertraz etc.). Originator vs biosimilar discussion mein ready rehna — quality aur data gap ke baare mein baat karein.</value>
+    </values>
+</CustomMetadata>

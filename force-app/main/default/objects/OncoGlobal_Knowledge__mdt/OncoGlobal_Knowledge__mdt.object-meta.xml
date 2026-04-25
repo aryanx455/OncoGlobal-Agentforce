@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomObject xmlns="http://soap.sforce.com/2006/04/metadata">
+    <description>OncoGlobal knowledge base — product info, expense policy, visit tips, hospitals. Queried by KnowledgeSearchAction for language-aware agent responses.</description>
+    <label>OncoGlobal Knowledge</label>
+    <pluralLabel>OncoGlobal Knowledge</pluralLabel>
+    <visibility>Public</visibility>
+</CustomObject>

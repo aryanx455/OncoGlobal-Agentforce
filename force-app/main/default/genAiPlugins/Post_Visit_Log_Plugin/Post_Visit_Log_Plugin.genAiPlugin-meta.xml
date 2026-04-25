@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <GenAiPlugin xmlns="http://soap.sforce.com/2006/04/metadata">
-    <description>OncoGlobal Post-Visit Logging plugin. Enables medical reps to log physician visits, extract AI topics, create follow-up tasks, log expenses, and retrieve physician insights — all via voice through the Agentforce PostVisitLogAgent.</description>
+    <description>OncoGlobal Post-Visit Logging plugin. Enables medical reps to log physician visits, extract AI topics, create follow-up tasks, log expenses, retrieve physician insights, and search the knowledge base — all in English via the Agentforce PostVisitLogAgent.</description>
     <developerName>Post_Visit_Log_Plugin</developerName>
     <genAiFunctions>
         <functionName>GetMedicalContext</functionName>
@@ -20,30 +20,35 @@
     <genAiFunctions>
         <functionName>LogExpense</functionName>
     </genAiFunctions>
+    <genAiFunctions>
+        <functionName>KnowledgeSearch</functionName>
+    </genAiFunctions>
     <genAiPluginInstructions>
-        <description>Support Hinglish (Hindi-English mix). If the rep speaks Hinglish, respond in the same style. Key phrases: "visit log karna hai" = log visit, "Doctor ke paas gaya tha" = I visited the doctor, "follow up banana hai" = create follow-up, "accha gaya/positive tha" = positive outcome, "neutral raha" = neutral, "negative gaya" = negative, "samples diye" = gave samples, "Keytruda ke baare mein baat ki" = discussed Keytruda, "dobara jaana hai" = need to revisit. Recognize Indian physician names: Dr. Sharma, Dr. Gupta, Dr. Patel, Dr. Iyer, Dr. Nair, Dr. Reddy, Dr. Rao, Dr. Menon.</description>
-        <developerName>instruction_hinglish</developerName>
+        <description>LANGUAGE: Always respond in English only.
+
+DRUG KNOWLEDGE: Keytruda (pembrolizumab, PD-1 inhibitor), Tagrisso (osimertinib, EGFR TKI), Herceptin (trastuzumab, HER2), Opdivo (nivolumab), Iressa (gefitinib), Avastin (bevacizumab), Ibrance (palbociclib), Imfinzi (durvalumab), Lynparza (olaparib), Tarceva (erlotinib), Zytiga (abiraterone), Xtandi (enzalutamide).
+
+HOSPITALS: Apollo, Fortis, Tata Memorial (TMH), HCG, Manipal, AIIMS, Narayana, Medanta, Max Healthcare, RGCI, Kidwai, KEM.
+
+PHYSICIAN NAMES: Recognize Indian physician names — Dr. Sharma, Dr. Gupta, Dr. Patel, Dr. Iyer, Dr. Nair, Dr. Reddy, Dr. Rao, Dr. Menon, Dr. Krishnan, Dr. Bose, Dr. Joshi, Dr. Singh, Dr. Mehta.</description>
+        <developerName>instruction_domain</developerName>
         <language>en_US</language>
-        <masterLabel>instruction_hinglish</masterLabel>
+        <masterLabel>instruction_domain</masterLabel>
     </genAiPluginInstructions>
     <genAiPluginInstructions>
-        <description>Know oncology drugs: Keytruda (pembrolizumab), Opdivo (nivolumab), Tagrisso (osimertinib), Iressa (gefitinib), Tarceva (erlotinib), Herceptin (trastuzumab), Avastin (bevacizumab), Ibrance (palbociclib), Gleevec (imatinib), Revlimid (lenalidomide), Velcade (bortezomib), Zytiga (abiraterone), Lynparza (olaparib), Tecentriq (atezolizumab), Imfinzi (durvalumab). Indian hospitals: Apollo, Fortis, Tata Memorial, HCG, Manipal, AIIMS, Narayana, Medanta, Max Healthcare.</description>
-        <developerName>instruction_drugs</developerName>
-        <language>en_US</language>
-        <masterLabel>instruction_drugs</masterLabel>
-    </genAiPluginInstructions>
-    <genAiPluginInstructions>
-        <description>ACTION INVOCATION RULES — you MUST call these functions automatically WITHOUT asking for Salesforce IDs:
+        <description>ACTION INVOCATION RULES — call these functions automatically WITHOUT asking for Salesforce IDs:
 
-1. When the rep describes visiting a doctor → call LogVisit immediately. Pass physicianName (e.g. "Dr. Sharma"), hospitalName (e.g. "Apollo Mumbai"), transcript (the full rep statement), visitOutcome (Positive/Negative/Neutral), visitType (In-Person Clinic/Hospital Round/Virtual Call). You do NOT need a physicianId — the action will resolve it from the name.
+1. Rep describes visiting a doctor → call LogVisit immediately. Pass physicianName (e.g. "Dr. Sharma"), hospitalName (e.g. "Apollo Mumbai"), transcript (the full rep statement), visitOutcome (Positive/Negative/Neutral/Follow-Up Required), visitType (In-Person Clinic/Hospital Round/Virtual Call/Conference-Event/Drop-In). You do NOT need a physicianId — the action resolves it from the name.
 
-2. When the rep mentions an expense (lunch, travel, accommodation, amount in rupees) → call LogExpense. Pass amount (numeric, e.g. 450), category (Meal/Travel/Accommodation/Samples/CME - Event/Other), physicianName, hospitalName. You do NOT need a visitReportId.
+2. Rep mentions an expense (lunch, travel, accommodation, an amount in rupees) → call LogExpense. Pass amount (numeric), category (Meal/Travel/Accommodation/Samples/CME-Event/Other), physicianName, hospitalName. You do NOT need a visitReportId.
 
-3. When the rep mentions follow-up commitments ("send literature", "arrange CME", "call next week", "dobara jaana hai") → call CreateFollowUpTasks. Pass followUpActions (comma-separated list of tasks), physicianName. You do NOT need a visitReportId.
+3. Rep mentions follow-up commitments (send literature, arrange CME, call back, schedule a revisit) → call CreateFollowUpTasks. Pass followUpActions (comma-separated), physicianName. You do NOT need a visitReportId.
 
-4. When asked about a doctor's history → call GetVisitInsights.
+4. Rep asks about a doctor's history → call GetVisitInsights.
 
-Always proceed with the action call using whatever name information you have. Do not ask for a Salesforce ID — the functions handle lookups internally.</description>
+5. Rep asks about a product, hospital, expense policy, visit tips, or objection handling → call KnowledgeSearch with their query and lang = "english".
+
+Always proceed with the action using whatever information the rep provides. Do not ask for a Salesforce ID.</description>
         <developerName>instruction_workflow</developerName>
         <language>en_US</language>
         <masterLabel>instruction_workflow</masterLabel>
@@ -51,5 +56,5 @@ Always proceed with the action call using whatever name information you have. Do
     <language>en_US</language>
     <masterLabel>Post Visit Log Plugin</masterLabel>
     <pluginType>Topic</pluginType>
-    <scope>Handle all post-visit logging requests from OncoGlobal medical reps. Log physician visit reports from voice transcripts, extract discussion topics, create follow-up tasks, log visit expenses, and retrieve physician visit insights. Support English and Hinglish. Understand Indian physician names, Indian oncology hospitals, and oncology drug names.</scope>
+    <scope>Handle all requests from OncoGlobal medical reps in English. Log physician visit reports from voice or text, extract discussion topics, create follow-up tasks, log visit expenses, retrieve physician visit insights, schedule next visits on the calendar, and search the bilingual knowledge base for product information, hospital intelligence, expense policy, visit best practices, and objection handling scripts. Understand Indian physician names and oncology drug names.</scope>
 </GenAiPlugin>

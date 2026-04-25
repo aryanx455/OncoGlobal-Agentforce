@@ -1,0 +1,21 @@
+{
+  "required" : [ "query" ],
+  "unevaluatedProperties" : false,
+  "properties" : {
+    "lang" : {
+      "title" : "Language Preference (english or hinglish)",
+      "description" : "Pass 'english' for English responses.",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : true
+    },
+    "query" : {
+      "title" : "Search Query",
+      "description" : "The rep's question — e.g. 'Keytruda dosing', 'Apollo hospital visit tips', 'Rs.150 expense limit', 'doctor says product is too expensive'.",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : true
+    }
+  },
+  "lightning:type" : "lightning__objectType"
+}

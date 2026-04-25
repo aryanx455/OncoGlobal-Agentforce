@@ -1,0 +1,14 @@
+{
+  "required" : [ ],
+  "unevaluatedProperties" : false,
+  "properties" : {
+    "category" : {
+      "title" : "Context Category",
+      "description" : "One of: ALL, DRUGS, NAMES, PHRASES, FACILITIES, TERMS, EXPENSES, GST. Use EXPENSES or GST when the rep mentions bill analysis. Use PHRASES for Hinglish decoding.",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : false
+    }
+  },
+  "lightning:type" : "lightning__objectType"
+}

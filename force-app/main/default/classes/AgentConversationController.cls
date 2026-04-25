@@ -12,16 +12,18 @@ public without sharing class AgentConversationController {
         @AuraEnabled public String transcript;
         @AuraEnabled public String sessionVisitReportId;
         @AuraEnabled public String sessionPhysicianName;
+        @AuraEnabled public String language;
     }
 
     public class AgentResponse {
-        @AuraEnabled public Boolean success        = true;
+        @AuraEnabled public Boolean success           = true;
         @AuraEnabled public String  message;
         @AuraEnabled public String  intent;
         @AuraEnabled public String  visitReportId;
         @AuraEnabled public String  physicianName;
-        @AuraEnabled public Boolean policyFlagged  = false;
-        @AuraEnabled public Integer tasksCreated   = 0;
+        @AuraEnabled public Boolean policyFlagged     = false;
+        @AuraEnabled public Integer tasksCreated      = 0;
+        @AuraEnabled public String  scheduledDateTime;
     }
 
     // ─── Entry point (LWC + WhatsApp) ────────────────────────────────────────
@@ -41,6 +43,7 @@ public without sharing class AgentConversationController {
             'VISIT'   => scoreVisit(t),
             'EXPENSE' => scoreExpense(t),
             'FOLLOWUP'=> scoreFollowup(t),
+            'SCHEDULE'=> scoreSchedule(t),
             'INSIGHTS'=> scoreInsights(t),
             'GREETING'=> scoreGreeting(t)
         };
@@ -51,17 +54,24 @@ public without sharing class AgentConversationController {
         resp.visitReportId  = req.sessionVisitReportId;
         resp.physicianName  = req.sessionPhysicianName;
 
+        Boolean hi = isHinglish(req.language);
+
         if (intent == 'VISIT') {
-            handleVisit(req, resp);
+            handleVisit(req, resp, hi);
         } else if (intent == 'EXPENSE') {
-            handleExpense(req, resp);
+            handleExpense(req, resp, hi);
         } else if (intent == 'FOLLOWUP') {
-            handleFollowup(req, resp);
+            handleFollowup(req, resp, hi);
+        } else if (intent == 'SCHEDULE') {
+            handleSchedule(req, resp, hi);
         } else if (intent == 'INSIGHTS') {
-            resp.message = 'Insights feature ke liye Agentforce Builder mein check karein, ya doctor ka naam bolo to visit log karte hain!';
+            resp.message = hi
+                ? 'Insights feature ke liye Agentforce Builder mein check karein, ya doctor ka naam bolo to visit log karte hain!'
+                : 'For physician insights, check Agentforce Builder, or tell me a doctor\'s name and I\'ll log your visit!';
         } else {
-            // Greeting or unrecognised
-            resp.message = 'Bolo! Aaj kahan gaye? Mujhe doctor ka naam aur hospital batao, baaki main kar lunga. 😊';
+            resp.message = hi
+                ? 'Bolo! Aaj kahan gaye? Doctor ka naam aur hospital batao — baaki main kar lunga.\n\nMain yeh kar sakta hoon:\n• Visit log karna\n• Expense log karna\n• Follow-up tasks banana\n• Agli visit calendar mein schedule karna'
+                : 'Sure! Tell me where you went today — doctor name, hospital, and what you discussed. I\'ll log everything.\n\nI can help with:\n• Log a physician visit\n• Log an expense\n• Create follow-up tasks\n• Schedule next visit on your calendar';
         }
 
         return resp;
@@ -69,7 +79,11 @@ public without sharing class AgentConversationController {
 
     // ─── Intent handlers ──────────────────────────────────────────────────────
 
-    private static void handleVisit(AgentRequest req, AgentResponse resp) {
+    static Boolean isHinglish(String lang) {
+        return 'hinglish'.equalsIgnoreCase(lang);
+    }
+
+    private static void handleVisit(AgentRequest req, AgentResponse resp, Boolean hi) {
         String t = req.transcript;
 
         String doctorName  = extractDoctorName(t);
@@ -103,17 +117,20 @@ public without sharing class AgentConversationController {
 
             String drName = resp.physicianName != null ? resp.physicianName : (doctorName != null ? doctorName : 'Doctor');
             String hosp   = String.isNotBlank(hospital) ? ' at ' + hospital : '';
-            resp.message  = hinglishVisitConfirm(drName, hosp, vr.visitReportName, outcome, (Integer)score);
+            resp.message  = hi
+                ? hinglishVisitConfirm(drName, hosp, vr.visitReportName, outcome, (Integer)score)
+                : englishVisitConfirm(drName, hosp, vr.visitReportName, outcome, (Integer)score);
         } else {
             String errMsg = (!results.isEmpty() && results[0].errorMessage != null)
                 ? results[0].errorMessage : 'unknown error';
             resp.success = false;
-            resp.message = 'Kuch issue aaya visit log karte waqt — ' + errMsg
-                + '. Doctor ka naam confirm karein?';
+            resp.message = hi
+                ? 'Kuch issue aaya visit log karte waqt — ' + errMsg + '. Doctor ka naam confirm karein?'
+                : 'Could not log the visit — ' + errMsg + '. Please confirm the doctor\'s name and try again.';
         }
     }
 
-    private static void handleExpense(AgentRequest req, AgentResponse resp) {
+    private static void handleExpense(AgentRequest req, AgentResponse resp, Boolean hi) {
         String t = req.transcript;
 
         Decimal amount   = extractAmount(t);
@@ -142,20 +159,26 @@ public without sharing class AgentConversationController {
         if (!results.isEmpty() && results[0].success) {
             resp.policyFlagged = results[0].policyFlagged == true;
             String catLabel    = category != null ? category.toLowerCase() : 'expense';
-            resp.message = 'Rs.' + amount.setScale(0) + ' ka ' + catLabel + ' expense log ho gaya. ✅';
-            if (resp.policyFlagged) {
-                resp.message += '\n⚠️ Note: Yeh Rs.150 se zyada hai — compliance ke liye flag ho gaya.';
+            if (hi) {
+                resp.message = 'Rs.' + amount.setScale(0) + ' ka ' + catLabel + ' expense log ho gaya. ✅';
+                if (resp.policyFlagged) resp.message += '\n⚠️ Yeh Rs.150 se zyada hai — compliance ke liye flag ho gaya.';
+                resp.message += '\n\nAur kuch tha? Follow-up tasks log karne hain?';
+            } else {
+                resp.message = 'Rs.' + amount.setScale(0) + ' ' + catLabel + ' expense logged. ✅';
+                if (resp.policyFlagged) resp.message += '\n⚠️ Note: This exceeds the Rs.150 policy limit — flagged for compliance review.';
+                resp.message += '\n\nAnything else? Need to create follow-up tasks?';
             }
-            resp.message += '\n\nAur kuch tha? Follow-up tasks log karne hain?';
         } else {
             String err = (!results.isEmpty() && results[0].errorMessage != null)
                 ? results[0].errorMessage : 'unknown';
             resp.success = false;
-            resp.message = 'Expense log nahi ho saka — ' + err + '. Dobara try karein?';
+            resp.message = hi
+                ? 'Expense log nahi ho saca — ' + err + '. Dobara try karein?'
+                : 'Could not log the expense — ' + err + '. Please try again.';
         }
     }
 
-    private static void handleFollowup(AgentRequest req, AgentResponse resp) {
+    private static void handleFollowup(AgentRequest req, AgentResponse resp, Boolean hi) {
         String t      = req.transcript;
         String doctor = String.isNotBlank(req.sessionPhysicianName)
             ? req.sessionPhysicianName : extractDoctorName(t);
@@ -176,14 +199,73 @@ public without sharing class AgentConversationController {
         if (!results.isEmpty() && results[0].success) {
             Integer count    = results[0].tasksCreated != null ? results[0].tasksCreated : 1;
             resp.tasksCreated = count;
-            resp.message = count + ' follow-up task' + (count > 1 ? 's' : '') + ' ban gaye! ✅\n\n'
-                + buildTaskList(actions)
-                + '\n\nAaj ka kaam ho gaya! Aur koi doctor ke paas gaye the?';
+            if (hi) {
+                resp.message = count + ' follow-up task' + (count > 1 ? 's' : '') + ' ban gaye! ✅\n\n'
+                    + buildTaskList(actions) + '\n\nAaj ka kaam ho gaya! Aur koi doctor ke paas gaye the?';
+            } else {
+                resp.message = count + ' follow-up task' + (count > 1 ? 's' : '') + ' created! ✅\n\n'
+                    + buildTaskList(actions) + '\n\nAll done for today! Did you visit any other doctors?';
+            }
         } else {
             String err = (!results.isEmpty() && results[0].errorMessage != null)
                 ? results[0].errorMessage : 'unknown';
             resp.success = false;
-            resp.message = 'Tasks create nahi ho sake — ' + err + '. Dobara batao kya karna hai?';
+            resp.message = hi
+                ? 'Tasks create nahi ho sake — ' + err + '. Dobara batao kya karna hai?'
+                : 'Could not create tasks — ' + err + '. Please tell me what needs to be done.';
+        }
+    }
+
+    private static void handleSchedule(AgentRequest req, AgentResponse resp, Boolean hi) {
+        String t      = req.transcript;
+        String doctor = String.isNotBlank(req.sessionPhysicianName)
+            ? req.sessionPhysicianName : extractDoctorName(t);
+        String hospital = extractHospitalName(t);
+
+        String preferredDate = extractPreferredDate(t);
+        String preferredTime = extractPreferredTime(t);
+        String notes = String.isNotBlank(t) && t.length() <= 200 ? t : null;
+
+        ScheduleVisitAction.Request schedReq = new ScheduleVisitAction.Request();
+        schedReq.physicianName  = doctor;
+        schedReq.hospitalName   = hospital;
+        schedReq.preferredDate  = preferredDate;
+        schedReq.preferredTime  = preferredTime;
+        schedReq.notes          = notes;
+        if (String.isNotBlank(req.sessionVisitReportId)) {
+            schedReq.visitReportId = req.sessionVisitReportId;
+        }
+
+        List<ScheduleVisitAction.Result> results = ScheduleVisitAction.execute(
+            new List<ScheduleVisitAction.Request>{ schedReq }
+        );
+
+        if (!results.isEmpty() && results[0].success) {
+            ScheduleVisitAction.Result sr = results[0];
+            resp.scheduledDateTime = sr.scheduledDateTime;
+
+            String drName = doctor != null ? doctor : 'Doctor';
+            String hosp   = String.isNotBlank(hospital) ? ' @ ' + hospital : '';
+            if (hi) {
+                resp.message = 'Calendar mein add ho gaya! 📅\n'
+                    + drName + hosp + ' ke saath visit schedule hua: ' + sr.scheduledDateTime + '.\n'
+                    + (sr.serviceAppointmentId != null ? '✅ IAM Service Appointment bhi ban gaya.\n' : '')
+                    + (String.isNotBlank(sr.conflictWarning) ? '\n⚠️ Conflict: ' + sr.conflictWarning + '\n' : '')
+                    + '\nAaj ka aur kuch log karna hai?';
+            } else {
+                resp.message = 'Scheduled! 📅\n'
+                    + 'Visit with ' + drName + hosp + ' on ' + sr.scheduledDateTime + '.\n'
+                    + (sr.serviceAppointmentId != null ? '✅ IAM Service Appointment created.\n' : '')
+                    + (String.isNotBlank(sr.conflictWarning) ? '\n⚠️ Conflict: ' + sr.conflictWarning + '\n' : '')
+                    + '\nAnything else to log for today?';
+            }
+        } else {
+            String err = (!results.isEmpty() && results[0].errorMessage != null)
+                ? results[0].errorMessage : 'unknown';
+            resp.success = false;
+            resp.message = hi
+                ? 'Visit schedule nahi ho saca — ' + err + '. Dobara try karein?'
+                : 'Could not schedule the visit — ' + err + '. Please try again.';
         }
     }
 
@@ -238,6 +320,18 @@ public without sharing class AgentConversationController {
             'remind','next week','agle hafte','kal tak','share karna'
         };
         for (String k : kw) { if (t.contains(k)) s += k.contains(' ') ? 3 : 2; }
+        return s;
+    }
+
+    static Integer scoreSchedule(String t) {
+        Integer s = 0;
+        List<String> kw = new List<String>{
+            'schedule','appointment','calendar','book karo','daalo calendar',
+            'dobara jaana hai','milna hai dobara','next visit','agli visit',
+            'agle hafte milna','agle mahine milna','fix karo time','slot chahiye',
+            'time fix','visit fix','book appointment','reschedule'
+        };
+        for (String k : kw) { if (t.contains(k)) s += k.contains(' ') ? 4 : 2; }
         return s;
     }
 
@@ -450,13 +544,94 @@ public without sharing class AgentConversationController {
         return String.join(numbered, '\n');
     }
 
+    // ─── Date / time extraction from natural language ─────────────────────────
+
+    @TestVisible
+    static String extractPreferredDate(String t) {
+        if (String.isBlank(t)) return null;
+        String lower = t.toLowerCase();
+
+        // Relative keywords
+        if (lower.contains('kal') || lower.contains('tomorrow'))
+            return Date.today().addDays(1).format();
+        if (lower.contains('parso') || lower.contains('day after tomorrow'))
+            return Date.today().addDays(2).format();
+        if (lower.contains('is hafte') || lower.contains('this week'))
+            return Date.today().addDays(2).format();
+        if (lower.contains('agle hafte') || lower.contains('next week'))
+            return Date.today().addDays(7).format();
+        if (lower.contains('agle mahine') || lower.contains('next month'))
+            return Date.today().addDays(30).format();
+
+        // Day-of-week keywords — schedule next occurrence
+        Map<String, Integer> dayOffsets = new Map<String, Integer>{
+            'monday'   => 1, 'somvar'   => 1, 'som'    => 1,
+            'tuesday'  => 2, 'mangalvar'=> 2, 'mangal' => 2,
+            'wednesday'=> 3, 'budhwar'  => 3, 'budh'   => 3,
+            'thursday' => 4, 'guruvar'  => 4, 'guru'   => 4,
+            'friday'   => 5, 'shukravar'=> 5, 'shukra' => 5,
+            'saturday' => 6, 'shanivar' => 6, 'shani'  => 6
+        };
+        for (String day : dayOffsets.keySet()) {
+            if (lower.contains(day)) {
+                Integer targetDow = dayOffsets.get(day);
+                // Find next occurrence
+                Date candidate = Date.today().addDays(1);
+                for (Integer i = 0; i < 7; i++) {
+                    // Sunday=0 in Java epoch math; use daysBetween from a known Sunday
+                    Integer dow = Math.mod(
+                        Math.abs(Date.newInstance(2000, 1, 2).daysBetween(candidate)), 7
+                    );
+                    if (dow == targetDow) return candidate.format();
+                    candidate = candidate.addDays(1);
+                }
+            }
+        }
+
+        return null; // let ScheduleVisitAction use its default
+    }
+
+    @TestVisible
+    static String extractPreferredTime(String t) {
+        if (String.isBlank(t)) return null;
+        // "10 baje" / "10 AM" / "10:30" / "subah 10" / "dopahar 2"
+        Pattern p = Pattern.compile('(?i)(?:subah|dopahar|shaam)?\\s*(\\d{1,2})(?::(\\d{2}))?\\s*(?:baje|am|pm)?');
+        Matcher m = p.matcher(t);
+        while (m.find()) {
+            Integer h = Integer.valueOf(m.group(1));
+            Integer min = m.group(2) != null ? Integer.valueOf(m.group(2)) : 0;
+            if (h >= 6 && h <= 20) {
+                // PM adjustment for "dopahar" or explicit pm
+                String fullMatch = m.group(0).toLowerCase();
+                if ((fullMatch.contains('pm') || fullMatch.contains('dopahar') || fullMatch.contains('shaam'))
+                    && h < 12) h += 12;
+                return h + ':' + (min < 10 ? '0' + min : String.valueOf(min));
+            }
+        }
+        return null;
+    }
+
     // ─── Response builders ────────────────────────────────────────────────────
+
+    static String englishVisitConfirm(String doctor, String hospital, String reportName, String outcome, Integer score) {
+        String outcomeEmoji = outcome == 'Positive' ? '✅' : outcome == 'Negative' ? '❌' : '🔄';
+        String reportStr    = String.isNotBlank(reportName) ? ' Report: ' + reportName + '.' : '';
+        String nextPrompt   = outcome == 'Follow-Up Required'
+            ? '\n\nAny expenses to log? Or shall I schedule the next visit on your calendar?'
+            : '\n\nAny expenses to log? Or any follow-up tasks to create?';
+        return 'Done! Visit with ' + doctor + hospital + ' logged. '
+            + outcomeEmoji + ' Outcome: ' + outcome + '. Score: ' + score + '/100.' + reportStr
+            + nextPrompt;
+    }
 
     static String hinglishVisitConfirm(String doctor, String hospital, String reportName, String outcome, Integer score) {
         String outcomeEmoji = outcome == 'Positive' ? '😊✅' : outcome == 'Negative' ? '😔' : '🔄';
         String reportStr    = String.isNotBlank(reportName) ? ' Report: ' + reportName + '.' : '';
+        String nextPrompt   = outcome == 'Follow-Up Required'
+            ? '\n\nKoi expense tha? Ya agli visit calendar mein schedule karein? (e.g. "agle hafte Monday ko schedule karo")'
+            : '\n\nKoi expense tha? Ya follow-up tasks create karne hain?';
         return 'Ho gaya! ' + doctor + ' ki visit log kar di' + hospital + '. '
             + outcomeEmoji + ' Outcome: ' + outcome + '. Score: ' + score + '/100.' + reportStr
-            + '\n\nKoi expense tha? Ya follow-up tasks create karne hain?';
+            + nextPrompt;
     }
 }

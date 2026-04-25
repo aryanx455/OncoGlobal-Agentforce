@@ -1,0 +1,49 @@
+{
+  "required" : [ "physicianName" ],
+  "unevaluatedProperties" : false,
+  "properties" : {
+    "durationMinutes" : {
+      "title" : "Duration (minutes, default 30)",
+      "description" : "Duration Minutes",
+      "lightning:type" : "lightning__numberType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : true
+    },
+    "hospitalName" : {
+      "title" : "Hospital / Clinic Name",
+      "description" : "Facility for the visit — used as calendar Event location.",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : true
+    },
+    "notes" : {
+      "title" : "Objective / Notes",
+      "description" : "What the rep plans to discuss — product, key ask, follow-up from previous visit.",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : true
+    },
+    "physicianName" : {
+      "title" : "Physician Name",
+      "description" : "Doctor to visit (e.g. 'Dr. Gupta'). Use the name from the current session if not restated.",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : true
+    },
+    "preferredDate" : {
+      "title" : "Preferred Date (YYYY-MM-DD)",
+      "description" : "Date for the visit. Parse from rep's words: 'kal' = tomorrow, 'agle hafte' = 7 days, 'agle Monday' = next Monday, 'agle mahine' = 30 days. Format as YYYY-MM-DD. Leave blank to default to 3 working days from today.",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : true
+    },
+    "preferredTime" : {
+      "title" : "Preferred Time (HH:MM 24-hour)",
+      "description" : "Start time. Parse: '10 baje' = '10:00', 'dopahar 2' = '14:00', 'shaam 5' = '17:00'. Leave blank to default to 10:00.",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : true
+    }
+  },
+  "lightning:type" : "lightning__objectType"
+}

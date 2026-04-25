@@ -1,0 +1,35 @@
+{
+  "required" : [ "followUpActions" ],
+  "unevaluatedProperties" : false,
+  "properties" : {
+    "dueDate" : {
+      "title" : "Due Date (YYYY-MM-DD)",
+      "description" : "Due date for tasks. If rep says 'kal' = tomorrow, 'is hafte' = this week (Friday), 'agle hafte' = next week Monday, 'agle mahine' = first of next month. Default = 3 business days from today.",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : true
+    },
+    "followUpActions" : {
+      "title" : "Follow-Up Actions",
+      "description" : "Comma-separated list of ALL follow-up commitments. Be specific and actionable. Parse Hinglish: 'bhejna hai'=send, 'arrange karna hai'=arrange, 'call karna hai'=call, 'milna hai dobara'=revisit, 'bhejunga'=will send, 'share karunga'=will share. E.g. 'Send Keytruda KEYNOTE-189 data to Dr. Sharma, Arrange CME at Apollo next month, Call back Friday to confirm formulary decision'.",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : true
+    },
+    "physicianName" : {
+      "title" : "Physician Name",
+      "description" : "Doctor the tasks are for. Links to today's visit report.",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : true
+    },
+    "priority" : {
+      "title" : "Priority",
+      "description" : "High / Normal / Low. Use High only if rep says urgent/jaldi/ASAP. Default Normal.",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : true
+    }
+  },
+  "lightning:type" : "lightning__objectType"
+}

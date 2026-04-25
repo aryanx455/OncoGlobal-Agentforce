@@ -1,0 +1,14 @@
+{
+  "required" : [ ],
+  "unevaluatedProperties" : false,
+  "properties" : {
+    "category" : {
+      "title" : "Context Category",
+      "description" : "One of: ALL, DRUGS, NAMES, FACILITIES, TERMS, EXPENSES, GST.",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : false
+    }
+  },
+  "lightning:type" : "lightning__objectType"
+}

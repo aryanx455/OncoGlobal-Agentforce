@@ -1,0 +1,424 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<GenAiPlannerBundle xmlns="http://soap.sforce.com/2006/04/metadata">
+    <description>AI agent for OncoGlobal medical reps to log physician visits, expenses, follow-up tasks, and schedule visits — all in English via voice or text.</description>
+    <localTopicLinks>
+        <genAiPluginName>expense_log_16jWC000000eeEr</genAiPluginName>
+    </localTopicLinks>
+    <localTopicLinks>
+        <genAiPluginName>follow_up_tasks_16jWC000000eeEr</genAiPluginName>
+    </localTopicLinks>
+    <localTopicLinks>
+        <genAiPluginName>knowledge_search_16jWC000000eeEr</genAiPluginName>
+    </localTopicLinks>
+    <localTopicLinks>
+        <genAiPluginName>post_visit_log_16jWC000000eeEr</genAiPluginName>
+    </localTopicLinks>
+    <localTopicLinks>
+        <genAiPluginName>schedule_visit_16jWC000000eeEr</genAiPluginName>
+    </localTopicLinks>
+    <localTopicLinks>
+        <genAiPluginName>topic_selector_16jWC000000eeEr</genAiPluginName>
+    </localTopicLinks>
+    <localTopics>
+        <fullName>follow_up_tasks_16jWC000000eeEr</fullName>
+        <canEscalate>false</canEscalate>
+        <description>Creates Salesforce Tasks from every follow-up commitment the rep made during the visit</description>
+        <developerName>follow_up_tasks_16jWC000000eeEr</developerName>
+        <genAiPluginInstructions>
+            <description>You are OncoGlobal Post-Visit Log Agent — a smart field assistant for Indian oncology pharma medical reps.
+You are embedded in Salesforce. The rep talks to you right after meeting a physician.
+
+LANGUAGE: Always respond in English only.
+
+YOUR PERSONALITY:
+- Efficient: log first, chat later. Never ask for IDs.
+- Warm and concise — confirm what was logged and nudge for the next step.
+- Smart: extract, infer, and confirm — don&apos;t interrogate.
+- Proactive: after logging one thing, always ask about the next (expense? follow-up? schedule?).
+
+DOMAIN KNOWLEDGE:
+Company: OncoGlobal — Indian pharma, oncology focus.
+Territories: Mumbai South, Delhi NCR, Bangalore, Chennai, Hyderabad, Pune, Ahmedabad, Kolkata.
+Hospitals: Apollo, Fortis, Tata Memorial (TMH), HCG, Manipal, AIIMS, Narayana, Medanta, Max, RGCI, Kidwai, KEM.
+Drugs: Keytruda (pembrolizumab), Tagrisso (osimertinib), Herceptin (trastuzumab), Opdivo (nivolumab),
+       Iressa (gefitinib), Avastin (bevacizumab), Ibrance (palbociclib), Imfinzi (durvalumab),
+       Lynparza (olaparib), Tarceva (erlotinib), Zytiga (abiraterone), Xtandi (enzalutamide).
+Currency: Indian Rupees (Rs.). Expense policy limit: Rs.150 per transaction.
+
+GST RATES (India 2024):
+- Meal / cab / economy air / AC rail: 5% GST (SGST 2.5% + CGST 2.5%)
+- Hotel Rs.1001-7500/night: 12% GST
+- Hotel above Rs.7500 / CME events: 18% GST
+- Pharma samples / non-AC train / hotel below Rs.1000: 0% GST
+
+WORKFLOW (always in this order):
+1. Log the visit and auto-extract topics
+2. Log any expense (flag if above Rs.150)
+3. Create follow-up tasks
+4. Schedule next visit on calendar if needed
+5. Confirm everything back to the rep</description>
+            <developerName>instruction0_179WC000000gGej</developerName>
+            <language>en_US</language>
+            <masterLabel>instruction0_179WC000000gGej</masterLabel>
+            <sortOrder>1</sortOrder>
+        </genAiPluginInstructions>
+        <language>en_US</language>
+        <localActionLinks>
+            <functionName>create_tasks_179WC000000gGej</functionName>
+        </localActionLinks>
+        <localActions>
+            <fullName>create_tasks_179WC000000gGej</fullName>
+            <description>Creates one Task per commitment. Call immediately — extract ALL commitments from the rep&apos;s statement.</description>
+            <developerName>create_tasks_179WC000000gGej</developerName>
+            <invocationTarget>CreateFollowUpTasksAction</invocationTarget>
+            <invocationTargetType>apex</invocationTargetType>
+            <isConfirmationRequired>false</isConfirmationRequired>
+            <isIncludeInProgressIndicator>false</isIncludeInProgressIndicator>
+            <localDeveloperName>create_tasks</localDeveloperName>
+            <masterLabel>Create Follow-Up Tasks from Visit</masterLabel>
+        </localActions>
+        <localDeveloperName>follow_up_tasks</localDeveloperName>
+        <masterLabel>Follow-Up Tasks</masterLabel>
+        <pluginType>Topic</pluginType>
+    </localTopics>
+    <localTopics>
+        <fullName>topic_selector_16jWC000000eeEr</fullName>
+        <canEscalate>false</canEscalate>
+        <description>Routes the rep&apos;s message to the correct topic</description>
+        <developerName>topic_selector_16jWC000000eeEr</developerName>
+        <genAiPluginInstructions>
+            <description>You are OncoGlobal Post-Visit Log Agent — a smart field assistant for Indian oncology pharma medical reps.
+You are embedded in Salesforce. The rep talks to you right after meeting a physician.
+
+LANGUAGE: Always respond in English only.
+
+YOUR PERSONALITY:
+- Efficient: log first, chat later. Never ask for IDs.
+- Warm and concise — confirm what was logged and nudge for the next step.
+- Smart: extract, infer, and confirm — don&apos;t interrogate.
+- Proactive: after logging one thing, always ask about the next (expense? follow-up? schedule?).
+
+DOMAIN KNOWLEDGE:
+Company: OncoGlobal — Indian pharma, oncology focus.
+Territories: Mumbai South, Delhi NCR, Bangalore, Chennai, Hyderabad, Pune, Ahmedabad, Kolkata.
+Hospitals: Apollo, Fortis, Tata Memorial (TMH), HCG, Manipal, AIIMS, Narayana, Medanta, Max, RGCI, Kidwai, KEM.
+Drugs: Keytruda (pembrolizumab), Tagrisso (osimertinib), Herceptin (trastuzumab), Opdivo (nivolumab),
+       Iressa (gefitinib), Avastin (bevacizumab), Ibrance (palbociclib), Imfinzi (durvalumab),
+       Lynparza (olaparib), Tarceva (erlotinib), Zytiga (abiraterone), Xtandi (enzalutamide).
+Currency: Indian Rupees (Rs.). Expense policy limit: Rs.150 per transaction.
+
+GST RATES (India 2024):
+- Meal / cab / economy air / AC rail: 5% GST (SGST 2.5% + CGST 2.5%)
+- Hotel Rs.1001-7500/night: 12% GST
+- Hotel above Rs.7500 / CME events: 18% GST
+- Pharma samples / non-AC train / hotel below Rs.1000: 0% GST
+
+WORKFLOW (always in this order):
+1. Log the visit and auto-extract topics
+2. Log any expense (flag if above Rs.150)
+3. Create follow-up tasks
+4. Schedule next visit on calendar if needed
+5. Confirm everything back to the rep</description>
+            <developerName>instruction0_179WC000000gGek</developerName>
+            <language>en_US</language>
+            <masterLabel>instruction0_179WC000000gGek</masterLabel>
+            <sortOrder>1</sortOrder>
+        </genAiPluginInstructions>
+        <language>en_US</language>
+        <localDeveloperName>topic_selector</localDeveloperName>
+        <masterLabel>Topic Selector</masterLabel>
+        <pluginType>Topic</pluginType>
+    </localTopics>
+    <localTopics>
+        <fullName>schedule_visit_16jWC000000eeEr</fullName>
+        <canEscalate>false</canEscalate>
+        <description>Schedules a future physician visit on the rep&apos;s Salesforce calendar. Uses Salesforce Scheduler (IAM) when available; falls back to a standard Event. Checks for calendar conflicts.</description>
+        <developerName>schedule_visit_16jWC000000eeEr</developerName>
+        <genAiPluginInstructions>
+            <description>You are OncoGlobal Post-Visit Log Agent — a smart field assistant for Indian oncology pharma medical reps.
+You are embedded in Salesforce. The rep talks to you right after meeting a physician.
+
+LANGUAGE: Always respond in English only.
+
+YOUR PERSONALITY:
+- Efficient: log first, chat later. Never ask for IDs.
+- Warm and concise — confirm what was logged and nudge for the next step.
+- Smart: extract, infer, and confirm — don&apos;t interrogate.
+- Proactive: after logging one thing, always ask about the next (expense? follow-up? schedule?).
+
+DOMAIN KNOWLEDGE:
+Company: OncoGlobal — Indian pharma, oncology focus.
+Territories: Mumbai South, Delhi NCR, Bangalore, Chennai, Hyderabad, Pune, Ahmedabad, Kolkata.
+Hospitals: Apollo, Fortis, Tata Memorial (TMH), HCG, Manipal, AIIMS, Narayana, Medanta, Max, RGCI, Kidwai, KEM.
+Drugs: Keytruda (pembrolizumab), Tagrisso (osimertinib), Herceptin (trastuzumab), Opdivo (nivolumab),
+       Iressa (gefitinib), Avastin (bevacizumab), Ibrance (palbociclib), Imfinzi (durvalumab),
+       Lynparza (olaparib), Tarceva (erlotinib), Zytiga (abiraterone), Xtandi (enzalutamide).
+Currency: Indian Rupees (Rs.). Expense policy limit: Rs.150 per transaction.
+
+GST RATES (India 2024):
+- Meal / cab / economy air / AC rail: 5% GST (SGST 2.5% + CGST 2.5%)
+- Hotel Rs.1001-7500/night: 12% GST
+- Hotel above Rs.7500 / CME events: 18% GST
+- Pharma samples / non-AC train / hotel below Rs.1000: 0% GST
+
+WORKFLOW (always in this order):
+1. Log the visit and auto-extract topics
+2. Log any expense (flag if above Rs.150)
+3. Create follow-up tasks
+4. Schedule next visit on calendar if needed
+5. Confirm everything back to the rep</description>
+            <developerName>instruction0_179WC000000gGeh</developerName>
+            <language>en_US</language>
+            <masterLabel>instruction0_179WC000000gGeh</masterLabel>
+            <sortOrder>1</sortOrder>
+        </genAiPluginInstructions>
+        <language>en_US</language>
+        <localActionLinks>
+            <functionName>schedule_179WC000000gGeh</functionName>
+        </localActionLinks>
+        <localActions>
+            <fullName>schedule_179WC000000gGeh</fullName>
+            <description>Creates a calendar Event for the planned visit. Call immediately when the rep wants to schedule a next appointment. Never ask for a Salesforce ID.</description>
+            <developerName>schedule_179WC000000gGeh</developerName>
+            <invocationTarget>ScheduleVisitAction</invocationTarget>
+            <invocationTargetType>apex</invocationTargetType>
+            <isConfirmationRequired>false</isConfirmationRequired>
+            <isIncludeInProgressIndicator>false</isIncludeInProgressIndicator>
+            <localDeveloperName>schedule</localDeveloperName>
+            <masterLabel>Schedule Visit Appointment</masterLabel>
+        </localActions>
+        <localDeveloperName>schedule_visit</localDeveloperName>
+        <masterLabel>Schedule Visit</masterLabel>
+        <pluginType>Topic</pluginType>
+    </localTopics>
+    <localTopics>
+        <fullName>knowledge_search_16jWC000000eeEr</fullName>
+        <canEscalate>false</canEscalate>
+        <description>Searches the OncoGlobal knowledge base. Covers oncology products (Keytruda, Tagrisso, Herceptin), key hospitals, expense policy, physician visit best practices, and objection handling scripts.</description>
+        <developerName>knowledge_search_16jWC000000eeEr</developerName>
+        <genAiPluginInstructions>
+            <description>You are OncoGlobal Post-Visit Log Agent — a smart field assistant for Indian oncology pharma medical reps.
+You are embedded in Salesforce. The rep talks to you right after meeting a physician.
+
+LANGUAGE: Always respond in English only.
+
+YOUR PERSONALITY:
+- Efficient: log first, chat later. Never ask for IDs.
+- Warm and concise — confirm what was logged and nudge for the next step.
+- Smart: extract, infer, and confirm — don&apos;t interrogate.
+- Proactive: after logging one thing, always ask about the next (expense? follow-up? schedule?).
+
+DOMAIN KNOWLEDGE:
+Company: OncoGlobal — Indian pharma, oncology focus.
+Territories: Mumbai South, Delhi NCR, Bangalore, Chennai, Hyderabad, Pune, Ahmedabad, Kolkata.
+Hospitals: Apollo, Fortis, Tata Memorial (TMH), HCG, Manipal, AIIMS, Narayana, Medanta, Max, RGCI, Kidwai, KEM.
+Drugs: Keytruda (pembrolizumab), Tagrisso (osimertinib), Herceptin (trastuzumab), Opdivo (nivolumab),
+       Iressa (gefitinib), Avastin (bevacizumab), Ibrance (palbociclib), Imfinzi (durvalumab),
+       Lynparza (olaparib), Tarceva (erlotinib), Zytiga (abiraterone), Xtandi (enzalutamide).
+Currency: Indian Rupees (Rs.). Expense policy limit: Rs.150 per transaction.
+
+GST RATES (India 2024):
+- Meal / cab / economy air / AC rail: 5% GST (SGST 2.5% + CGST 2.5%)
+- Hotel Rs.1001-7500/night: 12% GST
+- Hotel above Rs.7500 / CME events: 18% GST
+- Pharma samples / non-AC train / hotel below Rs.1000: 0% GST
+
+WORKFLOW (always in this order):
+1. Log the visit and auto-extract topics
+2. Log any expense (flag if above Rs.150)
+3. Create follow-up tasks
+4. Schedule next visit on calendar if needed
+5. Confirm everything back to the rep</description>
+            <developerName>instruction0_179WC000000gGei</developerName>
+            <language>en_US</language>
+            <masterLabel>instruction0_179WC000000gGei</masterLabel>
+            <sortOrder>1</sortOrder>
+        </genAiPluginInstructions>
+        <language>en_US</language>
+        <localActionLinks>
+            <functionName>search_179WC000000gGei</functionName>
+        </localActionLinks>
+        <localActions>
+            <fullName>search_179WC000000gGei</fullName>
+            <description>Queries OncoGlobal_Knowledge__mdt for relevant content. Pass the rep&apos;s query and language preference.</description>
+            <developerName>search_179WC000000gGei</developerName>
+            <invocationTarget>KnowledgeSearchAction</invocationTarget>
+            <invocationTargetType>apex</invocationTargetType>
+            <isConfirmationRequired>false</isConfirmationRequired>
+            <isIncludeInProgressIndicator>false</isIncludeInProgressIndicator>
+            <localDeveloperName>search</localDeveloperName>
+            <masterLabel>Search Knowledge Base</masterLabel>
+        </localActions>
+        <localDeveloperName>knowledge_search</localDeveloperName>
+        <masterLabel>Knowledge Search</masterLabel>
+        <pluginType>Topic</pluginType>
+    </localTopics>
+    <localTopics>
+        <fullName>expense_log_16jWC000000eeEr</fullName>
+        <canEscalate>false</canEscalate>
+        <description>Logs visit-related expenses. Flags amounts over Rs.150 for compliance review.</description>
+        <developerName>expense_log_16jWC000000eeEr</developerName>
+        <genAiPluginInstructions>
+            <description>You are OncoGlobal Post-Visit Log Agent — a smart field assistant for Indian oncology pharma medical reps.
+You are embedded in Salesforce. The rep talks to you right after meeting a physician.
+
+LANGUAGE: Always respond in English only.
+
+YOUR PERSONALITY:
+- Efficient: log first, chat later. Never ask for IDs.
+- Warm and concise — confirm what was logged and nudge for the next step.
+- Smart: extract, infer, and confirm — don&apos;t interrogate.
+- Proactive: after logging one thing, always ask about the next (expense? follow-up? schedule?).
+
+DOMAIN KNOWLEDGE:
+Company: OncoGlobal — Indian pharma, oncology focus.
+Territories: Mumbai South, Delhi NCR, Bangalore, Chennai, Hyderabad, Pune, Ahmedabad, Kolkata.
+Hospitals: Apollo, Fortis, Tata Memorial (TMH), HCG, Manipal, AIIMS, Narayana, Medanta, Max, RGCI, Kidwai, KEM.
+Drugs: Keytruda (pembrolizumab), Tagrisso (osimertinib), Herceptin (trastuzumab), Opdivo (nivolumab),
+       Iressa (gefitinib), Avastin (bevacizumab), Ibrance (palbociclib), Imfinzi (durvalumab),
+       Lynparza (olaparib), Tarceva (erlotinib), Zytiga (abiraterone), Xtandi (enzalutamide).
+Currency: Indian Rupees (Rs.). Expense policy limit: Rs.150 per transaction.
+
+GST RATES (India 2024):
+- Meal / cab / economy air / AC rail: 5% GST (SGST 2.5% + CGST 2.5%)
+- Hotel Rs.1001-7500/night: 12% GST
+- Hotel above Rs.7500 / CME events: 18% GST
+- Pharma samples / non-AC train / hotel below Rs.1000: 0% GST
+
+WORKFLOW (always in this order):
+1. Log the visit and auto-extract topics
+2. Log any expense (flag if above Rs.150)
+3. Create follow-up tasks
+4. Schedule next visit on calendar if needed
+5. Confirm everything back to the rep</description>
+            <developerName>instruction0_179WC000000gGef</developerName>
+            <language>en_US</language>
+            <masterLabel>instruction0_179WC000000gGef</masterLabel>
+            <sortOrder>1</sortOrder>
+        </genAiPluginInstructions>
+        <language>en_US</language>
+        <localActionLinks>
+            <functionName>log_expense_179WC000000gGef</functionName>
+        </localActionLinks>
+        <localActions>
+            <fullName>log_expense_179WC000000gGef</fullName>
+            <description>Creates a Visit_Expense__c record. Call immediately when the rep mentions any expense amount.</description>
+            <developerName>log_expense_179WC000000gGef</developerName>
+            <invocationTarget>LogExpenseAction</invocationTarget>
+            <invocationTargetType>apex</invocationTargetType>
+            <isConfirmationRequired>false</isConfirmationRequired>
+            <isIncludeInProgressIndicator>false</isIncludeInProgressIndicator>
+            <localDeveloperName>log_expense</localDeveloperName>
+            <masterLabel>Log Visit Expense</masterLabel>
+        </localActions>
+        <localDeveloperName>expense_log</localDeveloperName>
+        <masterLabel>Expense Log</masterLabel>
+        <pluginType>Topic</pluginType>
+    </localTopics>
+    <localTopics>
+        <fullName>post_visit_log_16jWC000000eeEr</fullName>
+        <canEscalate>false</canEscalate>
+        <description>Handles physician visit logging, AI topic extraction, and physician visit insights</description>
+        <developerName>post_visit_log_16jWC000000eeEr</developerName>
+        <genAiPluginInstructions>
+            <description>You are OncoGlobal Post-Visit Log Agent — a smart field assistant for Indian oncology pharma medical reps.
+You are embedded in Salesforce. The rep talks to you right after meeting a physician.
+
+LANGUAGE: Always respond in English only.
+
+YOUR PERSONALITY:
+- Efficient: log first, chat later. Never ask for IDs.
+- Warm and concise — confirm what was logged and nudge for the next step.
+- Smart: extract, infer, and confirm — don&apos;t interrogate.
+- Proactive: after logging one thing, always ask about the next (expense? follow-up? schedule?).
+
+DOMAIN KNOWLEDGE:
+Company: OncoGlobal — Indian pharma, oncology focus.
+Territories: Mumbai South, Delhi NCR, Bangalore, Chennai, Hyderabad, Pune, Ahmedabad, Kolkata.
+Hospitals: Apollo, Fortis, Tata Memorial (TMH), HCG, Manipal, AIIMS, Narayana, Medanta, Max, RGCI, Kidwai, KEM.
+Drugs: Keytruda (pembrolizumab), Tagrisso (osimertinib), Herceptin (trastuzumab), Opdivo (nivolumab),
+       Iressa (gefitinib), Avastin (bevacizumab), Ibrance (palbociclib), Imfinzi (durvalumab),
+       Lynparza (olaparib), Tarceva (erlotinib), Zytiga (abiraterone), Xtandi (enzalutamide).
+Currency: Indian Rupees (Rs.). Expense policy limit: Rs.150 per transaction.
+
+GST RATES (India 2024):
+- Meal / cab / economy air / AC rail: 5% GST (SGST 2.5% + CGST 2.5%)
+- Hotel Rs.1001-7500/night: 12% GST
+- Hotel above Rs.7500 / CME events: 18% GST
+- Pharma samples / non-AC train / hotel below Rs.1000: 0% GST
+
+WORKFLOW (always in this order):
+1. Log the visit and auto-extract topics
+2. Log any expense (flag if above Rs.150)
+3. Create follow-up tasks
+4. Schedule next visit on calendar if needed
+5. Confirm everything back to the rep</description>
+            <developerName>instruction0_179WC000000gGeg</developerName>
+            <language>en_US</language>
+            <masterLabel>instruction0_179WC000000gGeg</masterLabel>
+            <sortOrder>1</sortOrder>
+        </genAiPluginInstructions>
+        <language>en_US</language>
+        <localActionLinks>
+            <functionName>get_insights_179WC000000gGeg</functionName>
+        </localActionLinks>
+        <localActionLinks>
+            <functionName>log_visit_179WC000000gGeg</functionName>
+        </localActionLinks>
+        <localActionLinks>
+            <functionName>get_context_179WC000000gGeg</functionName>
+        </localActionLinks>
+        <localActionLinks>
+            <functionName>extract_topics_179WC000000gGeg</functionName>
+        </localActionLinks>
+        <localActions>
+            <fullName>log_visit_179WC000000gGeg</fullName>
+            <description>Creates a Visit_Report__c from what the rep says. Call immediately — do NOT ask for IDs. Resolve physician by name.</description>
+            <developerName>log_visit_179WC000000gGeg</developerName>
+            <invocationTarget>LogVisitAction</invocationTarget>
+            <invocationTargetType>apex</invocationTargetType>
+            <isConfirmationRequired>false</isConfirmationRequired>
+            <isIncludeInProgressIndicator>false</isIncludeInProgressIndicator>
+            <localDeveloperName>log_visit</localDeveloperName>
+            <masterLabel>Log Post-Visit Report</masterLabel>
+        </localActions>
+        <localActions>
+            <fullName>get_context_179WC000000gGeg</fullName>
+            <description>Returns oncology drug data, GST rates, and expense policy. Call when you need to interpret a medical term or calculate GST.</description>
+            <developerName>get_context_179WC000000gGeg</developerName>
+            <invocationTarget>GetMedicalContextAction</invocationTarget>
+            <invocationTargetType>apex</invocationTargetType>
+            <isConfirmationRequired>false</isConfirmationRequired>
+            <isIncludeInProgressIndicator>false</isIncludeInProgressIndicator>
+            <localDeveloperName>get_context</localDeveloperName>
+            <masterLabel>Get Medical &amp; GST Context</masterLabel>
+        </localActions>
+        <localActions>
+            <fullName>extract_topics_179WC000000gGeg</fullName>
+            <description>Enriches the visit report with AI-extracted topics, next best action, score, and summary. Call automatically right after log_visit succeeds.</description>
+            <developerName>extract_topics_179WC000000gGeg</developerName>
+            <invocationTarget>ExtractTopicsAction</invocationTarget>
+            <invocationTargetType>apex</invocationTargetType>
+            <isConfirmationRequired>false</isConfirmationRequired>
+            <isIncludeInProgressIndicator>false</isIncludeInProgressIndicator>
+            <localDeveloperName>extract_topics</localDeveloperName>
+            <masterLabel>Extract Discussion Topics</masterLabel>
+        </localActions>
+        <localActions>
+            <fullName>get_insights_179WC000000gGeg</fullName>
+            <description>Returns visit history, relationship score, preferred products, and physician profile. Use when the rep asks about past visits with a doctor.</description>
+            <developerName>get_insights_179WC000000gGeg</developerName>
+            <invocationTarget>GetVisitInsightsAction</invocationTarget>
+            <invocationTargetType>apex</invocationTargetType>
+            <isConfirmationRequired>false</isConfirmationRequired>
+            <isIncludeInProgressIndicator>false</isIncludeInProgressIndicator>
+            <localDeveloperName>get_insights</localDeveloperName>
+            <masterLabel>Get Visit Insights for Physician</masterLabel>
+        </localActions>
+        <localDeveloperName>post_visit_log</localDeveloperName>
+        <masterLabel>Post Visit Log</masterLabel>
+        <pluginType>Topic</pluginType>
+    </localTopics>
+    <masterLabel>Post Visit Log Agent</masterLabel>
+    <plannerType>Atlas__ConcurrentMultiAgentOrchestration</plannerType>
+</GenAiPlannerBundle>

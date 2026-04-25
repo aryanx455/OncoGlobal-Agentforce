@@ -33,6 +33,29 @@
 .agent-title { flex: 1; }
 .agent-name  { display: block; font-weight: 600; font-size: 14px; }
 .agent-status { display: block; font-size: 11px; opacity: .75; margin-top: 1px; }
+.lang-tabs {
+    display: flex;
+    gap: 4px;
+    background: rgba(0,0,0,.2);
+    border-radius: 20px;
+    padding: 3px;
+}
+.lang-tab {
+    background: transparent;
+    border: none;
+    color: rgba(255,255,255,.65);
+    padding: 4px 10px;
+    border-radius: 16px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background .15s, color .15s;
+}
+.lang-tab:hover { color: #fff; }
+.lang-tab--active {
+    background: rgba(255,255,255,.25);
+    color: #fff;
+}
 .btn-clear {
     background: rgba(255,255,255,.2);
     border: none; color: #fff;

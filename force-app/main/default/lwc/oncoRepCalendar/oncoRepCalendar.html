@@ -1,0 +1,146 @@
+<template>
+    <div class="cal-wrap">
+
+        <!-- ── Header ────────────────────────────────── -->
+        <div class="cal-header">
+            <div class="cal-header-left">
+                <span class="cal-logo">OG</span>
+                <div>
+                    <div class="cal-title">My Visit Calendar</div>
+                    <div class="cal-sub">{repName}</div>
+                </div>
+            </div>
+            <div class="cal-header-right">
+                <span class="cal-badge event-badge">● Scheduled</span>
+                <span class="cal-badge pos-badge">● Positive</span>
+                <span class="cal-badge fu-badge">● Follow-Up</span>
+                <span class="cal-badge neg-badge">● Negative</span>
+            </div>
+        </div>
+
+        <!-- ── Month navigation + grid ───────────────── -->
+        <div class="cal-month-nav">
+            <button class="cal-nav-btn" onclick={prevMonth}>‹</button>
+            <span class="cal-month-label">{monthLabel}</span>
+            <button class="cal-nav-btn" onclick={nextMonth}>›</button>
+        </div>
+
+        <div class="cal-grid-wrap">
+            <!-- Day-of-week headers -->
+            <div class="cal-grid">
+                <template for:each={dayHeaders} for:item="dh">
+                    <div key={dh} class="cal-dow">{dh}</div>
+                </template>
+
+                <!-- Day cells -->
+                <template for:each={calDays} for:item="day">
+                    <div key={day.key}
+                         class={day.cellClass}
+                         data-date={day.dateStr}
+                         onclick={handleDayClick}>
+                        <span class="cal-day-num">{day.dayNum}</span>
+                        <div class="cal-dots">
+                            <template if:true={day.hasEvent}>
+                                <span class="dot dot-event"></span>
+                            </template>
+                            <template if:true={day.hasVisit}>
+                                <span class={day.visitDotClass}></span>
+                            </template>
+                        </div>
+                    </div>
+                </template>
+            </div>
+        </div>
+
+        <!-- ── Selected day detail ───────────────────── -->
+        <template if:true={selectedDayEntries.length}>
+            <div class="cal-day-detail">
+                <div class="cal-detail-header">{selectedDayLabel}</div>
+                <template for:each={selectedDayEntries} for:item="entry">
+                    <div key={entry.id} class={entry.cardClass}>
+                        <div class="entry-title">{entry.title}</div>
+                        <template if:true={entry.physicianName}>
+                            <div class="entry-meta">👤 {entry.physicianName}</div>
+                        </template>
+                        <template if:true={entry.hospitalName}>
+                            <div class="entry-meta">🏥 {entry.hospitalName}</div>
+                        </template>
+                        <template if:true={entry.timeLabel}>
+                            <div class="entry-meta">🕐 {entry.timeLabel}</div>
+                        </template>
+                        <template if:true={entry.outcome}>
+                            <div class="entry-meta">📊 {entry.outcome}
+                                <template if:true={entry.engagementScore}>
+                                    &nbsp;· Score: {entry.engagementScore}/100
+                                </template>
+                            </div>
+                        </template>
+                        <template if:true={entry.summary}>
+                            <div class="entry-summary">{entry.summary}</div>
+                        </template>
+                    </div>
+                </template>
+            </div>
+        </template>
+
+        <!-- ── Upcoming visits ────────────────────────── -->
+        <template if:true={upcomingEntries.length}>
+            <div class="cal-section">
+                <div class="cal-section-title">📅 Upcoming Scheduled Visits</div>
+                <template for:each={upcomingEntries} for:item="e">
+                    <div key={e.id} class="entry-card entry-event">
+                        <div class="entry-date-pill">{e.dateLabel}</div>
+                        <div class="entry-row">
+                            <div>
+                                <div class="entry-title">{e.title}</div>
+                                <template if:true={e.physicianName}>
+                                    <div class="entry-meta">👤 {e.physicianName}</div>
+                                </template>
+                                <template if:true={e.hospitalName}>
+                                    <div class="entry-meta">🏥 {e.hospitalName}</div>
+                                </template>
+                            </div>
+                            <div class="entry-time">{e.timeLabel}</div>
+                        </div>
+                    </div>
+                </template>
+            </div>
+        </template>
+
+        <!-- ── Recent visit reports ───────────────────── -->
+        <template if:true={recentEntries.length}>
+            <div class="cal-section">
+                <div class="cal-section-title">🗂️ Recent Visits (Last 60 days)</div>
+                <template for:each={recentEntries} for:item="e">
+                    <div key={e.id} class={e.cardClass}>
+                        <div class="entry-date-pill">{e.dateLabel}</div>
+                        <div class="entry-row">
+                            <div>
+                                <div class="entry-title">{e.physicianName}</div>
+                                <div class="entry-meta">{e.title}</div>
+                                <template if:true={e.engagementScore}>
+                                    <div class="entry-meta">Score: {e.engagementScore}/100</div>
+                                </template>
+                            </div>
+                            <div class="entry-outcome-badge">{e.outcome}</div>
+                        </div>
+                    </div>
+                </template>
+            </div>
+        </template>
+
+        <!-- Loading / Error -->
+        <template if:true={isLoading}>
+            <div class="cal-loading">Loading your visits...</div>
+        </template>
+        <template if:true={hasError}>
+            <div class="cal-error">Could not load calendar data. Refresh to retry.</div>
+        </template>
+        <template if:false={hasAnyData}>
+            <template if:false={isLoading}>
+                <div class="cal-empty">No visits or scheduled events in the last 60 days. Start logging visits to see them here!</div>
+            </template>
+        </template>
+
+    </div>
+</template>

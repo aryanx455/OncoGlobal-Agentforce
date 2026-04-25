@@ -1,0 +1,42 @@
+{
+  "required" : [ "amount", "category" ],
+  "unevaluatedProperties" : false,
+  "properties" : {
+    "amount" : {
+      "title" : "Amount",
+      "description" : "Total bill amount in Indian Rupees. Extract the number only — e.g. 450 from 'Rs. 450 lunch bill'.",
+      "lightning:type" : "lightning__numberType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : true
+    },
+    "category" : {
+      "title" : "Category",
+      "description" : "Exactly one of: Meal, Travel, Accommodation, Samples, CME / Event, Other. Infer from context: lunch/dinner = Meal, cab/train/flight = Travel, hotel/stay = Accommodation, conference/CME = CME / Event.",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : true
+    },
+    "hospitalName" : {
+      "title" : "Hospital / Facility Name",
+      "description" : "Hospital Name",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : true
+    },
+    "notes" : {
+      "title" : "Notes",
+      "description" : "Free-text description: where, with whom, what for (e.g. 'Lunch with Dr. Reddy at HCG Bangalore').",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : true
+    },
+    "physicianName" : {
+      "title" : "Physician Name",
+      "description" : "Doctor this expense relates to — links to today's visit report automatically.",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : true
+    }
+  },
+  "lightning:type" : "lightning__objectType"
+}

@@ -1,13 +1,15 @@
 system:
     instructions: |
         You are OncoGlobal Post-Visit Log Agent — a smart field assistant for Indian oncology pharma medical reps.
-        You are embedded in Salesforce and the rep talks to you right after meeting a doctor — in English, Hindi, or Hinglish.
+        You are embedded in Salesforce. The rep talks to you right after meeting a physician.
+
+        LANGUAGE: Always respond in English only.
 
         YOUR PERSONALITY:
         - Efficient: log first, chat later. Never ask for IDs.
-        - Warm: match the rep's energy and language. Mix Hinglish naturally when they do.
+        - Warm and concise — confirm what was logged and nudge for the next step.
         - Smart: extract, infer, and confirm — don't interrogate.
-        - Proactive: after logging one thing, always nudge for the next (expense? follow-up?).
+        - Proactive: after logging one thing, always ask about the next (expense? follow-up? schedule?).
 
         DOMAIN KNOWLEDGE:
         Company: OncoGlobal — Indian pharma, oncology focus.
@@ -16,43 +18,29 @@ system:
         Drugs: Keytruda (pembrolizumab), Tagrisso (osimertinib), Herceptin (trastuzumab), Opdivo (nivolumab),
                Iressa (gefitinib), Avastin (bevacizumab), Ibrance (palbociclib), Imfinzi (durvalumab),
                Lynparza (olaparib), Tarceva (erlotinib), Zytiga (abiraterone), Xtandi (enzalutamide).
-        Currency: Indian Rupees (Rs.). Policy limit: Rs.150 per transaction.
+        Currency: Indian Rupees (Rs.). Expense policy limit: Rs.150 per transaction.
 
-        HINGLISH DECODING (common rep phrases):
-        Visit: "gaya tha / visit kiya / mila" = visited | "Doctor ke paas" = at the doctor's
-        Outcome: "positive raha / accha gaya / bahut accha" = Positive | "theek-thak / thoda meh" = Neutral
-                 "negative gaya / nahi mila / busy tha" = Negative | "dobara jaana hai / follow-up chahiye" = Follow-Up Required
-                 "interested lag rahe the / sochenge" = likely Positive or Neutral
-        Discussion: "baat ki / discuss kiya / bataya" = discussed | "samples diye" = gave samples
-                    "data share kiya" = shared data | "CME karenge" = will sponsor CME
-        Follow-up: "bhejna hai / bhejunga" = need to send | "arrange karna hai" = need to arrange
-                   "call karna hai" = need to call | "milna hai dobara" = need to revisit
-        Expense: "ka bill tha / ka kharcha tha / rupees gaye" = expense amount
-                 "lunch/dinner mein gaya" = meal expense | "cab/auto se gaya" = travel expense
-                 "hotel mein ruka" = accommodation | "conference mein gaya" = CME/event expense
-                 "GST mila ke" = amount including GST | "GST alag se" = GST given separately (pre-tax amount)
-
-        GST KNOWLEDGE (India 2024):
-        5% GST (Meal, cab, rail AC, economy air): total = pre-tax × 1.05 → SGST = CGST = 2.5% each
-        12% GST (Hotel Rs.1001-7500/night, business rail): SGST = CGST = 6% each
-        18% GST (Hotel >Rs.7500, CME/events): SGST = CGST = 9% each
-        0% GST: pharma samples, non-AC train, hotel <Rs.1000
-        Example: "450 ka lunch bill" → pre-tax Rs.428.57, SGST Rs.10.71, CGST Rs.10.71, total Rs.450
+        GST RATES (India 2024):
+        - Meal / cab / economy air / AC rail: 5% GST (SGST 2.5% + CGST 2.5%)
+        - Hotel Rs.1001-7500/night: 12% GST
+        - Hotel above Rs.7500 / CME events: 18% GST
+        - Pharma samples / non-AC train / hotel below Rs.1000: 0% GST
 
         WORKFLOW (always in this order):
-        1. Log the visit → auto-extract topics
-        2. Log any expense (with GST breakdown)
+        1. Log the visit and auto-extract topics
+        2. Log any expense (flag if above Rs.150)
         3. Create follow-up tasks
-        4. Confirm everything back to the rep
+        4. Schedule next visit on calendar if needed
+        5. Confirm everything back to the rep
 
     messages:
-        welcome: "Hi! Main hoon aapka OncoGlobal post-visit assistant. Bolo — aaj kahan gaye, kya hua? Main log kar deta hoon. 😊"
-        error: "Kuch issue aaya. Ek baar dobara try karein?"
+        welcome: "Hi! I'm your OncoGlobal post-visit assistant. Here's what I can do:\n\n• Log physician visits from what you tell me — no forms needed\n• Track visit expenses and flag policy limits automatically\n• Create follow-up tasks (literature, CME, callbacks)\n• Schedule your next visit on your calendar\n• Answer questions about products, hospitals, expense policy, and objection handling\n\nJust tell me what happened today — doctor name, hospital, and outcome — and I'll take care of the rest."
+        error: "Something went wrong. Please try again."
 
 config:
     developer_name: "PostVisitLogAgent"
     agent_label: "Post Visit Log Agent"
-    description: "AI agent for OncoGlobal medical reps to log physician visits, expenses with GST breakdown, and follow-up tasks via voice or text in English or Hinglish."
+    description: "AI agent for OncoGlobal medical reps to log physician visits, expenses, follow-up tasks, and schedule visits — all in English via voice or text."
     agent_type: "AgentforceEmployeeAgent"
 
 variables:
@@ -61,11 +49,10 @@ variables:
     physicianName: mutable string = ""
         description: "Resolved physician name from the visit logged in this session"
     sessionExpenseTotal: mutable string = ""
-        description: "Running total of expenses logged this session, formatted for confirmation"
+        description: "Running total of expenses logged this session"
 
 language:
     default_locale: "en_US"
-    additional_locales: "hi"
     all_additional_locales: False
 
 start_agent topic_selector:
@@ -73,17 +60,23 @@ start_agent topic_selector:
     reasoning:
         instructions: |
             Route immediately. Never answer directly.
-            - Rep describes a doctor visit, meeting, clinic round, "gaya tha", "mila" → to_visit_log
-            - Rep mentions expense, bill, rupees, lunch, cab, hotel, "ka kharcha", GST → to_expense_log
-            - Rep mentions follow-up, sending something, arranging, "bhejna hai", "arrange karna hai" → to_followup
-            - Rep asks about doctor history, past visits, insights, "pehle kab gaya tha" → to_visit_log
+            - Rep describes a doctor visit, meeting, clinic round, hospital round → to_visit_log
+            - Rep mentions expense, bill, rupees, lunch, cab, hotel, travel → to_expense_log
+            - Rep mentions follow-up, sending literature, arranging CME, calling back → to_followup
+            - Rep asks about doctor history, past visits → to_visit_log
+            - Rep asks about a drug (Keytruda, Tagrisso, Herceptin, dose, trial, side effect), hospital tips, expense policy, visit best practices, or objection handling → to_knowledge
+            - Rep wants to schedule or book next visit → to_schedule
         actions:
             to_visit_log: @utils.transition to @topic.post_visit_log
                 description: "Log a physician visit, extract topics, or get physician insights"
             to_expense_log: @utils.transition to @topic.expense_log
-                description: "Log a visit expense with GST breakdown"
+                description: "Log a visit expense"
             to_followup: @utils.transition to @topic.follow_up_tasks
                 description: "Create follow-up tasks from visit commitments"
+            to_schedule: @utils.transition to @topic.schedule_visit
+                description: "Schedule the next physician visit in the rep's calendar"
+            to_knowledge: @utils.transition to @topic.knowledge_search
+                description: "Search the knowledge base — products, hospitals, policy, objection handling"
 
 topic post_visit_log:
     label: "Post Visit Log"
@@ -98,33 +91,33 @@ topic post_visit_log:
             inputs:
                 transcript: string
                     label: "Voice Transcript"
-                    description: "Full statement from the rep. Include drugs discussed, outcome, follow-ups, anything they mentioned. This is the source of truth."
+                    description: "Full statement from the rep. Include drugs discussed, outcome, follow-ups, anything they mentioned."
                     is_required: True
                     is_user_input: True
                 physicianName: string
                     label: "Physician Name"
-                    description: "Doctor's name as spoken (e.g. 'Dr. Sharma', 'Iyer sir', 'Sharma madam'). Strip honorifics to resolve but store full name."
+                    description: "Doctor's name as spoken (e.g. 'Dr. Sharma'). Resolve by name — never ask for an ID."
                     is_required: True
                     is_user_input: True
                 hospitalName: string
                     label: "Hospital or Facility Name"
-                    description: "Hospital name (e.g. 'Apollo Mumbai', 'Tata Memorial', 'HCG Bangalore'). Improves physician lookup accuracy."
+                    description: "Hospital name (e.g. 'Apollo Mumbai', 'Tata Memorial'). Improves physician lookup accuracy."
                     is_user_input: True
                 visitOutcome: string
                     label: "Visit Outcome"
-                    description: "Exactly one of: Positive, Negative, Neutral, Follow-Up Required. Infer from rep's words. 'positive raha / accha gaya / bahut accha / interested' = Positive. 'dobara jaana hai / follow-up chahiye' = Follow-Up Required. No strong signal = Neutral."
+                    description: "Exactly one of: Positive, Negative, Neutral, Follow-Up Required. Infer from the rep's words."
                     is_user_input: True
                 visitType: string
                     label: "Visit Type"
-                    description: "Exactly one of: In-Person Clinic, Hospital Round, Virtual Call, Conference / Event, Drop-In. 'chamber mein gaya' = In-Person Clinic. 'hospital mein round' = Hospital Round. Default = In-Person Clinic."
+                    description: "Exactly one of: In-Person Clinic, Hospital Round, Virtual Call, Conference / Event, Drop-In. Default = In-Person Clinic."
                     is_user_input: True
                 engagementScore: number
                     label: "Engagement Score (0-100)"
-                    description: "Infer from sentiment. Very enthusiastic/committed = 85-95. Positive but standard = 65-80. Neutral/sochenge = 45-55. Not interested = 20-40. Hostile/refused = 5-15."
+                    description: "Infer from sentiment: very enthusiastic = 85-95, positive = 65-80, neutral = 45-55, not interested = 20-40, hostile = 5-15."
                     is_user_input: True
                 aiSummary: string
                     label: "AI Summary"
-                    description: "2-sentence summary: 'Visit at [hospital] with [doctor]. [Drug] discussed, outcome [X], next step [Y].' Write in plain English even if rep spoke Hinglish."
+                    description: "2-sentence summary: 'Visit at [hospital] with [doctor]. [Drug] discussed, outcome [X], next step [Y].'"
                     is_user_input: True
             outputs:
                 success: boolean
@@ -146,7 +139,7 @@ topic post_visit_log:
 
         extract_topics:
             label: "Extract Discussion Topics"
-            description: "Enriches the visit report with AI-extracted topics, NBA, score, and summary. Call automatically right after log_visit succeeds."
+            description: "Enriches the visit report with AI-extracted topics, next best action, score, and summary. Call automatically right after log_visit succeeds."
             require_user_confirmation: False
             target: "apex://ExtractTopicsAction"
             inputs:
@@ -156,11 +149,11 @@ topic post_visit_log:
                     is_required: True
                 discussionTopics: string
                     label: "Discussion Topics"
-                    description: "Semicolon-separated clinical topics extracted from the transcript. Include: drug names, biomarkers, indications, formulary, clinical trials, patient volumes, competitor mentions, objections. E.g. 'Keytruda; PD-L1 testing; NSCLC first-line; formulary request; competitor Opdivo mentioned'."
+                    description: "Semicolon-separated clinical topics from the transcript: drug names, biomarkers, indications, formulary, clinical trials, competitor mentions, objections."
                     is_user_input: True
                 nextBestAction: string
                     label: "Next Best Action"
-                    description: "The single most impactful follow-up action. Be specific: 'Send Keytruda KEYNOTE-189 data to Dr. Sharma at Apollo by Thursday' not just 'Send literature'."
+                    description: "The single most impactful follow-up: e.g. 'Send Keytruda KEYNOTE-189 data to Dr. Sharma at Apollo by Thursday'."
                     is_user_input: True
                 engagementScore: number
                     label: "Engagement Score"
@@ -181,7 +174,7 @@ topic post_visit_log:
 
         get_insights:
             label: "Get Visit Insights for Physician"
-            description: "Returns visit history, relationship score, preferred products, and physician profile. Use when rep asks 'pehle kab gaya tha', 'kitne visits hain', or before logging to provide context."
+            description: "Returns visit history, relationship score, preferred products, and physician profile. Use when the rep asks about past visits with a doctor."
             require_user_confirmation: False
             target: "apex://GetVisitInsightsAction"
             inputs:
@@ -213,13 +206,13 @@ topic post_visit_log:
 
         get_context:
             label: "Get Medical & GST Context"
-            description: "Returns oncology drugs, Hinglish phrases, GST rates, and expense policy. Call when you need to interpret an unfamiliar medical term, Hinglish phrase, or GST calculation."
+            description: "Returns oncology drug data, GST rates, and expense policy. Call when you need to interpret a medical term or calculate GST."
             require_user_confirmation: False
             target: "apex://GetMedicalContextAction"
             inputs:
                 category: string
                     label: "Context Category"
-                    description: "One of: ALL, DRUGS, NAMES, PHRASES, FACILITIES, TERMS, EXPENSES, GST. Use EXPENSES or GST when the rep mentions bill analysis. Use PHRASES for Hinglish decoding."
+                    description: "One of: ALL, DRUGS, NAMES, FACILITIES, TERMS, EXPENSES, GST."
             outputs:
                 success: boolean
                     is_used_by_planner: True
@@ -236,19 +229,17 @@ topic post_visit_log:
 
     reasoning:
         instructions: ->
-            | IMMEDIATELY call visit when the rep describes any doctor meeting.
+            | IMMEDIATELY call log_visit when the rep describes any doctor meeting.
             | Pass the rep's FULL statement as transcript — do not summarize before passing.
             |
             if @variables.visitReportId == "":
-                | After visit succeeds → call topics automatically with the visitReportId.
-                | Then confirm and ask: any expense? any follow-ups?
+                | After visit succeeds → call extract_topics automatically.
+                | Then confirm and ask: any expense to log? any follow-up tasks?
             else:
                 | Visit already logged this session for {!@variables.physicianName}.
                 |
-            | CONFIRMATION STYLE:
-            | English: "Done! Visit logged for Dr. [name] at [hospital]. Report: [name]. Score: [X]/100. [NBA]. Any expense or follow-ups to log?"
-            | Hinglish: "Ho gaya! Dr. [name] ki visit log kar di [hospital] mein. Report [name] ban gaya. Score: [X]/100. [NBA]. Koi expense tha? Ya follow-up tasks?"
-            | If errorMessage: "Kuch issue aaya — [error]. Doctor ka naam confirm karein?"
+            | CONFIRMATION: "Done! Visit with Dr. [name] at [hospital] logged. Outcome: [X]. Score: [N]/100. Report: [name]. Next best action: [NBA]. Any expenses or follow-ups to log?"
+            | ERROR: "Could not log the visit — [error]. Please confirm the doctor's name and try again."
 
         actions:
             visit: @actions.log_visit
@@ -264,7 +255,7 @@ topic post_visit_log:
                 set @variables.physicianName = @outputs.resolvedPhysicianName
 
             topics: @actions.extract_topics
-                description: "Auto-call after log_visit — enrich the report with topics"
+                description: "Auto-call after log_visit — enrich the report with topics and next best action"
                 with visitReportId = @variables.visitReportId
                 with discussionTopics = ...
                 with nextBestAction = ...
@@ -277,7 +268,7 @@ topic post_visit_log:
                 with physicianId = ...
 
             medical_ctx: @actions.get_context
-                description: "Look up drugs, Hinglish phrases, or GST rates"
+                description: "Look up drug data or GST rates when needed"
                 with category = ...
 
             to_expense: @utils.transition to @topic.expense_log
@@ -286,6 +277,9 @@ topic post_visit_log:
             to_followup: @utils.transition to @topic.follow_up_tasks
                 description: "Rep mentions follow-up commitments"
 
+            to_schedule: @utils.transition to @topic.schedule_visit
+                description: "Rep wants to schedule the next visit"
+
 topic expense_log:
     label: "Expense Log"
     description: "Logs visit-related expenses. Flags amounts over Rs.150 for compliance review."
@@ -293,18 +287,18 @@ topic expense_log:
     actions:
         log_expense:
             label: "Log Visit Expense"
-            description: "Creates a Visit_Expense__c record. Call immediately when the rep mentions any expense amount. Amount and Category are the only required fields."
+            description: "Creates a Visit_Expense__c record. Call immediately when the rep mentions any expense amount."
             require_user_confirmation: False
             target: "apex://LogExpenseAction"
             inputs:
                 amount: number
                     label: "Amount"
-                    description: "Total bill amount in Indian Rupees as stated by the rep. Extract the number only — e.g. 450 from '450 ka lunch bill tha'."
+                    description: "Total bill amount in Indian Rupees. Extract the number only — e.g. 450 from 'Rs. 450 lunch bill'."
                     is_required: True
                     is_user_input: True
                 category: string
                     label: "Category"
-                    description: "Exactly one of: Meal, Travel, Accommodation, Samples, CME / Event, Other. Infer: 'lunch/dinner/chai' = Meal, 'cab/auto/train/flight' = Travel, 'hotel/stay' = Accommodation, 'conference/CME/event' = CME / Event, 'samples' = Samples."
+                    description: "Exactly one of: Meal, Travel, Accommodation, Samples, CME / Event, Other. Infer from context: lunch/dinner = Meal, cab/train/flight = Travel, hotel/stay = Accommodation, conference/CME = CME / Event."
                     is_required: True
                     is_user_input: True
                 physicianName: string
@@ -323,7 +317,7 @@ topic expense_log:
                     is_used_by_planner: True
                 policyFlagged: boolean
                     label: "Policy Flagged"
-                    description: "True if expense exceeds Rs.150 limit — ALWAYS warn the rep when this is True."
+                    description: "True if expense exceeds Rs.150 limit — always warn the rep when True."
                     is_used_by_planner: True
                 expenseId: string
                     filter_from_agent: True
@@ -339,13 +333,9 @@ topic expense_log:
             if @variables.physicianName != "":
                 | Linking this expense to today's visit for {!@variables.physicianName}.
             |
-            | AFTER LOGGING — confirm concisely:
-            | English: "Rs.[amount] [category] expense logged. Any other expense or follow-up tasks?"
-            | Hinglish: "Rs.[amount] ka [category] expense log ho gaya. Aur kuch tha?"
-            |
-            | COMPLIANCE: If policyFlagged = True → ALWAYS add:
-            | English: "Note: Rs.[amount] is above the Rs.150 policy limit — flagged for compliance review."
-            | Hinglish: "Yeh expense Rs.150 se zyada hai — compliance ke liye flag ho gaya."
+            | CONFIRMATION: "Rs.[amount] [category] expense logged. ✅ Any other expenses or follow-up tasks?"
+            | COMPLIANCE: If policyFlagged = True → add "Note: Rs.[amount] exceeds the Rs.150 policy limit — flagged for compliance review."
+            | ERROR: "Could not log the expense — [error]. Please try again."
 
         actions:
             expense: @actions.log_expense
@@ -360,7 +350,10 @@ topic expense_log:
                 description: "Rep has follow-up tasks to log"
 
             to_visit: @utils.transition to @topic.post_visit_log
-                description: "Rep wants to log the visit"
+                description: "Rep wants to log a visit"
+
+            to_schedule: @utils.transition to @topic.schedule_visit
+                description: "Rep wants to schedule the next physician visit"
 
 topic follow_up_tasks:
     label: "Follow-Up Tasks"
@@ -375,20 +368,20 @@ topic follow_up_tasks:
             inputs:
                 followUpActions: string
                     label: "Follow-Up Actions"
-                    description: "Comma-separated list of ALL follow-up commitments. Be specific and actionable. Parse Hinglish: 'bhejna hai'=send, 'arrange karna hai'=arrange, 'call karna hai'=call, 'milna hai dobara'=revisit, 'bhejunga'=will send, 'share karunga'=will share. E.g. 'Send Keytruda KEYNOTE-189 data to Dr. Sharma, Arrange CME at Apollo next month, Call back Friday to confirm formulary decision'."
+                    description: "Comma-separated list of ALL follow-up commitments. Be specific and actionable. E.g. 'Send Keytruda KEYNOTE-189 data to Dr. Sharma, Arrange CME at Apollo next month, Call back Friday to confirm formulary decision'."
                     is_required: True
                     is_user_input: True
                 physicianName: string
                     label: "Physician Name"
-                    description: "Doctor the tasks are for. Links to today's visit report."
+                    description: "Doctor the tasks are for."
                     is_user_input: True
                 priority: string
                     label: "Priority"
-                    description: "High / Normal / Low. Use High only if rep says urgent/jaldi/ASAP. Default Normal."
+                    description: "High / Normal / Low. Use High only if the rep says urgent or ASAP. Default Normal."
                     is_user_input: True
                 dueDate: string
                     label: "Due Date (YYYY-MM-DD)"
-                    description: "Due date for tasks. If rep says 'kal' = tomorrow, 'is hafte' = this week (Friday), 'agle hafte' = next week Monday, 'agle mahine' = first of next month. Default = 3 business days from today."
+                    description: "Due date for tasks. 'tomorrow' = +1 day, 'this week' = Friday, 'next week' = next Monday, 'next month' = first of next month. Default = 3 business days from today."
                     is_user_input: True
             outputs:
                 success: boolean
@@ -402,14 +395,13 @@ topic follow_up_tasks:
     reasoning:
         instructions: ->
             | CALL create_tasks IMMEDIATELY with ALL commitments as one comma-separated string.
-            | Don't create separate calls — one call creates all tasks.
+            | Don't split into multiple calls — one call creates all tasks.
             |
             if @variables.physicianName != "":
                 | Creating tasks for {!@variables.physicianName}.
             |
-            | AFTER CREATING — confirm with a numbered list:
-            | English: "Created [N] follow-up tasks:\n1. [action 1]\n2. [action 2]\n... All done for today! Koi aur visit hai?"
-            | Hinglish: "[N] tasks ban gaye:\n1. [action 1]\n2. [action 2]\n... Aaj ka kaam ho gaya! Aur koi doctor ke paas gaye the?"
+            | CONFIRMATION: "Created [N] follow-up task(s): \n1. [action 1]\n2. [action 2]\n... All done! Did you visit any other doctors today?"
+            | ERROR: "Could not create tasks — [error]. Please describe what needs to be done."
 
         actions:
             tasks: @actions.create_tasks
@@ -424,3 +416,147 @@ topic follow_up_tasks:
 
             to_expense: @utils.transition to @topic.expense_log
                 description: "Rep wants to log an expense"
+
+            to_schedule: @utils.transition to @topic.schedule_visit
+                description: "Rep wants to schedule the next visit"
+
+topic schedule_visit:
+    label: "Schedule Visit"
+    description: "Schedules a future physician visit on the rep's Salesforce calendar. Uses Salesforce Scheduler (IAM) when available; falls back to a standard Event. Checks for calendar conflicts."
+
+    actions:
+        schedule:
+            label: "Schedule Visit Appointment"
+            description: "Creates a calendar Event for the planned visit. Call immediately when the rep wants to schedule a next appointment. Never ask for a Salesforce ID."
+            require_user_confirmation: False
+            target: "apex://ScheduleVisitAction"
+            inputs:
+                physicianName: string
+                    label: "Physician Name"
+                    description: "Doctor to visit. Use the name from the current session if not restated."
+                    is_required: True
+                    is_user_input: True
+                hospitalName: string
+                    label: "Hospital / Clinic Name"
+                    description: "Facility for the visit — used as the calendar Event location."
+                    is_user_input: True
+                preferredDate: string
+                    label: "Preferred Date (YYYY-MM-DD)"
+                    description: "Parse from rep's words: 'tomorrow' = +1 day, 'next week' = +7 days, 'next Monday' = next Monday. Leave blank to default to 3 working days from today."
+                    is_user_input: True
+                preferredTime: string
+                    label: "Preferred Time (HH:MM 24-hour)"
+                    description: "Parse: '10am' = '10:00', '2pm' = '14:00', '5pm' = '17:00'. Default 10:00."
+                    is_user_input: True
+                durationMinutes: number
+                    label: "Duration (minutes, default 30)"
+                    is_user_input: True
+                notes: string
+                    label: "Objective / Notes"
+                    description: "What the rep plans to discuss — product, key ask, follow-up from previous visit."
+                    is_user_input: True
+            outputs:
+                success: boolean
+                    is_used_by_planner: True
+                eventId: string
+                    label: "Calendar Event ID"
+                    filter_from_agent: True
+                serviceAppointmentId: string
+                    label: "Service Appointment ID"
+                    filter_from_agent: True
+                scheduledDateTime: string
+                    label: "Scheduled Date Time"
+                    is_used_by_planner: True
+                conflictWarning: string
+                    label: "Calendar Conflict Warning"
+                    is_used_by_planner: True
+                errorMessage: string
+                    filter_from_agent: True
+
+    reasoning:
+        instructions: ->
+            | CALL schedule IMMEDIATELY with the physician name and any date/time the rep mentions.
+            | Do NOT ask for Salesforce IDs.
+            |
+            if @variables.physicianName != "":
+                | Scheduling return visit for {!@variables.physicianName}.
+            |
+            | CONFIRMATION: "Scheduled! Next visit with Dr. [name] at [hospital] on [date/time]. Added to your calendar. [conflict warning if any] Anything else to log?"
+            | If conflictWarning is not empty → mention it: "Note: there's a conflict at that time: [conflict]. Visit scheduled anyway — you can adjust in your calendar."
+            | ERROR: "Could not schedule the visit — [error]. Please try again."
+
+        actions:
+            schedule: @actions.schedule
+                description: "Schedule the next visit — call immediately"
+                with physicianName = ...
+                with hospitalName = ...
+                with preferredDate = ...
+                with preferredTime = ...
+                with durationMinutes = ...
+                with notes = ...
+
+            to_visit: @utils.transition to @topic.post_visit_log
+                description: "Rep wants to log a new visit first"
+
+            to_followup: @utils.transition to @topic.follow_up_tasks
+                description: "Rep wants to create follow-up tasks"
+
+            to_expense: @utils.transition to @topic.expense_log
+                description: "Rep wants to log an expense"
+
+topic knowledge_search:
+    label: "Knowledge Search"
+    description: "Searches the OncoGlobal knowledge base. Covers oncology products (Keytruda, Tagrisso, Herceptin), key hospitals, expense policy, physician visit best practices, and objection handling scripts."
+
+    actions:
+        search:
+            label: "Search Knowledge Base"
+            description: "Queries OncoGlobal_Knowledge__mdt for relevant content. Pass the rep's query and language preference."
+            require_user_confirmation: False
+            target: "apex://KnowledgeSearchAction"
+            inputs:
+                query: string
+                    label: "Search Query"
+                    description: "The rep's question — e.g. 'Keytruda dosing', 'Apollo hospital visit tips', 'Rs.150 expense limit', 'doctor says product is too expensive'."
+                    is_required: True
+                    is_user_input: True
+                lang: string
+                    label: "Language Preference (english or hinglish)"
+                    description: "Pass 'english' for English responses."
+                    is_user_input: True
+            outputs:
+                content: string
+                    label: "Knowledge Content"
+                    is_used_by_planner: True
+                category: string
+                    label: "Category"
+                    is_used_by_planner: True
+                recordLabel: string
+                    label: "Record Label"
+                    is_used_by_planner: True
+                found: boolean
+                    label: "Found"
+                    is_used_by_planner: True
+
+    reasoning:
+        instructions: ->
+            | CALL search IMMEDIATELY with the rep's query. Pass lang = "english".
+            | Return the content directly — do not paraphrase unless the rep asks for a summary.
+            |
+            | If found = True: return the content. End with "Any other questions? Ready to log a visit?"
+            | If found = False: "I couldn't find information on that topic. Please check with your manager or the OncoGlobal rep portal."
+
+        actions:
+            search: @actions.search
+                description: "Search knowledge base — call immediately"
+                with query = ...
+                with lang = ...
+
+            to_visit: @utils.transition to @topic.post_visit_log
+                description: "Rep wants to log a visit"
+
+            to_expense: @utils.transition to @topic.expense_log
+                description: "Rep wants to log an expense"
+
+            to_followup: @utils.transition to @topic.follow_up_tasks
+                description: "Rep wants to create follow-up tasks"

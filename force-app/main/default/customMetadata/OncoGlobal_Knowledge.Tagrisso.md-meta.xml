@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomMetadata xmlns="http://soap.sforce.com/2006/04/metadata" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+    <label>Tagrisso</label>
+    <protected>false</protected>
+    <values>
+        <field>Category__c</field>
+        <value xsi:type="xsd:string">Products</value>
+    </values>
+    <values>
+        <field>Keywords__c</field>
+        <value xsi:type="xsd:string">tagrisso,osimertinib,egfr,t790m,nsclc,lung,third generation,adaura,flaura</value>
+    </values>
+    <values>
+        <field>Content_English__c</field>
+        <value xsi:type="xsd:string">TAGRISSO (osimertinib) — 3rd Generation EGFR TKI
+
+MECHANISM: Covalently binds EGFR exon 19 del, L858R (sensitizing mutations) AND T790M resistance mutation. Also CNS-penetrant — crosses blood-brain barrier effectively.
+
+KEY INDICATIONS:
+- 1st line NSCLC: EGFR exon 19 del or L858R (FLAURA trial)
+- 2nd line: T790M mutation after 1st/2nd gen EGFR TKI (AURA3)
+- Adjuvant: Stage IB-IIIA resected NSCLC with EGFR mutation (ADAURA)
+
+DOSING: 80 mg oral OD (once daily). No food restrictions. 40 mg dose for toxicity reduction.
+
+KEY TRIAL DATA:
+- FLAURA: 18.9 months PFS vs 10.2 months (gefitinib/erlotinib). OS benefit 38.6 vs 31.8 months.
+- FLAURA2: Tagrisso + chemo combo — 25.5 months PFS in 1st line
+- ADAURA: 80% DFS reduction at 3 years in adjuvant setting (Stage II-IIIA)
+- AURA3: 10.1 months PFS in T790M+ 2nd line (vs 4.4 months chemo)
+
+CNS ACTIVITY: 22% intracranial ORR. Essential for patients with brain mets — differentiation from 1st/2nd gen TKIs.
+
+BIOMARKER: EGFR mutation testing mandatory. Liquid biopsy (ctDNA) available for T790M in progression.
+
+RESISTANCE MECHANISMS: C797S mutation, MET amplification, SCLC transformation — know these for scientific discussions.
+
+SAFETY: Rash, diarrhea, dry skin, paronychia. QTc prolongation possible. Interstitial lung disease (rare but serious).
+
+VS IRESSA/TARCEVA: Superior PFS, OS, CNS penetration, and covers T790M resistance.</value>
+    </values>
+    <values>
+        <field>Content_Hinglish__c</field>
+        <value xsi:type="xsd:string">TAGRISSO (osimertinib) — Rep ke liye Key Points
+
+KYA HAI: Teen generation ka sabse advanced EGFR tablet. Pehli aur doosri generation se better isliye ki yeh T790M resistance bhi cover karta hai, aur brain mein bhi kaam karta hai.
+
+KAHAN USE HOTA HAI:
+- Pehli line mein EGFR mutated lung cancer (exon 19 ya L858R)
+- Jab pehli line EGFR TKI ke baad T790M mutation aaye
+- Surgery ke baad (adjuvant) EGFR+ patients mein — cancer wapas aane se rokta hai
+
+DOSE: 80 mg ek tablet roz, khaane ke saath ya bina. Simple.
+
+DOCTOR SE KAISE BAAT KAREIN:
+- "FLAURA trial mein Tagrisso ne almost double kiya PFS — 19 months vs 10 months."
+- "Brain mets wale patients ke liye yeh bahut important hai — brain ke andar bhi kaam karta hai."
+- "ADAURA data — surgery ke baad bhi 80% kam chance cancer wapas aane ka."
+- "T790M liquid biopsy se pata karo — aur Tagrisso ready hai."
+
+RESISTANCE KE BAAD: C797S ya MET amplification aane par discuss karein — scientific conversation ke liye great opening.
+
+SIDE EFFECTS: Thodi rash, diarrhea, nails affected ho sakte hain. Yeh manageable hain. Serious — ILD (rare) ke baare mein doctor ko warn karein.
+
+VS IRESSA/TARCEVA: "Sir, pehli aur doosri generation se Tagrisso clearly better hai — data aur CNS coverage dono mein."</value>
+    </values>
+</CustomMetadata>

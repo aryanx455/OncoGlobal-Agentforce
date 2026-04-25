@@ -1,0 +1,82 @@
+<template>
+    <div class="sva-container">
+        <template if:false={isSuccess}>
+            <div class="sva-header">
+                <span class="sva-icon">📅</span>
+                <div>
+                    <div class="sva-title">Schedule Visit</div>
+                    <div class="sva-subtitle">{contactName}</div>
+                </div>
+            </div>
+
+            <div class="sva-body">
+                <div class="sva-field">
+                    <label class="sva-label">Date</label>
+                    <input type="date" class="sva-input" value={preferredDate}
+                        onchange={handleDateChange} />
+                </div>
+                <div class="sva-row">
+                    <div class="sva-field sva-half">
+                        <label class="sva-label">Time</label>
+                        <input type="time" class="sva-input" value={preferredTime}
+                            onchange={handleTimeChange} />
+                    </div>
+                    <div class="sva-field sva-half">
+                        <label class="sva-label">Duration (min)</label>
+                        <select class="sva-input" onchange={handleDurationChange}>
+                            <option value="15" selected={dur15}>15 min</option>
+                            <option value="30" selected={dur30}>30 min</option>
+                            <option value="45" selected={dur45}>45 min</option>
+                            <option value="60" selected={dur60}>60 min</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="sva-field">
+                    <label class="sva-label">Hospital / Clinic</label>
+                    <input type="text" class="sva-input" placeholder="e.g. Apollo Hospital"
+                        value={hospitalName} onchange={handleHospitalChange} />
+                </div>
+                <div class="sva-field">
+                    <label class="sva-label">Objective / Notes</label>
+                    <textarea class="sva-input sva-textarea"
+                        placeholder="Product to discuss, key ask, samples to carry..."
+                        onchange={handleNotesChange}></textarea>
+                </div>
+
+                <template if:true={conflictWarning}>
+                    <div class="sva-conflict">
+                        ⚠️ {conflictWarning}
+                    </div>
+                </template>
+                <template if:true={errorMessage}>
+                    <div class="sva-error">❌ {errorMessage}</div>
+                </template>
+            </div>
+
+            <div class="sva-footer">
+                <button class="sva-btn sva-btn-secondary" onclick={handleCancel}>
+                    Cancel
+                </button>
+                <button class="sva-btn sva-btn-primary" onclick={handleSchedule}
+                    disabled={isLoading}>
+                    <template if:true={isLoading}>Scheduling...</template>
+                    <template if:false={isLoading}>Schedule Visit 📅</template>
+                </button>
+            </div>
+        </template>
+
+        <template if:true={isSuccess}>
+            <div class="sva-success-card">
+                <div class="sva-success-icon">✅</div>
+                <div class="sva-success-title">Visit Scheduled!</div>
+                <div class="sva-success-detail">{successMessage}</div>
+                <template if:true={conflictWarning}>
+                    <div class="sva-conflict">{conflictWarning}</div>
+                </template>
+                <button class="sva-btn sva-btn-primary sva-mt" onclick={handleClose}>
+                    Done
+                </button>
+            </div>
+        </template>
+    </div>
+</template>

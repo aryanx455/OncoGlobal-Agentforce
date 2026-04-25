@@ -8,6 +8,10 @@
                 <span class="agent-name">OncoGlobal Assistant</span>
                 <span class="agent-status">{statusLabel}</span>
             </div>
+            <div class="lang-tabs">
+                <button class={langTabEnglish} onclick={setLangEnglish} title="English mode">EN</button>
+                <button class={langTabHinglish} onclick={setLangHinglish} title="Hinglish mode">HI</button>
+            </div>
             <button class="btn-clear" onclick={handleClear} title="New session">↺</button>
         </div>
 
@@ -45,7 +49,7 @@
                 class="text-input"
                 placeholder="Type or tap 🎤 to speak…"
                 value={typedText}
-                onchange={handleTyping}
+                oninput={handleTyping}
                 onkeydown={handleKeyDown}
                 disabled={isListening}
             />

@@ -1,0 +1,49 @@
+{
+  "required" : [ "physicianName" ],
+  "unevaluatedProperties" : false,
+  "properties" : {
+    "durationMinutes" : {
+      "title" : "Duration (minutes, default 30)",
+      "description" : "Duration Minutes",
+      "lightning:type" : "lightning__numberType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : true
+    },
+    "hospitalName" : {
+      "title" : "Hospital / Clinic Name",
+      "description" : "Facility for the visit — used as the calendar Event location.",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : true
+    },
+    "notes" : {
+      "title" : "Objective / Notes",
+      "description" : "What the rep plans to discuss — product, key ask, follow-up from previous visit.",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : true
+    },
+    "physicianName" : {
+      "title" : "Physician Name",
+      "description" : "Doctor to visit. Use the name from the current session if not restated.",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : true
+    },
+    "preferredDate" : {
+      "title" : "Preferred Date (YYYY-MM-DD)",
+      "description" : "Parse from rep's words: 'tomorrow' = +1 day, 'next week' = +7 days, 'next Monday' = next Monday. Leave blank to default to 3 working days from today.",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : true
+    },
+    "preferredTime" : {
+      "title" : "Preferred Time (HH:MM 24-hour)",
+      "description" : "Parse: '10am' = '10:00', '2pm' = '14:00', '5pm' = '17:00'. Default 10:00.",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : true
+    }
+  },
+  "lightning:type" : "lightning__objectType"
+}

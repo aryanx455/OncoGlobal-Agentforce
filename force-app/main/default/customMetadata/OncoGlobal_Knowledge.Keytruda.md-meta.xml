@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomMetadata xmlns="http://soap.sforce.com/2006/04/metadata" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+    <label>Keytruda</label>
+    <protected>false</protected>
+    <values>
+        <field>Category__c</field>
+        <value xsi:type="xsd:string">Products</value>
+    </values>
+    <values>
+        <field>Keywords__c</field>
+        <value xsi:type="xsd:string">keytruda,pembrolizumab,pd-1,pd-l1,checkpoint,immunotherapy,nsclc,melanoma,keynote</value>
+    </values>
+    <values>
+        <field>Content_English__c</field>
+        <value xsi:type="xsd:string">KEYTRUDA (pembrolizumab) — PD-1 Checkpoint Inhibitor
+
+MECHANISM: Pembrolizumab is a humanized monoclonal antibody that blocks PD-1 on T cells, restoring anti-tumor immune response. PD-L1 on tumor cells normally suppresses T-cell activity; Keytruda prevents this.
+
+KEY INDICATIONS (India approved):
+- NSCLC: 1st line for PD-L1 ≥50% (TPS), 1st line combo with chemo for all PD-L1, 2nd line PD-L1 ≥1%
+- Melanoma: 1st line monotherapy, adjuvant resected stage IIB-IV
+- HNSCC: 1st line PD-L1 CPS ≥1 (monotherapy/combo)
+- Triple-negative breast cancer: 1st line combo if PD-L1 CPS ≥10
+- MSI-H/dMMR solid tumors: tissue-agnostic approval
+
+DOSING: 200 mg IV Q3W or 400 mg IV Q6W (flat dose, no weight-based)
+
+KEYNOTE TRIALS (key data points):
+- KEYNOTE-024: 45% ORR vs 28% chemo in NSCLC PD-L1 ≥50%
+- KEYNOTE-189: Added to pemetrexed+carboplatin — OS benefit all-comer NSCLC
+- KEYNOTE-522: pCR improvement in TNBC (64.8% vs 51.2%)
+
+BIOMARKER TESTING: PD-L1 IHC (TPS/CPS), MSI/dMMR testing essential before initiation
+
+SAFETY: irAEs — pneumonitis, colitis, hepatitis, endocrinopathies, dermatitis. Manage with steroids. Grade 3+ → hold/discontinue.
+
+COMPETITIVE DIFFERENTIATION vs Opdivo: Flat dosing, more approved indications in India, longer overall survival data in several tumor types.</value>
+    </values>
+    <values>
+        <field>Content_Hinglish__c</field>
+        <value xsi:type="xsd:string">KEYTRUDA (pembrolizumab) — Key Talking Points for Reps
+
+KYA HAI: Yeh ek immunotherapy hai — PD-1 block karta hai toh body ki T-cells tumor ko attack kar sakti hain. Simple language mein: "Immune system ka darwaza kholta hai tumor ke liye."
+
+KAHAN USE HOTA HAI:
+- Lung cancer (NSCLC): Pehli line mein agar PD-L1 test positive hai (≥50%). Akele bhi, chemo ke saath bhi.
+- Melanoma: Pehli line treatment
+- Mouth/throat cancer (HNSCC): PD-L1 positive mein
+- Triple-negative breast cancer: PD-L1 high ho toh
+- Kisi bhi cancer mein agar MSI-H/dMMR test positive — yeh unique hai!
+
+DOSE: 200 mg har 3 hafte (ya 400 mg har 6 hafte) — weight se nahi, fixed dose hai. Easy hai patient aur doctor ke liye.
+
+DOCTOR SE KAISE BAAT KAREIN:
+- "Dr. saab, aapke lung cancer patients mein PD-L1 testing ho rahi hai? Keytruda pehli line mein kaafi strong data hai KEYNOTE-024 se."
+- "Agar MSI-H patient hai kisi bhi solid tumor mein, Keytruda tissue-agnostic approved hai India mein."
+
+SIDE EFFECTS (irAEs): Immune system zyada active ho jata hai — lungs, liver, gut affected ho sakte hain. Steroids se manage hote hain. Doctor ko yeh pata hona chahiye.
+
+VS OPDIVO: Keytruda ka flat dosing advantage hai, aur India mein zyada indications hain.</value>
+    </values>
+</CustomMetadata>

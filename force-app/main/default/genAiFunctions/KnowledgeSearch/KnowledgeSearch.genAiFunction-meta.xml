@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<GenAiFunction xmlns="http://soap.sforce.com/2006/04/metadata">
+    <description>Searches the OncoGlobal knowledge base for product information (Keytruda, Tagrisso, Herceptin), hospital intelligence, expense policy, visit best practices, and objection handling. Returns language-appropriate content (English or Hinglish).</description>
+    <invocationTarget>KnowledgeSearchAction</invocationTarget>
+    <invocationTargetType>apex</invocationTargetType>
+    <isConfirmationRequired>false</isConfirmationRequired>
+    <masterLabel>Search Knowledge Base</masterLabel>
+</GenAiFunction>

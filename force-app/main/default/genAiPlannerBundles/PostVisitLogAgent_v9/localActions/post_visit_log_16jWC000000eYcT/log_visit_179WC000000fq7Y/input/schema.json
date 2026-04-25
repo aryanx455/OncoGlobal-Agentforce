@@ -1,0 +1,56 @@
+{
+  "required" : [ "transcript", "physicianName" ],
+  "unevaluatedProperties" : false,
+  "properties" : {
+    "aiSummary" : {
+      "title" : "AI Summary",
+      "description" : "2-sentence summary: 'Visit at [hospital] with [doctor]. [Drug] discussed, outcome [X], next step [Y].' Write in plain English even if rep spoke Hinglish.",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : true
+    },
+    "engagementScore" : {
+      "title" : "Engagement Score (0-100)",
+      "description" : "Infer from sentiment. Very enthusiastic/committed = 85-95. Positive but standard = 65-80. Neutral/sochenge = 45-55. Not interested = 20-40. Hostile/refused = 5-15.",
+      "lightning:type" : "lightning__numberType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : true
+    },
+    "hospitalName" : {
+      "title" : "Hospital or Facility Name",
+      "description" : "Hospital name (e.g. 'Apollo Mumbai', 'Tata Memorial', 'HCG Bangalore'). Improves physician lookup accuracy.",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : true
+    },
+    "physicianName" : {
+      "title" : "Physician Name",
+      "description" : "Doctor's name as spoken (e.g. 'Dr. Sharma', 'Iyer sir', 'Sharma madam'). Strip honorifics to resolve but store full name.",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : true
+    },
+    "transcript" : {
+      "title" : "Voice Transcript",
+      "description" : "Full statement from the rep. Include drugs discussed, outcome, follow-ups, anything they mentioned. This is the source of truth.",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : true
+    },
+    "visitOutcome" : {
+      "title" : "Visit Outcome",
+      "description" : "Exactly one of: Positive, Negative, Neutral, Follow-Up Required. Infer from rep's words. 'positive raha / accha gaya / bahut accha / interested' = Positive. 'dobara jaana hai / follow-up chahiye' = Follow-Up Required. No strong signal = Neutral.",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : true
+    },
+    "visitType" : {
+      "title" : "Visit Type",
+      "description" : "Exactly one of: In-Person Clinic, Hospital Round, Virtual Call, Conference / Event, Drop-In. 'chamber mein gaya' = In-Person Clinic. 'hospital mein round' = Hospital Round. Default = In-Person Clinic.",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : true
+    }
+  },
+  "lightning:type" : "lightning__objectType"
+}

@@ -1,0 +1,149 @@
+.sva-container {
+    font-family: 'Salesforce Sans', sans-serif;
+    background: #fff;
+    border-radius: 8px;
+    min-width: 340px;
+    max-width: 480px;
+    margin: 0 auto;
+}
+
+.sva-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: linear-gradient(135deg, #0c2461, #1a56b0);
+    color: #fff;
+    padding: 16px 20px;
+    border-radius: 8px 8px 0 0;
+}
+
+.sva-icon { font-size: 28px; }
+
+.sva-title {
+    font-size: 16px;
+    font-weight: 700;
+    margin: 0;
+}
+
+.sva-subtitle {
+    font-size: 12px;
+    opacity: 0.8;
+    margin-top: 2px;
+}
+
+.sva-body {
+    padding: 16px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.sva-row {
+    display: flex;
+    gap: 12px;
+}
+
+.sva-half { flex: 1; }
+
+.sva-field {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.sva-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: #444;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.sva-input {
+    border: 1px solid #d0d5dd;
+    border-radius: 6px;
+    padding: 8px 10px;
+    font-size: 13px;
+    color: #1a1a2e;
+    background: #fafafa;
+    transition: border-color 0.15s;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.sva-input:focus {
+    outline: none;
+    border-color: #1a56b0;
+    background: #fff;
+}
+
+.sva-textarea {
+    min-height: 72px;
+    resize: vertical;
+}
+
+.sva-conflict {
+    background: #fff8e1;
+    border-left: 3px solid #f59e0b;
+    padding: 8px 12px;
+    border-radius: 4px;
+    font-size: 12px;
+    color: #78350f;
+}
+
+.sva-error {
+    background: #fef2f2;
+    border-left: 3px solid #ef4444;
+    padding: 8px 12px;
+    border-radius: 4px;
+    font-size: 12px;
+    color: #7f1d1d;
+}
+
+.sva-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    padding: 12px 20px 16px;
+    border-top: 1px solid #f0f0f0;
+}
+
+.sva-btn {
+    padding: 9px 18px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    border: none;
+    transition: background 0.15s;
+}
+
+.sva-btn-primary {
+    background: #1a56b0;
+    color: #fff;
+}
+
+.sva-btn-primary:hover:not(:disabled) { background: #0c2461; }
+.sva-btn-primary:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.sva-btn-secondary {
+    background: #f4f5f7;
+    color: #444;
+}
+
+.sva-btn-secondary:hover { background: #e2e5ea; }
+
+.sva-success-card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 32px 24px;
+    text-align: center;
+    gap: 12px;
+}
+
+.sva-success-icon  { font-size: 48px; }
+.sva-success-title { font-size: 18px; font-weight: 700; color: #16a34a; }
+.sva-success-detail { font-size: 13px; color: #444; line-height: 1.5; }
+
+.sva-mt { margin-top: 8px; }

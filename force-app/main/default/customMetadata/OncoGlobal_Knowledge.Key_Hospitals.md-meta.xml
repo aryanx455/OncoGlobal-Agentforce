@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomMetadata xmlns="http://soap.sforce.com/2006/04/metadata" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+    <label>Key Hospitals</label>
+    <protected>false</protected>
+    <values>
+        <field>Category__c</field>
+        <value xsi:type="xsd:string">Hospitals</value>
+    </values>
+    <values>
+        <field>Keywords__c</field>
+        <value xsi:type="xsd:string">apollo,fortis,tata memorial,tmh,hcg,manipal,aiims,narayana,medanta,max,rgci,kidwai,kem,hospital</value>
+    </values>
+    <values>
+        <field>Content_English__c</field>
+        <value xsi:type="xsd:string">ONCOGLOBAL KEY ACCOUNTS — Hospital Intelligence
+
+TIER 1 — HIGH PRIORITY ACCOUNTS:
+1. Tata Memorial Hospital (TMH), Mumbai: India's premier oncology center. 1500+ beds. Oncology-only. High decision-maker concentration. Key specialties: Hematology, Medical Oncology, Surgical Oncology. Formulary approval critical.
+2. AIIMS New Delhi: Government apex institution. Strong KOL presence. Long procurement cycles. Focus on research collaborations and CME.
+3. HCG Oncology Network: Pan-India oncology chain (30+ centers). Centralized formulary decision but local KOL influence matters. Strong in Bangalore, Ahmedabad, Hyderabad.
+4. RGCI (Rajiv Gandhi Cancer Institute), Delhi: Private specialty cancer center. Tier-1 KOLs. Strong in hematology and solid tumors. Fast adoption of new molecules.
+5. Kidwai Memorial Institute, Bangalore: Government cancer center. Large patient volume. Government procurement. CME and research focus.
+
+TIER 2 — IMPORTANT ACCOUNTS:
+- Apollo Hospitals (Pan-India): Large network, local formulary per hospital. Strong in Chennai, Hyderabad, Delhi.
+- Fortis Healthcare (Pan-India): Good oncology volumes in Delhi NCR, Mumbai, Kolkata.
+- Manipal Hospitals (South India focus): Strong in Bangalore, Mangalore. KOL-driven decisions.
+- Narayana Health: Volume oncology. Affordable segment. Bangalore, Kolkata.
+- Max Healthcare (Delhi NCR): High-end private segment. Strong relationship-driven.
+- Medanta, Gurugram: Super-specialty. High-volume KOLs. International patient segment.
+- KEM Hospital, Mumbai: Government teaching hospital. Large resident influence.
+
+VISIT STRATEGIES:
+- Teaching hospitals (AIIMS, KEM, TMH): Focus on senior faculty, HODs, and resident education
+- Private networks (Apollo, Fortis, HCG): Focus on individual oncologists, department heads
+- CME/round strategy at TMH/AIIMS: Pre-approval from medical education dept required</value>
+    </values>
+    <values>
+        <field>Content_Hinglish__c</field>
+        <value xsi:type="xsd:string">KEY HOSPITALS — Rep ke liye Quick Guide
+
+TOP PRIORITY:
+1. Tata Memorial (TMH), Mumbai: India ka best cancer hospital. Yahan decision makers bahut hain. Formulary mein aana bahut important hai — yahan approval baaki jagah bhi help karta hai.
+2. AIIMS Delhi: Government ka top hospital. Yahan KOLs hain jo puri India ko influence karte hain. Research aur CME pe focus karo.
+3. HCG Network: 30+ centers pan-India. Bangalore, Ahmedabad, Hyderabad mein strong. Central formulary hoti hai — ek baar approval mila toh sabhi centers pe faayda.
+4. RGCI, Delhi: Top private cancer center Delhi mein. Fast adopters hain — naya molecule jaldi try karte hain.
+5. Kidwai, Bangalore: Bada government cancer center. Zyada patients, government procurement.
+
+IMPORTANT ACCOUNTS:
+- Apollo: Har city mein hai, local formulary hoti hai. Chennai, Hyderabad, Delhi strongest.
+- Fortis: Delhi NCR, Mumbai, Kolkata mein acha volume.
+- Manipal: South India, especially Bangalore. KOL important hain.
+- Narayana Health: Affordable segment, bada volume.
+- Max Healthcare: Delhi NCR mein high-end patients.
+- Medanta: Super-specialty, international patients bhi.
+
+VISIT TIPS:
+- Teaching hospitals (AIIMS, KEM, TMH): Senior doctors aur HOD pe focus karo
+- Private networks: Individual oncologists pe relationship build karo
+- CME karna hai AIIMS/TMH mein: Pehle medical education department se permission lo</value>
+    </values>
+</CustomMetadata>

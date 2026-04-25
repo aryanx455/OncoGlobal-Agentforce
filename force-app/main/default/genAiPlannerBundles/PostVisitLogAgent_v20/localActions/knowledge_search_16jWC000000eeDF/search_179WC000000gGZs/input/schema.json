@@ -1,0 +1,21 @@
+{
+  "required" : [ "query" ],
+  "unevaluatedProperties" : false,
+  "properties" : {
+    "lang" : {
+      "title" : "Language Preference (english or hinglish)",
+      "description" : "Pass 'hinglish' if rep is speaking Hinglish, 'english' for English. Controls which content field is returned.",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : true
+    },
+    "query" : {
+      "title" : "Search Query",
+      "description" : "The rep's question or topic — e.g. 'Keytruda dose', 'Apollo hospital tips', 'Rs.150 limit', 'doctor busy objection'. Pass the rep's words as-is.",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : true
+    }
+  },
+  "lightning:type" : "lightning__objectType"
+}

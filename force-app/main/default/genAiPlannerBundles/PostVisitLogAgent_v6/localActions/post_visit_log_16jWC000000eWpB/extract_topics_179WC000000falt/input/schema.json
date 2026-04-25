@@ -1,0 +1,49 @@
+{
+  "required" : [ "visitReportId" ],
+  "unevaluatedProperties" : false,
+  "properties" : {
+    "aiSummary" : {
+      "title" : "AI Summary",
+      "description" : "Ai Summary",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : true
+    },
+    "discussionTopics" : {
+      "title" : "Discussion Topics",
+      "description" : "Semicolon-separated clinical topics extracted from the transcript. Include: drug names, biomarkers, indications, formulary, clinical trials, patient volumes, competitor mentions, objections. E.g. 'Keytruda; PD-L1 testing; NSCLC first-line; formulary request; competitor Opdivo mentioned'.",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : true
+    },
+    "engagementScore" : {
+      "title" : "Engagement Score",
+      "description" : "Engagement Score",
+      "lightning:type" : "lightning__numberType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : true
+    },
+    "needsReview" : {
+      "title" : "Needs Review Flag",
+      "description" : "True if compliance concern, unusual expense, or off-label discussion detected.",
+      "lightning:type" : "lightning__booleanType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : false
+    },
+    "nextBestAction" : {
+      "title" : "Next Best Action",
+      "description" : "The single most impactful follow-up action. Be specific: 'Send Keytruda KEYNOTE-189 data to Dr. Sharma at Apollo by Thursday' not just 'Send literature'.",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : true
+    },
+    "visitReportId" : {
+      "title" : "Visit Report ID",
+      "description" : "ID from log_visit output.",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : false
+    }
+  },
+  "lightning:type" : "lightning__objectType"
+}

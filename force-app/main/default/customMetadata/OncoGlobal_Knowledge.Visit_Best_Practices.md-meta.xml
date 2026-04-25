@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomMetadata xmlns="http://soap.sforce.com/2006/04/metadata" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+    <label>Visit Best Practices</label>
+    <protected>false</protected>
+    <values>
+        <field>Category__c</field>
+        <value xsi:type="xsd:string">Visit_Tips</value>
+    </values>
+    <values>
+        <field>Keywords__c</field>
+        <value xsi:type="xsd:string">visit,call,physician,structured,opener,closer,objection,detailing,engagement,tips</value>
+    </values>
+    <values>
+        <field>Content_English__c</field>
+        <value xsi:type="xsd:string">ONCOGLOBAL PHYSICIAN VISIT BEST PRACTICES
+
+PRE-VISIT PREPARATION:
+1. Review physician profile: specialty, prescribing history, last visit outcome, engagement score
+2. Check territory manager notes for any pending commitments (literature, samples promised)
+3. Identify the visit objective: awareness, trial conversion, loyalty, objection handling
+4. Prepare 1 key clinical data point — one sharp fact is better than 10 average ones
+
+VISIT STRUCTURE (5-step):
+1. OPENER (30 sec): Greet, reference last visit, state today's purpose
+   - "Dr. Sharma, last time we discussed PD-L1 testing. Today I wanted to share KEYNOTE-024 data on 1st line outcomes."
+2. EXPLORATION (1-2 min): Ask about patient types, challenges, competitor usage
+   - "What proportion of your NSCLC patients are you testing for PD-L1 upfront?"
+3. PRESENTATION (2-3 min): One product, one key message, one data point
+4. OBJECTION HANDLING: Listen fully before responding. Acknowledge, then data.
+   - "Biosimilar pricing concern" → "Herceptin originator data on cardiac safety is more established."
+5. CLOSE (30 sec): Specific ask — prescription, test request, CME interest
+   - "Would you consider Tagrisso for your next EGFR-mutated NSCLC patient?"
+
+DOCUMENTATION (right after visit):
+- Outcome: Positive / Negative / Neutral / Follow-Up Required
+- What drug was discussed, physician response, any commitments made
+- Next best action — be specific about date and action
+
+ENGAGEMENT SCORE GUIDE:
+- 90-100: Physician enthusiastic, committed to prescribe
+- 70-89: Positive, interested, may prescribe soon
+- 50-69: Neutral, needs more visits/data
+- 30-49: Hesitant, has objections to address
+- Below 30: Negative or hostile — escalate to manager</value>
+    </values>
+    <values>
+        <field>Content_Hinglish__c</field>
+        <value xsi:type="xsd:string">PHYSICIAN VISIT — Sahi Tarika (Rep Guide)
+
+VISIT SE PEHLE:
+- Doctor ki profile dekho: pehle kab milna hua, kya discuss hua, engagement score kya tha
+- Jo promise kiya tha (literature, samples) — woh lekar jao
+- Aaj ka objective decide karo: naya product introduce karna hai, conversion chahiye, ya follow-up hai?
+- EK strong data point prepare karo — zyada nahi, ek sharp fact enough hai
+
+VISIT KA STRUCTURE:
+1. SHURUAT (30 second): "Dr. saab, pichli baar PD-L1 testing ke baare mein baat ki thi. Aaj KEYNOTE-024 ka data laaya hoon."
+2. SAWAL PUCHO: "Aapke kitne lung cancer patients mein EGFR test ho raha hai upfront?"
+3. PRODUCT DETAIL (2-3 min): Ek drug, ek key message, ek data point — zyada mat bolo
+4. OBJECTION HANDLE KARO:
+   - "Pricing zyada hai" → "Sir, originator data pe cardiac safety better documented hai."
+   - "Mujhe pehle se trusted brand hai" → "Bilkul sir, yahi toh Tagrisso ka benefit hai — established FLAURA data."
+5. ASK KARO (specific): "Aapka agla EGFR+ NSCLC patient ho toh Tagrisso consider karenge?"
+
+VISIT KE TURANT BAAD LOG KARO:
+- Outcome: Positive / Negative / Neutral / Follow-Up Required
+- Kya discuss hua, doctor ki response kya thi
+- Agla step kya hai — specific date aur action likhna
+
+ENGAGEMENT SCORE GUIDE:
+- 90-100: Doctor bahut enthusiastic, confirm karenge
+- 70-89: Positive, interested, soon prescribe karenge
+- 50-69: Neutral, aur data chahiye, dobara jaana hoga
+- 30-49: Hesitant, objections hain, handle karna hai
+- 30 se kam: Negative — manager ko batao</value>
+    </values>
+</CustomMetadata>

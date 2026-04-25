@@ -1,0 +1,56 @@
+{
+  "required" : [ "transcript", "physicianName" ],
+  "unevaluatedProperties" : false,
+  "properties" : {
+    "aiSummary" : {
+      "title" : "AI Summary",
+      "description" : "2-sentence summary: 'Visit at [hospital] with [doctor]. [Drug] discussed, outcome [X], next step [Y].'",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : true
+    },
+    "engagementScore" : {
+      "title" : "Engagement Score (0-100)",
+      "description" : "Infer from sentiment: very enthusiastic = 85-95, positive = 65-80, neutral = 45-55, not interested = 20-40, hostile = 5-15.",
+      "lightning:type" : "lightning__numberType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : true
+    },
+    "hospitalName" : {
+      "title" : "Hospital or Facility Name",
+      "description" : "Hospital name (e.g. 'Apollo Mumbai', 'Tata Memorial'). Improves physician lookup accuracy.",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : true
+    },
+    "physicianName" : {
+      "title" : "Physician Name",
+      "description" : "Doctor's name as spoken (e.g. 'Dr. Sharma'). Resolve by name — never ask for an ID.",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : true
+    },
+    "transcript" : {
+      "title" : "Voice Transcript",
+      "description" : "Full statement from the rep. Include drugs discussed, outcome, follow-ups, anything they mentioned.",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : true
+    },
+    "visitOutcome" : {
+      "title" : "Visit Outcome",
+      "description" : "Exactly one of: Positive, Negative, Neutral, Follow-Up Required. Infer from the rep's words.",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : true
+    },
+    "visitType" : {
+      "title" : "Visit Type",
+      "description" : "Exactly one of: In-Person Clinic, Hospital Round, Virtual Call, Conference / Event, Drop-In. Default = In-Person Clinic.",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : true
+    }
+  },
+  "lightning:type" : "lightning__objectType"
+}

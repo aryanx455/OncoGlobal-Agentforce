@@ -124,7 +124,7 @@
         <includeInPrompt>true</includeInPrompt>
         <label>Voice Call Id</label>
     </contextVariables>
-    <description>AI agent for OncoGlobal medical reps to log physician visits, expenses, and follow-up tasks via voice or text in English or Hinglish.</description>
+    <description>AI agent for OncoGlobal medical reps to log physician visits, expenses, follow-up tasks, and schedule visits — all in English via voice or text.</description>
     <label>Post Visit Log Agent</label>
     <logPrivateConversationData>false</logPrivateConversationData>
     <richContentEnabled>true</richContentEnabled>

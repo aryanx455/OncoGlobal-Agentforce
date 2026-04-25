@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomMetadata xmlns="http://soap.sforce.com/2006/04/metadata" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+    <label>Objection Handling</label>
+    <protected>false</protected>
+    <values>
+        <field>Category__c</field>
+        <value xsi:type="xsd:string">Engagement</value>
+    </values>
+    <values>
+        <field>Keywords__c</field>
+        <value xsi:type="xsd:string">objection,price,costly,expensive,side effect,competitor,biosimilar,not interested,busy,no time</value>
+    </values>
+    <values>
+        <field>Content_English__c</field>
+        <value xsi:type="xsd:string">OBJECTION HANDLING GUIDE — OncoGlobal Reps
+
+PRICE / AFFORDABILITY:
+Objection: "Your product is too expensive."
+Response: "I understand cost is a key factor, Doctor. What I'd like to share is the value equation — [drug] has demonstrated [X months] additional PFS/OS in [trial]. For your patients who are good candidates, the cost-effectiveness data actually supports [drug]. Are you aware of our patient assistance program? We can help eligible patients access [drug] at reduced cost."
+
+SIDE EFFECTS:
+Objection: "I've had patients with bad side effects."
+Response: "Thank you for sharing that, Doctor. Side effect management is critical. In [trial], [side effect] was seen in X% — and [management strategy] was very effective. Could you tell me more about what your patient experienced? I'd like to understand if it was grade 1-2 or more severe, so we can discuss appropriate monitoring."
+
+BIOSIMILAR / COMPETITOR:
+Objection: "Why not use the biosimilar? It's cheaper."
+Response: "Biosimilars have their role, Doctor. The data I want to highlight is [originator drug]'s [specific advantage — cardiac monitoring data, CNS penetration, specific indication]. For complex cases, the originator's track record matters. For straightforward cases, we can discuss together what's right for your patient."
+
+FORMULARY NOT INCLUDED:
+Objection: "It's not on our formulary."
+Response: "I understand. We're actively working on the formulary application for [hospital]. Meanwhile, for your private patients, you can prescribe directly. Would it help if I connected you with our Medical Affairs team to support the formulary inclusion process?"
+
+NOT INTERESTED / BUSY:
+Objection: "I'm very busy, come later."
+Response: "Absolutely, Doctor. I respect your time. Could I take just 60 seconds to share one data point that's relevant to a patient type you commonly see? Then I'll let you go." [Share one specific data point.] "Thank you — I'll follow up with literature. When would be a good time for a proper discussion?"</value>
+    </values>
+    <values>
+        <field>Content_Hinglish__c</field>
+        <value xsi:type="xsd:string">OBJECTION HANDLE KARO — Rep Guide
+
+PRICE / MEHNGA HAI:
+Doctor kahe: "Yeh toh bahut mehnga hai."
+Answer: "Bilkul samajh sakta hoon, sir. Cost important hai. Lekin yeh dekhen — [drug] ne [trial] mein [X mahine] zyada PFS diya. Aur jo patients eligible hain unke liye humara patient assistance program hai — taaki access ho sake. Main details share karoon?"
+
+SIDE EFFECTS:
+Doctor kahe: "Mere patient ko toh bahut side effects huey."
+Answer: "Sir, yeh sunke acha laga ki aapne share kiya. Side effect management bahut important hai. [Trial] mein yeh [side effect] X% mein dekha gaya, aur [management strategy] se control hota hai. Aapke patient ko exactly kya hua tha? Grade kya tha? Saath mein dekh sakte hain solution."
+
+BIOSIMILAR / COMPETITOR:
+Doctor kahe: "Biosimilar sasta hai, wohi likh deta hoon."
+Answer: "Bilkul, sir, biosimilar ka role hai. Lekin [originator] ka specifically [cardiac safety/CNS data/specific indication] pe jo data hai, complex cases mein woh matter karta hai. Simple cases alag, complex mein originator track record dekhna chahiye."
+
+FORMULARY MEIN NAHI:
+Doctor kahe: "Hamare hospital ke formulary mein nahi hai yeh."
+Answer: "Jaanta hoon sir. Hum formulary mein daalne ki process mein hain. Tab tak private patients ke liye seedha prescribe kar sakte hain. Kya Medical Affairs team se connect karoon formulary approval mein help ke liye?"
+
+BUSY HAIN / BAAD MEIN AANA:
+Doctor kahe: "Bahut busy hoon, baad mein aao."
+Answer: "Bilkul sir, time precious hai. Sirf 60 seconds — ek data point share karta hoon jo aapke common patient type ke liye relevant hai. Phir jaata hoon." [Share one point.] "Shukriya sir, literature bhejta hoon. Agle baar proper baat karein."</value>
+    </values>
+</CustomMetadata>

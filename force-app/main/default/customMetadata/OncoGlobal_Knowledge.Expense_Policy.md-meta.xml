@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomMetadata xmlns="http://soap.sforce.com/2006/04/metadata" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+    <label>Expense Policy</label>
+    <protected>false</protected>
+    <values>
+        <field>Category__c</field>
+        <value xsi:type="xsd:string">Policy</value>
+    </values>
+    <values>
+        <field>Keywords__c</field>
+        <value xsi:type="xsd:string">expense,bill,rupees,limit,policy,reimbursement,gst,meal,travel,hotel,cme,compliance</value>
+    </values>
+    <values>
+        <field>Content_English__c</field>
+        <value xsi:type="xsd:string">ONCOGLOBAL EXPENSE POLICY (FY 2025-26)
+
+TRANSACTION LIMIT: Rs. 150 per transaction. Any single expense above Rs. 150 is automatically flagged for compliance review. This applies to meals, refreshments, and gifts.
+
+EXPENSE CATEGORIES AND LIMITS:
+- Meal / Refreshment: Rs. 150 per transaction (flag above this)
+- Travel (cab/auto/local): Actuals, no separate limit. Receipt required above Rs. 200.
+- Train / Flight: Must use company travel portal. Economy only unless prior approval.
+- Hotel / Accommodation: Pre-approved accommodation list. Max Rs. 3000/night tier-2 cities, Rs. 5000/night tier-1 cities.
+- Samples: Logged separately in sample tracking system — not as expense.
+- CME / Events: Prior approval required. Max sponsorship as per annual plan.
+
+GST TREATMENT (India 2024):
+- Meals (restaurant): 5% GST. Total amount = pre-tax × 1.05. SGST 2.5% + CGST 2.5%.
+- Hotel Rs. 1001-7500/night: 12% GST. SGST + CGST 6% each.
+- Hotel above Rs. 7500/night: 18% GST.
+- CME / Conference registration: 18% GST.
+- Air travel (economy): 5% GST. Business class: 12%.
+- Non-AC train, hotel below Rs. 1000: 0% GST.
+- Pharma samples: 0% GST (exempt).
+
+SUBMISSION TIMELINE: Expenses must be submitted within 7 working days of incurrence via the OncoGlobal expense portal. Delayed submissions require manager approval.
+
+REIMBURSEMENT: Approved expenses reimbursed by the 10th of following month via salary account.
+
+AUDIT: All flagged expenses (above Rs. 150) are reviewed by Compliance team monthly. Please maintain physical receipts for 3 years.</value>
+    </values>
+    <values>
+        <field>Content_Hinglish__c</field>
+        <value xsi:type="xsd:string">ONCOGLOBAL EXPENSE POLICY — Simple Language Mein
+
+LIMIT: Ek transaction mein Rs. 150 se zyada nahi — warna compliance flag ho jaata hai. Matlab agar lunch Rs. 200 ka hua, system mein automatically flag aayega.
+
+KISME KITNA:
+- Khana-peena (meal): Rs. 150 tak — isse zyada pe flag
+- Local travel (cab/auto): Jo bhi actual hua, receipt chahiye Rs. 200 se zyada pe
+- Train/flight: Company portal se book karo, economy class
+- Hotel: Tier-1 city (Mumbai, Delhi) mein max Rs. 5000/raat, tier-2 mein Rs. 3000
+- Samples: Expense mein nahi aate — alag system mein log hote hain
+- CME/events: Pehle approval lena hoga
+
+GST KA KYA KAREN:
+- Restaurant mein lunch: 5% GST. Agar bill Rs. 450 hai, toh tax Rs. 21.43 (SGST Rs. 10.71 + CGST Rs. 10.71)
+- Hotel (Rs. 1001-7500): 12% GST
+- Hotel (Rs. 7500+): 18% GST
+- CME registration: 18% GST
+- Samples ya 1000 se kam ka hotel: 0% GST
+
+KAISE SUBMIT KARO: 7 working days ke andar expense portal mein daalo. Deri hogi toh manager ki approval chahiye.
+
+REIMBURSEMENT: Agले mahine ki 10 tarikh tak salary account mein aayega.
+
+IMPORTANT: Rs. 150+ wale sabhi expenses compliance team dekhti hai. Receipts 3 saal tak rakhna!</value>
+    </values>
+</CustomMetadata>
