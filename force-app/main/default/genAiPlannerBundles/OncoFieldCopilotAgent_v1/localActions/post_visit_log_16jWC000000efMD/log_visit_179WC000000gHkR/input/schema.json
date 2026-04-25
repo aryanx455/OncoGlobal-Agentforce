@@ -1,0 +1,56 @@
+{
+  "required" : [ "transcript", "physicianName" ],
+  "unevaluatedProperties" : false,
+  "properties" : {
+    "aiSummary" : {
+      "title" : "AI Summary",
+      "description" : "Two-sentence visit summary.",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : true
+    },
+    "engagementScore" : {
+      "title" : "Engagement Score",
+      "description" : "Infer 0-100 from the visit sentiment.",
+      "lightning:type" : "lightning__numberType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : true
+    },
+    "hospitalName" : {
+      "title" : "Hospital or Facility Name",
+      "description" : "Facility name, if mentioned.",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : true
+    },
+    "physicianName" : {
+      "title" : "Physician Name",
+      "description" : "Doctor name as spoken by the rep.",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : true
+    },
+    "transcript" : {
+      "title" : "Voice Transcript",
+      "description" : "Full visit statement from the rep.",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : true
+    },
+    "visitOutcome" : {
+      "title" : "Visit Outcome",
+      "description" : "One of: Positive, Negative, Neutral, Follow-Up Required.",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : true
+    },
+    "visitType" : {
+      "title" : "Visit Type",
+      "description" : "One of: In-Person Clinic, Hospital Round, Virtual Call, Conference / Event, Drop-In.",
+      "lightning:type" : "lightning__textType",
+      "lightning:isPII" : false,
+      "copilotAction:isUserInput" : true
+    }
+  },
+  "lightning:type" : "lightning__objectType"
+}

@@ -1,0 +1,547 @@
+system:
+    instructions: |
+        You are Onco Field Copilot, a Health Cloud-first Agentforce assistant for Onco Global field executives.
+        You help reps before and after physician visits without changing the existing PostVisitLogAgent or ExpenseUploadAgent.
+
+        LANGUAGE: Always respond in English only.
+
+        OPERATING PRINCIPLES:
+        - Prefer standard Salesforce and Health Cloud context first: HealthcareProvider, HealthcareFacility, HealthcarePractitionerFacility, ServiceAppointment, Event, Task, ContentDocument, Account, and Contact.
+        - Use the existing OncoGlobal custom objects only where the current solution already uses them: Visit_Report__c, Visit_Expense__c, Expense__c, and Expense_Line_Item__c.
+        - Never ask the user for Salesforce IDs. Resolve by doctor name, facility name, current context, or action outputs.
+        - Never hardcode record IDs, doctor names, facility names, prompt template names, or sample data.
+        - Keep the flow mobile-first: brief, log, upload, confirm, and move on.
+        - When a receipt, bill, invoice, image, camera photo, or PDF is mentioned, launch the custom upload UI immediately.
+        - When data confidence is low, mark the response as needing review and ask one short confirmation question.
+
+        CORE WORKFLOW:
+        1. Before a meeting, brief the rep using Health Cloud provider/facility context and recent visit history.
+        2. After a meeting, log the visit from voice or text, then enrich it with topics and next best action.
+        3. Create follow-up Tasks when commitments are detected.
+        4. Log typed expenses, or launch the receipt upload LWC for file/image/PDF expenses.
+        5. Schedule follow-up visits using Event and ServiceAppointment where available.
+
+    messages:
+        welcome: "Hi, I'm Onco Field Copilot. I can brief you before a doctor visit, log the visit afterward, create follow-up tasks, schedule the next meeting, and upload expense receipts."
+        error: "I could not complete that safely. Please try again with the doctor or facility name."
+
+config:
+    developer_name: "OncoFieldCopilotAgent"
+    agent_label: "Onco Field Copilot Agent"
+    description: "Health Cloud-first Agentforce assistant for Onco Global reps to brief providers, log post-visit notes, create tasks, schedule visits, and upload expense receipts."
+    agent_type: "AgentforceEmployeeAgent"
+
+variables:
+    visitReportId: mutable string = ""
+        description: "Visit_Report__c ID created or found during this session"
+    physicianName: mutable string = ""
+        description: "Doctor/provider name resolved in this session"
+    facilityName: mutable string = ""
+        description: "Hospital or clinic name resolved in this session"
+
+language:
+    default_locale: "en_US"
+    additional_locales: "hi"
+    all_additional_locales: False
+
+start_agent topic_selector:
+    description: "Routes the rep's message to the correct Health Cloud-first capability"
+    reasoning:
+        instructions: |
+            Route immediately. Do not answer directly from the selector.
+            - If the rep asks for doctor history, last visit, relationship score, provider brief, referral context, or meeting preparation, route to provider_brief.
+            - If the rep describes a completed doctor visit, clinic visit, hospital round, medical discussion, or visit outcome, route to post_visit_log.
+            - If the rep asks to upload, scan, photograph, attach, or submit a receipt, bill, invoice, image, camera photo, or PDF, route to expense_bill_upload.
+            - If the rep mentions an expense amount but does not ask to upload a file, route to expense_log.
+            - If the rep mentions follow-up commitments, literature, CME, callbacks, or brochures, route to follow_up_tasks.
+            - If the rep wants to book, schedule, or plan the next visit, route to schedule_visit.
+            - If the rep asks about product information, policy, hospitals, objection handling, or general guidance, route to knowledge_search.
+        actions:
+            to_provider_brief: @utils.transition to @topic.provider_brief
+                description: "Brief the rep on a doctor/provider using Health Cloud and visit history"
+            to_post_visit_log: @utils.transition to @topic.post_visit_log
+                description: "Log a visit, extract topics, and create follow-up artifacts"
+            to_expense_bill_upload: @utils.transition to @topic.expense_bill_upload
+                description: "Launch the custom upload LWC for receipt/image/PDF extraction and expense creation"
+            to_expense_log: @utils.transition to @topic.expense_log
+                description: "Log a typed expense amount"
+            to_follow_up_tasks: @utils.transition to @topic.follow_up_tasks
+                description: "Create follow-up Tasks"
+            to_schedule_visit: @utils.transition to @topic.schedule_visit
+                description: "Schedule an Event and ServiceAppointment when available"
+            to_knowledge_search: @utils.transition to @topic.knowledge_search
+                description: "Search OncoGlobal knowledge"
+
+topic provider_brief:
+    label: "Provider Brief"
+    description: "Uses Health Cloud standard objects first, then existing Account/Contact visit history, to brief the rep before a meeting."
+
+    actions:
+        get_provider_brief:
+            label: "Get Health Cloud Provider Brief"
+            description: "Read-only provider briefing. Prefers HealthcareProvider and HealthcareFacility, then falls back to Contact, Account, Visit_Report__c, and Task."
+            require_user_confirmation: False
+            target: "apex://HealthCloudProviderBriefAction"
+            inputs:
+                providerName: string
+                    label: "Doctor or Provider Name"
+                    description: "Doctor/provider name as spoken by the rep. Never ask for an ID."
+                    is_required: True
+                    is_user_input: True
+                facilityName: string
+                    label: "Facility Name"
+                    description: "Hospital or clinic name if the rep provides it."
+                    is_user_input: True
+                accountId: string
+                    label: "Provider Account ID"
+                contactId: string
+                    label: "Prescriber Contact ID"
+            outputs:
+                success: boolean
+                    label: "Success"
+                    is_used_by_planner: True
+                providerName: string
+                    label: "Resolved Provider Name"
+                    is_used_by_planner: True
+                facilityName: string
+                    label: "Resolved Facility Name"
+                    is_used_by_planner: True
+                standardHealthCloudContext: string
+                    label: "Standard Health Cloud Context"
+                    is_used_by_planner: True
+                relationshipSnapshot: string
+                    label: "Relationship Snapshot"
+                    is_used_by_planner: True
+                recentVisitSummary: string
+                    label: "Recent Visit Summary"
+                    is_used_by_planner: True
+                openTaskSummary: string
+                    label: "Open Task Summary"
+                    is_used_by_planner: True
+                nextBestActions: string
+                    label: "Next Best Actions"
+                    is_used_by_planner: True
+                contextSummaryForAgent: string
+                    label: "Context Summary for Agent"
+                    is_used_by_planner: True
+                errorMessage: string
+                    label: "Error Message"
+                    filter_from_agent: True
+
+    reasoning:
+        instructions: ->
+            | When the user asks for a doctor/provider brief, call {!@actions.get_provider_brief}.
+            | Summarize the output in a compact mobile-friendly format: relationship snapshot, recent visits, open tasks, and next best action.
+            | Mention whether Health Cloud standard records were found. If only Account/Contact fallback was used, say that briefly.
+            | Do not invent referral history. Use only the action output.
+            | If the action fails, ask for the doctor or facility name in one short sentence.
+
+        actions:
+            get_provider_brief: @actions.get_provider_brief
+                description: "Get standard Health Cloud and visit-history context"
+                with providerName = ...
+                with facilityName = ...
+
+topic post_visit_log:
+    label: "Post Visit Log"
+    description: "Logs physician visits through existing OncoGlobal actions, then enriches the visit with topics and next best action."
+
+    actions:
+        log_visit:
+            label: "Log Post-Visit Report"
+            description: "Creates a Visit_Report__c from the rep's statement. Resolve by name; never ask for IDs."
+            require_user_confirmation: False
+            target: "apex://LogVisitAction"
+            inputs:
+                transcript: string
+                    label: "Voice Transcript"
+                    description: "Full visit statement from the rep."
+                    is_required: True
+                    is_user_input: True
+                physicianName: string
+                    label: "Physician Name"
+                    description: "Doctor name as spoken by the rep."
+                    is_required: True
+                    is_user_input: True
+                hospitalName: string
+                    label: "Hospital or Facility Name"
+                    description: "Facility name, if mentioned."
+                    is_user_input: True
+                visitOutcome: string
+                    label: "Visit Outcome"
+                    description: "One of: Positive, Negative, Neutral, Follow-Up Required."
+                    is_user_input: True
+                visitType: string
+                    label: "Visit Type"
+                    description: "One of: In-Person Clinic, Hospital Round, Virtual Call, Conference / Event, Drop-In."
+                    is_user_input: True
+                engagementScore: number
+                    label: "Engagement Score"
+                    description: "Infer 0-100 from the visit sentiment."
+                    is_user_input: True
+                aiSummary: string
+                    label: "AI Summary"
+                    description: "Two-sentence visit summary."
+                    is_user_input: True
+            outputs:
+                success: boolean
+                    is_used_by_planner: True
+                visitReportId: string
+                    label: "Visit Report ID"
+                    is_used_by_planner: True
+                    filter_from_agent: True
+                visitReportName: string
+                    label: "Visit Report Name"
+                    is_used_by_planner: True
+                resolvedPhysicianName: string
+                    label: "Resolved Physician Name"
+                    is_used_by_planner: True
+                prescriberContactId: string
+                    label: "Prescriber Contact ID"
+                    is_used_by_planner: True
+                    filter_from_agent: True
+                hospitalAccountId: string
+                    label: "Hospital Account ID"
+                    is_used_by_planner: True
+                    filter_from_agent: True
+                errorMessage: string
+                    filter_from_agent: True
+
+        extract_topics:
+            label: "Extract Topics and Next Best Action"
+            description: "Updates the created Visit_Report__c with extracted discussion topics and next best action."
+            require_user_confirmation: False
+            target: "apex://ExtractTopicsAction"
+            inputs:
+                visitReportId: string
+                    label: "Visit Report ID"
+                    is_required: True
+                discussionTopics: string
+                    label: "Discussion Topics"
+                    is_user_input: True
+                nextBestAction: string
+                    label: "Next Best Action"
+                    is_user_input: True
+                engagementScore: number
+                    label: "Engagement Score"
+                    is_user_input: True
+                aiSummary: string
+                    label: "AI Summary"
+                    is_user_input: True
+                needsReview: boolean
+                    label: "Needs Review"
+            outputs:
+                success: boolean
+                    is_used_by_planner: True
+                visitReportId: string
+                    filter_from_agent: True
+                errorMessage: string
+                    filter_from_agent: True
+
+    reasoning:
+        instructions: ->
+            | For any completed visit summary, call {!@actions.log_visit} first.
+            | If log_visit succeeds, call {!@actions.extract_topics} using the new visitReportId.
+            | Confirm the visit record name and summarize the doctor, facility, outcome, topics, and next best action.
+            | If the rep mentioned follow-up tasks or expenses, tell the rep you can log those next and route on the next turn.
+            | Do not ask for record IDs.
+
+        actions:
+            log_visit: @actions.log_visit
+                description: "Create the visit report"
+                with transcript = ...
+                with physicianName = ...
+                with hospitalName = ...
+                with visitOutcome = ...
+                with visitType = ...
+                with engagementScore = ...
+                with aiSummary = ...
+            extract_topics: @actions.extract_topics
+                description: "Enrich the visit report"
+                with visitReportId = ...
+                with discussionTopics = ...
+                with nextBestAction = ...
+                with engagementScore = ...
+                with aiSummary = ...
+                with needsReview = ...
+
+topic expense_bill_upload:
+    label: "Expense Bill Upload"
+    description: "Launches the existing custom LWC upload interface for receipts, invoice images, camera photos, and PDFs."
+
+    actions:
+        create_from_bill_action:
+            label: "Create Expense From Uploaded Bill"
+            description: "Uses the existing custom Lightning Type editor to upload a file, extract invoice data, review details, and create the expense record."
+            require_user_confirmation: False
+            target: "apex://ExpenseAgentUiService"
+            inputs:
+                expense_request: object
+                    label: "Expense Bill"
+                    description: "Uploaded bill and structured data extracted by the LWC."
+                    is_required: True
+                    is_user_input: True
+                    complex_data_type_name: "c__expenseBillUpload"
+            outputs:
+                expense_result: object
+                    label: "Created Expense"
+                    description: "Summary of the created expense record."
+                    complex_data_type_name: "c__expenseBillUploadResult"
+                    filter_from_agent: False
+                    is_displayable: True
+                    is_used_by_planner: True
+                expense_id: string
+                    label: "Expense ID"
+                    is_used_by_planner: True
+                    filter_from_agent: True
+
+    reasoning:
+        instructions: ->
+            | If ACTION_CONFIRM, call {!@actions.create_from_bill_action} with the submitted form data and do not output extra text first.
+            | Otherwise, when the user wants to upload a receipt, bill, invoice, image, photo, camera capture, or PDF, call the action's user_input tool immediately.
+            | Do not ask "Would you like to proceed?"
+            | Do not ask the user to type invoice fields manually in chat.
+            | After creation, confirm the expense and mention vendor, invoice number, and amount when available.
+
+        actions:
+            create_from_bill_action: @actions.create_from_bill_action
+                description: "Open the existing upload UI and create the expense"
+                with expense_request = ...
+
+topic expense_log:
+    label: "Typed Expense Log"
+    description: "Logs simple expenses mentioned in conversation when no file upload is requested."
+
+    actions:
+        log_expense:
+            label: "Log Visit Expense"
+            description: "Creates a Visit_Expense__c linked to the visit when possible."
+            require_user_confirmation: False
+            target: "apex://LogExpenseAction"
+            inputs:
+                amount: number
+                    label: "Amount"
+                    is_required: True
+                    is_user_input: True
+                category: string
+                    label: "Category"
+                    description: "One of: Meal, Travel, Accommodation, Samples, CME / Event, Other."
+                    is_required: True
+                    is_user_input: True
+                visitReportId: string
+                    label: "Visit Report ID"
+                physicianName: string
+                    label: "Physician Name"
+                    is_user_input: True
+                hospitalName: string
+                    label: "Hospital or Facility Name"
+                    is_user_input: True
+                visitDate: string
+                    label: "Visit Date"
+                    is_user_input: True
+                notes: string
+                    label: "Notes"
+                    is_user_input: True
+                receiptUrl: string
+                    label: "Receipt URL"
+                    is_user_input: True
+                gstRate: number
+                    label: "GST Rate"
+                    is_user_input: True
+                sgstAmount: number
+                    label: "SGST Amount"
+                    is_user_input: True
+                cgstAmount: number
+                    label: "CGST Amount"
+                    is_user_input: True
+                gstInvoiceNumber: string
+                    label: "GST Invoice Number"
+                    is_user_input: True
+            outputs:
+                success: boolean
+                    is_used_by_planner: True
+                expenseId: string
+                    is_used_by_planner: True
+                    filter_from_agent: True
+                policyFlagged: boolean
+                    is_used_by_planner: True
+                resolvedVisitReportId: string
+                    is_used_by_planner: True
+                    filter_from_agent: True
+                errorMessage: string
+                    filter_from_agent: True
+
+    reasoning:
+        instructions: ->
+            | If the user mentions an amount and category without file upload, call {!@actions.log_expense}.
+            | Use the spoken amount exactly. Do not recalculate totals.
+            | If policyFlagged is true, clearly mention that it was flagged by policy.
+            | If the user wants to upload a receipt instead, route back to expense_bill_upload on the next turn.
+
+        actions:
+            log_expense: @actions.log_expense
+                description: "Create typed visit expense"
+                with amount = ...
+                with category = ...
+                with visitReportId = ...
+                with physicianName = ...
+                with hospitalName = ...
+                with visitDate = ...
+                with notes = ...
+
+topic follow_up_tasks:
+    label: "Follow-Up Tasks"
+    description: "Creates Salesforce Tasks from commitments detected in a visit conversation."
+
+    actions:
+        create_tasks:
+            label: "Create Follow-Up Tasks from Visit"
+            description: "Creates Task records from follow-up actions."
+            require_user_confirmation: False
+            target: "apex://CreateFollowUpTasksAction"
+            inputs:
+                followUpActions: string
+                    label: "Follow-Up Actions"
+                    is_required: True
+                    is_user_input: True
+                physicianName: string
+                    label: "Physician Name"
+                    is_user_input: True
+                visitReportId: string
+                    label: "Visit Report ID"
+                physicianId: string
+                    label: "Physician Account ID"
+                dueDate: date
+                    label: "Due Date"
+                    is_user_input: True
+                priority: string
+                    label: "Priority"
+                    is_user_input: True
+            outputs:
+                tasksCreated: number
+                    is_used_by_planner: True
+                success: boolean
+                    is_used_by_planner: True
+                taskIds: string
+                    filter_from_agent: True
+                errorMessage: string
+                    filter_from_agent: True
+
+    reasoning:
+        instructions: ->
+            | When the user asks to create or log follow-ups, call {!@actions.create_tasks}.
+            | Split multiple commitments into clean task subjects.
+            | Confirm how many tasks were created and their priority or due date when available.
+
+        actions:
+            create_tasks: @actions.create_tasks
+                description: "Create follow-up tasks"
+                with followUpActions = ...
+                with physicianName = ...
+                with visitReportId = ...
+                with dueDate = ...
+                with priority = ...
+
+topic schedule_visit:
+    label: "Schedule Visit"
+    description: "Schedules follow-up visits using standard Event and ServiceAppointment where available."
+
+    actions:
+        schedule_visit:
+            label: "Schedule Visit Appointment"
+            description: "Adds a planned visit to the rep calendar as an Event and creates a ServiceAppointment when Scheduler is enabled."
+            require_user_confirmation: False
+            target: "apex://ScheduleVisitAction"
+            inputs:
+                physicianName: string
+                    label: "Physician Name"
+                    is_required: True
+                    is_user_input: True
+                hospitalName: string
+                    label: "Hospital or Clinic Name"
+                    is_user_input: True
+                visitReportId: string
+                    label: "Visit Report ID"
+                preferredDate: string
+                    label: "Preferred Date"
+                    is_user_input: True
+                preferredTime: string
+                    label: "Preferred Time"
+                    is_user_input: True
+                durationMinutes: number
+                    label: "Duration Minutes"
+                    is_user_input: True
+                notes: string
+                    label: "Notes"
+                    is_user_input: True
+            outputs:
+                success: boolean
+                    is_used_by_planner: True
+                eventId: string
+                    filter_from_agent: True
+                    is_used_by_planner: True
+                serviceAppointmentId: string
+                    filter_from_agent: True
+                    is_used_by_planner: True
+                scheduledDateTime: string
+                    is_used_by_planner: True
+                conflictWarning: string
+                    is_used_by_planner: True
+                errorMessage: string
+                    filter_from_agent: True
+
+    reasoning:
+        instructions: ->
+            | When the user wants to schedule, book, or plan a visit, call {!@actions.schedule_visit}.
+            | Confirm the scheduled time. If conflictWarning is present, mention it.
+            | Mention ServiceAppointment only when the action returns a serviceAppointmentId.
+
+        actions:
+            schedule_visit: @actions.schedule_visit
+                description: "Schedule Event and optional ServiceAppointment"
+                with physicianName = ...
+                with hospitalName = ...
+                with visitReportId = ...
+                with preferredDate = ...
+                with preferredTime = ...
+                with durationMinutes = ...
+                with notes = ...
+
+topic knowledge_search:
+    label: "Knowledge Search"
+    description: "Searches OncoGlobal knowledge for products, policy, hospitals, objection handling, and visit best practices."
+
+    actions:
+        search_knowledge:
+            label: "Search Knowledge Base"
+            description: "Searches OncoGlobal knowledge custom metadata."
+            require_user_confirmation: False
+            target: "apex://KnowledgeSearchAction"
+            inputs:
+                query: string
+                    label: "Search Query"
+                    is_required: True
+                    is_user_input: True
+                lang: string
+                    label: "Language Preference"
+                    is_user_input: True
+            outputs:
+                content: string
+                    is_used_by_planner: True
+                category: string
+                    is_used_by_planner: True
+                recordLabel: string
+                    is_used_by_planner: True
+                found: boolean
+                    is_used_by_planner: True
+
+    reasoning:
+        instructions: ->
+            | Call {!@actions.search_knowledge} for product, policy, hospital, objection, or visit best-practice questions.
+            | Answer only from returned content. If found is false, say the knowledge base does not have that topic yet.
+
+        actions:
+            search_knowledge: @actions.search_knowledge
+                description: "Search OncoGlobal knowledge"
+                with query = ...
+                with lang = ...
