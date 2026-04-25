@@ -436,13 +436,14 @@ public with sharing class HealthCloudProviderBriefAction {
 
     private static List<Visit_Report__c> findRecentVisits(ProviderMatch provider, FacilityMatch facility) {
         List<String> conditions = new List<String>();
-        if (provider != null && provider.contactId != null) {
+        Map<String, Schema.SObjectField> visitFields = Schema.SObjectType.Visit_Report__c.fields.getMap();
+        if (provider != null && provider.contactId != null && visitFields.containsKey('Prescriber__c')) {
             conditions.add('Prescriber__c = \'' + String.escapeSingleQuotes(String.valueOf(provider.contactId)) + '\'');
         }
         if (provider != null && provider.accountId != null) {
             conditions.add('Physician__c = \'' + String.escapeSingleQuotes(String.valueOf(provider.accountId)) + '\'');
         }
-        if (facility != null && facility.accountId != null) {
+        if (facility != null && facility.accountId != null && visitFields.containsKey('Hospital__c')) {
             conditions.add('Hospital__c = \'' + String.escapeSingleQuotes(String.valueOf(facility.accountId)) + '\'');
         }
         if (conditions.isEmpty()) {

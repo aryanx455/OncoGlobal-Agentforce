@@ -70,7 +70,7 @@ public with sharing class FieldManagerSummaryAction {
             }
 
             List<Visit_Report__c> visits = [
-                SELECT Id, Name, Prescriber__r.Name, Physician__r.Name, Visit_Date__c,
+                SELECT Id, Name, Physician__r.Name, Visit_Date__c,
                        Visit_Outcome__c, Engagement_Score__c, Total_Visit_Expense__c
                 FROM Visit_Report__c
                 WHERE Visit_Date__c >= :startDate
@@ -166,9 +166,7 @@ public with sharing class FieldManagerSummaryAction {
 
         if (!visits.isEmpty()) {
             Visit_Report__c latest = visits[0];
-            String doctor = latest.Prescriber__r == null
-                ? (latest.Physician__r == null ? 'unknown doctor' : latest.Physician__r.Name)
-                : latest.Prescriber__r.Name;
+            String doctor = latest.Physician__r == null ? 'unknown doctor' : latest.Physician__r.Name;
             parts.add('Latest visit: ' + doctor + ' - ' + latest.Visit_Outcome__c);
         }
         if (!openTasks.isEmpty()) {

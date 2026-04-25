@@ -160,16 +160,28 @@ public with sharing class FieldRoutePlannerAction {
             }
         }
 
-        for (Visit_Report__c visit : [
-            SELECT Prescriber__c, Visit_Date__c
-            FROM Visit_Report__c
-            WHERE Prescriber__c IN :contactIds
-            ORDER BY Visit_Date__c DESC NULLS LAST
-            LIMIT 500
-        ]) {
-            Candidate candidate = byContact.get(visit.Prescriber__c);
-            if (candidate != null && candidate.lastVisitDate == null) {
-                candidate.lastVisitDate = visit.Visit_Date__c;
+        Map<Id, Candidate> byAccount = new Map<Id, Candidate>();
+        for (Candidate candidate : byContact.values()) {
+            if (candidate.contact.AccountId != null) {
+                byAccount.put(candidate.contact.AccountId, candidate);
+            }
+        }
+
+        Map<String, Schema.SObjectField> visitFields = Schema.SObjectType.Visit_Report__c.fields.getMap();
+        String visitLookupField = visitFields.containsKey('Prescriber__c') ? 'Prescriber__c' : 'Physician__c';
+        Set<Id> visitLookupIds = visitLookupField == 'Prescriber__c' ? contactIds : accountIds;
+        if (!visitLookupIds.isEmpty()) {
+            for (SObject visit : Database.query(
+                'SELECT ' + visitLookupField + ', Visit_Date__c ' +
+                'FROM Visit_Report__c WHERE ' + visitLookupField + ' IN :visitLookupIds ' +
+                'ORDER BY Visit_Date__c DESC NULLS LAST LIMIT 500'
+            )) {
+                Candidate candidate = visitLookupField == 'Prescriber__c'
+                    ? byContact.get((Id) visit.get(visitLookupField))
+                    : byAccount.get((Id) visit.get(visitLookupField));
+                if (candidate != null && candidate.lastVisitDate == null) {
+                    candidate.lastVisitDate = (Date) visit.get('Visit_Date__c');
+                }
             }
         }
 

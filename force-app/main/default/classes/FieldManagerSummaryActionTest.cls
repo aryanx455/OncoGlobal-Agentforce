@@ -17,13 +17,18 @@ private class FieldManagerSummaryActionTest {
         insert doctor;
 
         Visit_Report__c visit = new Visit_Report__c(
-            Prescriber__c = doctor.Id,
-            Hospital__c = facility.Id,
+            Physician__c = facility.Id,
             Rep__c = UserInfo.getUserId(),
             Visit_Date__c = Date.today(),
             Visit_Outcome__c = 'Positive',
             Engagement_Score__c = 85
         );
+        if (Schema.SObjectType.Visit_Report__c.fields.getMap().containsKey('Prescriber__c')) {
+            visit.put('Prescriber__c', doctor.Id);
+        }
+        if (Schema.SObjectType.Visit_Report__c.fields.getMap().containsKey('Hospital__c')) {
+            visit.put('Hospital__c', facility.Id);
+        }
         insert visit;
 
         insert new Visit_Expense__c(

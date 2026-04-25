@@ -36,8 +36,6 @@ private class HealthCloudProviderBriefActionTest {
 
         Visit_Report__c report = new Visit_Report__c(
             Physician__c = physicianAccount.Id,
-            Prescriber__c = prescriber.Id,
-            Hospital__c = facility.Id,
             Rep__c = UserInfo.getUserId(),
             Visit_Date__c = Date.today().addDays(-7),
             Visit_Outcome__c = 'Positive',
@@ -46,6 +44,12 @@ private class HealthCloudProviderBriefActionTest {
             AI_Summary__c = 'Discussed Keytruda data and agreed to a follow-up on referral workflow.',
             Next_Best_Action__c = 'Send Keytruda summary and schedule a referral workflow review.'
         );
+        if (Schema.SObjectType.Visit_Report__c.fields.getMap().containsKey('Prescriber__c')) {
+            report.put('Prescriber__c', prescriber.Id);
+        }
+        if (Schema.SObjectType.Visit_Report__c.fields.getMap().containsKey('Hospital__c')) {
+            report.put('Hospital__c', facility.Id);
+        }
         insert report;
 
         insert new Task(
