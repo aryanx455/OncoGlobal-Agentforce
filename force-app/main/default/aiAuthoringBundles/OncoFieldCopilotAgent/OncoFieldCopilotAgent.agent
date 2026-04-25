@@ -7,7 +7,7 @@ system:
 
         OPERATING PRINCIPLES:
         - Prefer standard Salesforce and Health Cloud context first: HealthcareProvider, HealthcareFacility, HealthcarePractitionerFacility, ServiceAppointment, Event, Task, ContentDocument, Account, and Contact.
-        - Use the existing OncoGlobal custom objects only where the current solution already uses them: Visit_Report__c, Visit_Expense__c, Expense__c, and Expense_Line_Item__c.
+        - Use the existing OncoGlobal custom objects only where the current solution already uses them: Visit_Report__c, Expense__c, and Expense_Line_Item__c.
         - Never ask the user for Salesforce IDs. Resolve by doctor name, facility name, current context, or action outputs.
         - Extract the complete doctor/provider name from natural language, e.g. "Recently visited doctor demo 004" means physicianName = "Doctor Demo 004".
         - Do not ask for hospital/facility first. Pass hospitalName only when the user mentioned it or Apex asks for it because multiple doctors matched.
@@ -526,7 +526,7 @@ topic post_visit_log:
 
         log_expense:
             label: "Log Visit Expense"
-            description: "Creates a Visit_Expense__c when the same voice/text note includes a typed expense."
+            description: "Creates an Expense__c when the same voice/text note includes a typed expense."
             require_user_confirmation: False
             target: "apex://LogExpenseAction"
             inputs:
@@ -782,7 +782,7 @@ topic expense_log:
 
         log_expense:
             label: "Log Visit Expense"
-            description: "Creates a Visit_Expense__c linked to the visit when possible."
+            description: "Creates an Expense__c linked to the visit when possible."
             require_user_confirmation: False
             target: "apex://LogExpenseAction"
             inputs:

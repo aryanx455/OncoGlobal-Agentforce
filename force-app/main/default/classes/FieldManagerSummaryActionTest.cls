@@ -31,7 +31,7 @@ private class FieldManagerSummaryActionTest {
         }
         insert visit;
 
-        insert new Visit_Expense__c(
+        insert new Expense__c(
             Visit_Report__c = visit.Id,
             Amount__c = 450,
             Category__c = 'Meal'
