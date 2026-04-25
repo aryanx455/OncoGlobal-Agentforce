@@ -197,12 +197,21 @@ try {
     gstReq.gstRate       = 18;
     gstReq.cgstAmount    = 18;
     gstReq.sgstAmount    = 18;
-    gstReq.gstInvoiceNumber = 'OGT-TEST-001';
+    gstReq.invoiceNumber = 'OGT-TEST-001';
     gstReq.visitReportId = loggedVisitReportId;
     LogExpenseAction.Result gstResult =
         LogExpenseAction.execute(new List<LogExpenseAction.Request>{ gstReq })[0];
     if (gstResult.success == true) {
-        logPass('GST expense created (ID=' + gstResult.expenseId + ') — field verification requires PR #3 deploy');
+        SObject gstExp = Database.query(
+            'SELECT GST_Rate__c, Invoice_Number__c, Policy_Flag__c FROM Expense__c WHERE Id = \'' + gstResult.expenseId + '\''
+        );
+        Decimal gstRate = (Decimal) gstExp.get('GST_Rate__c');
+        String invNum = (String) gstExp.get('Invoice_Number__c');
+        if (gstRate == 18 && invNum == 'OGT-TEST-001') {
+            logPass('GST fields stored correctly on Expense__c (GST_Rate=18, Invoice=OGT-TEST-001)');
+        } else {
+            logFail('GST fields', 'GST_Rate__c=' + gstRate + ' Invoice=' + invNum);
+        }
     } else {
         logFail('GST expense', gstResult.errorMessage);
     }
