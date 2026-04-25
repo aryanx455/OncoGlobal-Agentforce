@@ -67,12 +67,6 @@
                 </template>
             </div>
 
-            <template if:true={rawJson}>
-                <details class="json-preview">
-                    <summary>View extracted JSON</summary>
-                    <pre>{rawJson}</pre>
-                </details>
-            </template>
         </section>
 
         <template if:false={hasParsedData}>

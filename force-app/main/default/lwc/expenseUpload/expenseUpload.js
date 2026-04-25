@@ -1,6 +1,5 @@
 import { LightningElement, api, track } from 'lwc';
 import USER_ID from '@salesforce/user/Id';
-import { ShowToastEvent } from 'lightning/platformShowToastEvent';
 import uploadAndProcessExpenseFile from '@salesforce/apex/ExpenseController.uploadAndProcessExpenseFile';
 import getPicklistValues from '@salesforce/apex/MetadataController.getPicklistValues';
 
@@ -288,7 +287,6 @@ export default class ExpenseUpload extends LightningElement {
         this.rawJson = null;
         this.confirmedByUser = false;
         this.resetParsedState();
-        this.showToast('File selected', `${file.name} is ready for upload and extraction.`, 'success');
     }
 
     handleCameraClick() {
@@ -302,7 +300,6 @@ export default class ExpenseUpload extends LightningElement {
     handleSubmit() {
         if (!this.selectedFile) {
             this.errorMessage = 'Please select a receipt or invoice before submitting.';
-            this.showToast('File required', this.errorMessage, 'error');
             return;
         }
 
@@ -324,7 +321,6 @@ export default class ExpenseUpload extends LightningElement {
                 this.rawJson = result?.rawJson;
                 this.applyParsedData(result?.payload);
                 this.syncAgentValue();
-                this.showToast('Extraction complete', 'Review the extracted expense details.', 'success');
             })
             .catch((error) => {
                 this.handleServerError(error, 'We could not extract bill details from the uploaded file.');
@@ -345,12 +341,11 @@ export default class ExpenseUpload extends LightningElement {
 
     handleConfirm() {
         if (!this.hasParsedData) {
-            this.showToast('Nothing to confirm', 'Submit a file for extraction before creating records.', 'error');
+            this.errorMessage = 'Submit a file for extraction before creating records.';
             return;
         }
 
         this.syncAgentValue();
-        this.showToast('Details confirmed', 'The confirmed expense data is ready for the agent action.', 'success');
     }
 
     handleFieldChange(event) {
@@ -444,7 +439,7 @@ export default class ExpenseUpload extends LightningElement {
     buildAgentInputValue() {
         return {
             contentDocumentId: this.contentDocumentId || null,
-            rawJson: this.rawJson || null,
+            rawJson: null,
             employeeName: this.employeeName,
             employeeId: this.employeeId,
             doctorName: this.doctorName,
@@ -599,16 +594,5 @@ export default class ExpenseUpload extends LightningElement {
     handleServerError(error, fallbackMessage) {
         const message = error?.body?.message || fallbackMessage;
         this.errorMessage = message;
-        this.showToast('Error', message, 'error');
-    }
-
-    showToast(title, message, variant) {
-        this.dispatchEvent(
-            new ShowToastEvent({
-                title,
-                message,
-                variant
-            })
-        );
     }
 }
