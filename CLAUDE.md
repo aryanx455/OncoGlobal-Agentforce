@@ -20,6 +20,14 @@ A voice-first AI agent that lets medical reps log physician visits, expenses, an
 - **Active version:** v3
 - **Bot ID:** `0XxWC0000001iwf0AA`
 
+## Health Cloud Copilot Agent
+- **Agent name:** Onco Field Copilot Agent
+- **API name:** `OncoFieldCopilotAgent`
+- **Type:** `AgentforceEmployeeAgent`
+- **Active version:** v3
+- **Status updated:** 2026-04-25
+- **Notes:** v3 fixes post-visit doctor extraction and visit ID handoff. It resolves doctors by name, asks for hospital only on duplicate matches, blocks placeholder IDs like `new_visit_report`, and reuses the real `visitReportId` for topic extraction, follow-up tasks, expenses, and scheduling.
+
 ## Deployed Components (all in hackathon-sandbox)
 | Component | Status |
 |---|---|
@@ -35,6 +43,9 @@ A voice-first AI agent that lets medical reps log physician visits, expenses, an
 | `Post_Visit_Log_Plugin` GenAiPlugin | Deployed — has all 6 functions |
 | `PostVisitLogAgent` GenAiPlannerBundle | Deployed — references Post_Visit_Log_Plugin |
 | All GenAiFunctions (6) | Deployed |
+| `OncoFieldCopilotAgent` Bot + v1/v2/v3 BotVersion | Deployed, v3 active |
+| `ProviderResolutionService.cls` | Deployed — shared doctor/facility resolver for meaningful links |
+| `expenseUpload` LWC | Deployed — receipt/image/PDF upload; doctor name required before creation |
 
 ## Known Metadata Deploy Restrictions (this org type)
 - `BotVersion` — can NEVER update existing versions via metadata. Can only CREATE new versions.

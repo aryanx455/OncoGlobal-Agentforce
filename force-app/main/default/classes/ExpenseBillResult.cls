@@ -4,6 +4,7 @@ global class ExpenseBillResult {
     @AuraEnabled @InvocableVariable global String expenseName;
     @AuraEnabled @InvocableVariable global String doctorContactId;
     @AuraEnabled @InvocableVariable global String doctorName;
+    @AuraEnabled @InvocableVariable global String hospitalName;
     @AuraEnabled @InvocableVariable global String vendorName;
     @AuraEnabled @InvocableVariable global String invoiceNumber;
     @AuraEnabled @InvocableVariable global String invoiceDate;

@@ -193,7 +193,8 @@ public with sharing class ExpenseController {
         expense.Description__c = payload.expense_report.business_purpose;
         expense.Doctor__c = resolveDoctorContactId(
             payload.expense_report.doctor_contact_id,
-            payload.expense_report.doctor_name
+            payload.expense_report.doctor_name,
+            payload.expense_report.facility_name
         );
         expense.Vendor__c = payload.vendor_details.vendor_name;
         expense.Amount__c = payload.amount_details.total_amount;
@@ -206,73 +207,8 @@ public with sharing class ExpenseController {
         return expense;
     }
 
-    private static Id resolveDoctorContactId(String doctorContactId, String doctorName) {
-        if (String.isNotBlank(doctorContactId)) {
-            return (Id) doctorContactId;
-        }
-
-        String normalizedName = String.isBlank(doctorName) ? null : doctorName.trim();
-        if (String.isBlank(normalizedName)) {
-            return null;
-        }
-
-        List<Contact> exactMatches = [
-            SELECT Id
-            FROM Contact
-            WHERE Name = :normalizedName
-            LIMIT 1
-        ];
-        if (!exactMatches.isEmpty()) {
-            return exactMatches[0].Id;
-        }
-
-        Contact doctor = buildDoctorContact(normalizedName);
-        insert doctor;
-        return doctor.Id;
-    }
-
-    private static Contact buildDoctorContact(String doctorName) {
-        Contact doctor = new Contact();
-        doctor.AccountId = resolveDoctorAccountId(doctorName);
-        List<String> nameParts = doctorName.split('\\s+');
-        if (nameParts.size() > 1) {
-            doctor.LastName = nameParts.remove(nameParts.size() - 1);
-            doctor.FirstName = String.join(nameParts, ' ');
-        } else {
-            doctor.LastName = doctorName;
-        }
-        return doctor;
-    }
-
-    private static Id resolveDoctorAccountId(String doctorName) {
-        if (String.isBlank(doctorName)) {
-            return null;
-        }
-
-        List<Account> exactMatches = [
-            SELECT Id
-            FROM Account
-            WHERE Name = :doctorName
-            LIMIT 1
-        ];
-        if (!exactMatches.isEmpty()) {
-            return exactMatches[0].Id;
-        }
-
-        Account physicianAccount = new Account(Name = doctorName);
-        Id physicianRecordTypeId = getPhysicianRecordTypeId();
-        if (physicianRecordTypeId != null) {
-            physicianAccount.RecordTypeId = physicianRecordTypeId;
-        }
-        insert physicianAccount;
-        return physicianAccount.Id;
-    }
-
-    private static Id getPhysicianRecordTypeId() {
-        Schema.RecordTypeInfo recordTypeInfo = Schema.SObjectType.Account
-            .getRecordTypeInfosByDeveloperName()
-            .get('Physician');
-        return recordTypeInfo == null ? null : recordTypeInfo.getRecordTypeId();
+    private static Id resolveDoctorContactId(String doctorContactId, String doctorName, String facilityName) {
+        return ProviderResolutionService.ensureDoctorContactForExpense(doctorContactId, doctorName, facilityName);
     }
 
     private static List<Expense_Line_Item__c> buildLineItems(ExpensePayload payload, Id expenseId) {
@@ -388,6 +324,7 @@ public with sharing class ExpenseController {
         @AuraEnabled public String employee_id;
         @AuraEnabled public String doctor_name;
         @AuraEnabled public String doctor_contact_id;
+        @AuraEnabled public String facility_name;
         @AuraEnabled public String expense_category;
         @AuraEnabled public String business_purpose;
     }

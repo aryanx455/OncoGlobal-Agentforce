@@ -1,39 +1,29 @@
 /**
- * LogVisitAction
- * @InvocableMethod — called by Agentforce PostVisitLogAgent to create a
- * Visit_Report__c from a voice transcript captured on the mobile LWC.
- *
- * Accepts either a Salesforce Account ID (physicianId) or a plain-language
- * physician name (physicianName) + optional hospital name. When only a name
- * is supplied the action resolves it to an Account via SOQL.
+ * Creates a Visit_Report__c from a rep's post-visit note.
+ * The agent should pass names, not Salesforce IDs; this class resolves the
+ * doctor safely and asks for clarification instead of creating weak data.
  */
 public without sharing class LogVisitAction {
-
-    // ─── INPUT / OUTPUT ────────────────────────────────────────────────────────
-
     public class Request {
         @InvocableVariable(label='Voice Transcript'
-            description='The full voice transcript or summary spoken by the rep after the visit. REQUIRED — this is the main input for the agent.')
+            description='Full rep statement about the completed visit. Required.')
         public String transcript;
 
         @InvocableVariable(label='Physician Name'
-            description='Name of the physician as spoken by the rep (e.g. "Dr. Sharma", "Dr. Meena Nair"). Used to look up the Account when Physician Account ID is not available. Provide this if you do not have the Physician Account ID.')
+            description='Doctor/provider name as spoken by the rep, e.g. Doctor Demo 004.')
         public String physicianName;
 
         @InvocableVariable(label='Hospital or Facility Name'
-            description='Name of the hospital or clinic where the visit took place (e.g. "Apollo Mumbai", "Tata Memorial", "Manipal Bangalore"). Helps narrow down the physician search.')
+            description='Facility only when the rep mentioned it or when duplicate doctors need disambiguation.')
         public String hospitalName;
 
-        @InvocableVariable(label='Physician Account ID'
-            description='Salesforce Account ID of the physician. Optional — if not provided, Physician Name will be used to look up the Account.')
+        @InvocableVariable(label='Physician Account ID')
         public Id physicianId;
 
-        @InvocableVariable(label='Visit Outcome'
-            description='One of: Positive, Negative, Neutral, Follow-Up Required. Default is Neutral.')
+        @InvocableVariable(label='Visit Outcome')
         public String visitOutcome;
 
-        @InvocableVariable(label='Visit Type'
-            description='One of: In-Person Clinic, Hospital Round, Virtual Call, Conference / Event, Drop-In. Default is In-Person Clinic.')
+        @InvocableVariable(label='Visit Type')
         public String visitType;
 
         @InvocableVariable(label='Visit Date (defaults to today)')
@@ -53,6 +43,12 @@ public without sharing class LogVisitAction {
         @InvocableVariable(label='Success')
         public Boolean success;
 
+        @InvocableVariable(label='Needs Clarification')
+        public Boolean needsClarification;
+
+        @InvocableVariable(label='Clarification Message')
+        public String clarificationMessage;
+
         @InvocableVariable(label='Error Message')
         public String errorMessage;
 
@@ -62,132 +58,108 @@ public without sharing class LogVisitAction {
         @InvocableVariable(label='Physician Name (resolved)')
         public String resolvedPhysicianName;
 
+        @InvocableVariable(label='Physician Account ID (resolved)')
+        public Id physicianAccountId;
+
         @InvocableVariable(label='Prescriber Contact ID')
         public Id prescriberContactId;
 
         @InvocableVariable(label='Hospital Account ID')
         public Id hospitalAccountId;
-    }
 
-    // ─── INVOCABLE ENTRY POINT ─────────────────────────────────────────────────
+        @InvocableVariable(label='Facility Name (resolved)')
+        public String resolvedFacilityName;
+    }
 
     @InvocableMethod(
         label='Log Post-Visit Report'
-        description='Creates a Visit_Report__c record from a voice transcript. Accepts physician name (e.g. "Dr. Sharma") and hospital name (e.g. "Apollo Mumbai") — no Salesforce IDs needed. Called by Agentforce after rep speaks their visit summary.'
+        description='Creates a Visit_Report__c from a post-visit note. Resolves doctor/facility by name and asks for clarification on duplicates.'
         category='OncoGlobal Visit Management'
     )
     public static List<Result> execute(List<Request> requests) {
-        List<Visit_Report__c> reportsToInsert = new List<Visit_Report__c>();
         List<Result> results = new List<Result>();
-        List<Integer> validIndexes = new List<Integer>();
-        Map<Id, String> accountNamesById = new Map<Id, String>();
-        Set<Id> physicianIdsToQuery = new Set<Id>();
-        Map<String, Id> resolvedPhysicianIdsByKey = new Map<String, Id>();
-        // Contact resolution cache: resolutionKey → [contactId, accountId]
-        Map<String, Id[]> resolvedContactByKey = new Map<String, Id[]>();
-
-        for (Request req : requests) {
-            if (req != null && req.physicianId != null) {
-                physicianIdsToQuery.add(req.physicianId);
-            }
-        }
-
-        if (!physicianIdsToQuery.isEmpty()) {
-            for (Account acc : [
-                SELECT Id, Name
-                FROM Account
-                WHERE Id IN :physicianIdsToQuery
-            ]) {
-                accountNamesById.put(acc.Id, acc.Name);
-            }
-        }
+        List<Visit_Report__c> reportsToInsert = new List<Visit_Report__c>();
+        List<Integer> resultIndexes = new List<Integer>();
+        Map<Id, String> accountNamesById = loadAccountNames(requests);
+        Map<String, Schema.SObjectField> visitFields = Schema.SObjectType.Visit_Report__c.fields.getMap();
 
         for (Integer i = 0; i < requests.size(); i++) {
             Request req = requests[i];
-            Result res = new Result();
-            res.success = false;
+            Result res = baseResult();
 
-            if (String.isBlank(req.transcript)) {
+            if (req == null || String.isBlank(req.transcript)) {
                 res.errorMessage = 'Transcript is required.';
                 results.add(res);
                 continue;
             }
 
-            // ── Resolve prescriber Contact first, fall back to Account ────────
             Id resolvedPhysicianId = req.physicianId;
-            Id prescriberContactId = null;
-            Id hospitalAccountId   = null;
-            String resolutionKey   = buildResolutionKey(req.physicianName, req.hospitalName);
+            Id prescriberContactId;
+            Id hospitalAccountId;
+            String resolvedPhysicianName = req.physicianId == null ? null : accountNamesById.get(req.physicianId);
+            String resolvedFacilityName;
 
-            if (String.isNotBlank(resolutionKey)) {
-                if (resolvedContactByKey.containsKey(resolutionKey)) {
-                    Id[] cached = resolvedContactByKey.get(resolutionKey);
-                    prescriberContactId = cached[0];
-                    hospitalAccountId   = cached[1];
-                } else {
-                    Contact found = resolveContact(req.physicianName, req.hospitalName);
-                    if (found != null) {
-                        prescriberContactId = found.Id;
-                        hospitalAccountId   = found.AccountId;
-                        res.resolvedPhysicianName = found.Name;
-                    }
-                    resolvedContactByKey.put(resolutionKey, new Id[]{ prescriberContactId, hospitalAccountId });
+            if (resolvedPhysicianId == null && String.isNotBlank(req.physicianName)) {
+                ProviderResolutionService.Resolution resolution = ProviderResolutionService.resolveDoctor(
+                    req.physicianName,
+                    req.hospitalName,
+                    true,
+                    true
+                );
+                if (resolution.success != true) {
+                    applyClarification(res, resolution);
+                    results.add(res);
+                    continue;
                 }
+                resolvedPhysicianId = resolution.physicianAccountId;
+                prescriberContactId = resolution.doctorContactId;
+                hospitalAccountId = resolution.facilityAccountId;
+                resolvedPhysicianName = String.isNotBlank(resolution.physicianName)
+                    ? resolution.physicianName
+                    : resolution.contactName;
+                resolvedFacilityName = resolution.facilityName;
             }
 
-            // Fall back to Account-based resolution when no Contact match
-            if (prescriberContactId == null && resolvedPhysicianId == null && String.isNotBlank(resolutionKey)) {
-                if (resolvedPhysicianIdsByKey.containsKey(resolutionKey)) {
-                    resolvedPhysicianId = resolvedPhysicianIdsByKey.get(resolutionKey);
-                } else {
-                    resolvedPhysicianId = resolvePhysician(req.physicianName, req.hospitalName);
-                    if (resolvedPhysicianId == null) {
-                        resolvedPhysicianId = createPlaceholderAccount(req.physicianName, req.hospitalName);
-                    }
-                    resolvedPhysicianIdsByKey.put(resolutionKey, resolvedPhysicianId);
-                }
-            }
-
-            if (res.resolvedPhysicianName == null) {
-                res.resolvedPhysicianName = accountNamesById.containsKey(resolvedPhysicianId)
-                    ? accountNamesById.get(resolvedPhysicianId)
-                    : req.physicianName;
-            }
-
+            res.resolvedPhysicianName = String.isNotBlank(resolvedPhysicianName)
+                ? resolvedPhysicianName
+                : req.physicianName;
+            res.physicianAccountId = resolvedPhysicianId;
             res.prescriberContactId = prescriberContactId;
-            res.hospitalAccountId   = hospitalAccountId;
+            res.hospitalAccountId = hospitalAccountId;
+            res.resolvedFacilityName = resolvedFacilityName;
 
-            Visit_Report__c vr = new Visit_Report__c(
-                Physician__c        = resolvedPhysicianId,
-                Prescriber__c       = prescriberContactId,
-                Hospital__c         = hospitalAccountId,
-                Rep__c              = UserInfo.getUserId(),
+            Visit_Report__c report = new Visit_Report__c(
+                Physician__c = resolvedPhysicianId,
+                Rep__c = UserInfo.getUserId(),
                 Voice_Transcript__c = req.transcript,
-                Visit_Date__c       = req.visitDate != null ? req.visitDate : Date.today(),
-                Visit_Outcome__c    = String.isNotBlank(req.visitOutcome) ? req.visitOutcome : 'Neutral',
-                Visit_Type__c       = String.isNotBlank(req.visitType) ? req.visitType : 'In-Person Clinic',
-                AI_Summary__c       = req.aiSummary,
+                Visit_Date__c = req.visitDate != null ? req.visitDate : Date.today(),
+                Visit_Outcome__c = String.isNotBlank(req.visitOutcome) ? req.visitOutcome : 'Neutral',
+                Visit_Type__c = String.isNotBlank(req.visitType) ? req.visitType : 'In-Person Clinic',
+                AI_Summary__c = req.aiSummary,
                 Engagement_Score__c = req.engagementScore
             );
+            if (visitFields.containsKey('Prescriber__c') && prescriberContactId != null) {
+                report.put('Prescriber__c', prescriberContactId);
+            }
+            if (visitFields.containsKey('Hospital__c') && hospitalAccountId != null) {
+                report.put('Hospital__c', hospitalAccountId);
+            }
 
-            reportsToInsert.add(vr);
-            validIndexes.add(i);
+            reportsToInsert.add(report);
+            resultIndexes.add(results.size());
             results.add(res);
         }
 
         if (!reportsToInsert.isEmpty()) {
             List<Database.SaveResult> saveResults = Database.insert(reportsToInsert, false);
-
-            for (Integer j = 0; j < saveResults.size(); j++) {
-                Database.SaveResult sr = saveResults[j];
-                Result res = results[validIndexes[j]];
-                if (sr.isSuccess()) {
+            for (Integer i = 0; i < saveResults.size(); i++) {
+                Result res = results[resultIndexes[i]];
+                if (saveResults[i].isSuccess()) {
                     res.success = true;
-                    res.visitReportId = sr.getId();
-                    res.visitReportName = reportsToInsert[j].Name;
+                    res.visitReportId = saveResults[i].getId();
+                    res.visitReportName = reportsToInsert[i].Name;
                 } else {
-                    res.success = false;
-                    res.errorMessage = sr.getErrors()[0].getMessage();
+                    res.errorMessage = saveResults[i].getErrors()[0].getMessage();
                 }
             }
         }
@@ -195,117 +167,34 @@ public without sharing class LogVisitAction {
         return results;
     }
 
-    // ─── HELPERS ──────────────────────────────────────────────────────────────
+    private static Result baseResult() {
+        Result res = new Result();
+        res.success = false;
+        res.needsClarification = false;
+        return res;
+    }
 
-    /**
-     * Try to resolve physician to a Contact linked to a hospital Account.
-     * Preferred over Account-based resolution when reps use the Contact model.
-     */
-    @TestVisible
-    private static Contact resolveContact(String physicianName, String hospitalName) {
-        if (String.isBlank(physicianName)) return null;
+    private static void applyClarification(Result res, ProviderResolutionService.Resolution resolution) {
+        res.success = false;
+        res.needsClarification = true;
+        res.clarificationMessage = resolution.clarificationMessage;
+        res.errorMessage = resolution.errorMessage;
+    }
 
-        String searchName    = physicianName.replaceAll('(?i)^dr\\.?\\s+', '').trim();
-        String wildcardName  = '%' + searchName + '%';
-
-        List<Contact> candidates = [
-            SELECT Id, Name, AccountId, Account.Name
-            FROM   Contact
-            WHERE  (Name LIKE :wildcardName OR Name LIKE :('%Dr%' + searchName + '%'))
-            ORDER  BY LastModifiedDate DESC
-            LIMIT  5
-        ];
-
-        if (candidates.isEmpty()) return null;
-        if (candidates.size() == 1) return candidates[0];
-
-        if (String.isNotBlank(hospitalName)) {
-            for (Contact con : candidates) {
-                if (con.Account != null && con.Account.Name.containsIgnoreCase(hospitalName)) {
-                    return con;
-                }
+    private static Map<Id, String> loadAccountNames(List<Request> requests) {
+        Set<Id> ids = new Set<Id>();
+        for (Request req : requests) {
+            if (req != null && req.physicianId != null) {
+                ids.add(req.physicianId);
             }
         }
 
-        return candidates[0];
-    }
-
-    /**
-     * Attempt to find an existing physician Account by name (and optionally
-     * hospital/facility name for disambiguation).
-     * Returns the Account Id or null if not found.
-     */
-    @TestVisible
-    private static Id resolvePhysician(String physicianName, String hospitalName) {
-        if (String.isBlank(physicianName)) return null;
-
-        // Normalise: strip leading "Dr. " / "Dr " for broader match
-        String searchName = physicianName.replaceAll('(?i)^dr\\.?\\s+', '').trim();
-        String wildcardName = '%' + searchName + '%';
-
-        List<Account> candidates = [
-            SELECT Id, Name
-            FROM Account
-            WHERE (Name LIKE :wildcardName OR Name LIKE :('%Dr%' + searchName + '%'))
-            AND RecordType.DeveloperName = 'Physician'
-            ORDER BY LastModifiedDate DESC
-            LIMIT 5
-        ];
-
-        if (candidates.isEmpty()) {
-            // Broader search without RecordType filter
-            candidates = [
-                SELECT Id, Name
-                FROM Account
-                WHERE Name LIKE :wildcardName
-                ORDER BY LastModifiedDate DESC
-                LIMIT 5
-            ];
-        }
-
-        if (candidates.isEmpty()) return null;
-        if (candidates.size() == 1) return candidates[0].Id;
-
-        // Disambiguate by hospital name if provided
-        if (String.isNotBlank(hospitalName)) {
-            String hospitalWildcard = '%' + hospitalName.trim() + '%';
-            for (Account acc : candidates) {
-                if (acc.Name.containsIgnoreCase(hospitalName)) {
-                    return acc.Id;
-                }
+        Map<Id, String> names = new Map<Id, String>();
+        if (!ids.isEmpty()) {
+            for (Account accountRecord : [SELECT Id, Name FROM Account WHERE Id IN :ids]) {
+                names.put(accountRecord.Id, accountRecord.Name);
             }
         }
-
-        return candidates[0].Id; // best match
-    }
-
-    private static String buildResolutionKey(String physicianName, String hospitalName) {
-        if (String.isBlank(physicianName)) {
-            return null;
-        }
-
-        String normalizedName = physicianName.replaceAll('(?i)^dr\\.?\\s+', '').trim().toLowerCase();
-        String normalizedHospital = String.isBlank(hospitalName) ? '' : hospitalName.trim().toLowerCase();
-        return normalizedName + '|' + normalizedHospital;
-    }
-
-    /**
-     * Create a stub Account record for a physician not yet in the system.
-     * This ensures the visit is still logged and the rep can update it later.
-     */
-    private static Id createPlaceholderAccount(String physicianName, String hospitalName) {
-        try {
-            String name = String.isNotBlank(physicianName) ? physicianName : 'Unknown Physician';
-            Account acc = new Account(
-                Name        = name,
-                Description = 'Placeholder created by PostVisitLogAgent. '
-                              + (String.isNotBlank(hospitalName) ? 'Hospital: ' + hospitalName : '')
-                              + ' — Please verify and merge.'
-            );
-            insert acc;
-            return acc.Id;
-        } catch (Exception e) {
-            return null;
-        }
+        return names;
     }
 }

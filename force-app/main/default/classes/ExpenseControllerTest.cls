@@ -15,9 +15,17 @@ private class ExpenseControllerTest {
             WHERE Id = :version.Id
         ];
 
-        String doctorName = 'Dr. Neha Rao Expense Test ' + String.valueOf(Crypto.getRandomInteger());
+        Account facility = new Account(Name = 'Expense Controller Facility');
+        insert facility;
+        Contact doctor = new Contact(
+            FirstName = 'Dr. Neha',
+            LastName = 'Rao Expense Test',
+            AccountId = facility.Id
+        );
+        insert doctor;
+        String doctorName = [SELECT Name FROM Contact WHERE Id = :doctor.Id].Name;
 
-        String payload = '{"expense_report":{"employee_name":"Avi Agarwal","employee_id":"E-1001","doctor_name":"' + doctorName + '","expense_category":"Travel","business_purpose":"Airport transfer"},"vendor_details":{"vendor_name":"ABC Travels Pvt Ltd","vendor_gstin":"09ABCDE1234F1Z5","vendor_address":"New Delhi, India"},"invoice_details":{"invoice_number":"INV-2026-001","invoice_date":"2026-04-10","payment_method":"Credit Card","currency":"INR"},"amount_details":{"subtotal":450.00,"tax":50.00,"total_amount":500.00},"tax_details":{"cgst":25.00,"sgst":25.00,"igst":0.00},"line_items":[{"item_name":"Cab Ride","quantity":1,"unit_price":450.00,"total_price":450.00}]}';
+        String payload = '{"expense_report":{"employee_name":"Avi Agarwal","employee_id":"E-1001","doctor_name":"' + doctorName + '","facility_name":"Expense Controller Facility","expense_category":"Travel","business_purpose":"Airport transfer"},"vendor_details":{"vendor_name":"ABC Travels Pvt Ltd","vendor_gstin":"09ABCDE1234F1Z5","vendor_address":"New Delhi, India"},"invoice_details":{"invoice_number":"INV-2026-001","invoice_date":"2026-04-10","payment_method":"Credit Card","currency":"INR"},"amount_details":{"subtotal":450.00,"tax":50.00,"total_amount":500.00},"tax_details":{"cgst":25.00,"sgst":25.00,"igst":0.00},"line_items":[{"item_name":"Cab Ride","quantity":1,"unit_price":450.00,"total_price":450.00}]}';
 
         Test.startTest();
         ExpenseController.ExpenseCreateResponse response = ExpenseController.createExpenseRecord(
@@ -36,7 +44,7 @@ private class ExpenseControllerTest {
         ];
         System.assertEquals('Travel', expense.Category__c);
         System.assertEquals('Airport transfer', expense.Description__c);
-        System.assertNotEquals(null, expense.Doctor__c);
+        System.assertEquals(doctor.Id, expense.Doctor__c);
         System.assertEquals(doctorName, expense.Doctor__r.Name);
         System.assertNotEquals(null, expense.Doctor__r.AccountId);
         System.assertEquals('ABC Travels Pvt Ltd', expense.Vendor__c);

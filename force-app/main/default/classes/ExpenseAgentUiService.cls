@@ -17,6 +17,7 @@ global with sharing class ExpenseAgentUiService {
             payload.expense_report.employee_id = input.employeeId;
             payload.expense_report.doctor_name = input.doctorName;
             payload.expense_report.doctor_contact_id = input.doctorContactId;
+            payload.expense_report.facility_name = input.hospitalName;
             payload.expense_report.expense_category = input.expenseCategory;
             payload.expense_report.business_purpose = input.businessPurpose;
 
@@ -59,6 +60,7 @@ global with sharing class ExpenseAgentUiService {
             result.expenseName = expense.Name;
             result.doctorContactId = expense.Doctor__c;
             result.doctorName = expense.Doctor__r == null ? input.doctorName : expense.Doctor__r.Name;
+            result.hospitalName = input.hospitalName;
             result.vendorName = expense.Vendor__c;
             result.invoiceNumber = expense.Invoice_Number__c;
             result.invoiceDate = expense.Invoice_Date__c == null ? null : String.valueOf(expense.Invoice_Date__c);

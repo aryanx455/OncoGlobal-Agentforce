@@ -6,6 +6,7 @@ global class ExpenseBillInput {
     @AuraEnabled @InvocableVariable global String employeeId;
     @AuraEnabled @InvocableVariable global String doctorName;
     @AuraEnabled @InvocableVariable global String doctorContactId;
+    @AuraEnabled @InvocableVariable global String hospitalName;
     @AuraEnabled @InvocableVariable global String expenseCategory;
     @AuraEnabled @InvocableVariable global String businessPurpose;
     @AuraEnabled @InvocableVariable global String vendorName;

@@ -70,8 +70,28 @@ public without sharing class LogExpenseAction {
         @InvocableVariable(label='Error Message')
         public String errorMessage;
 
+        @InvocableVariable(label='Needs Clarification')
+        public Boolean needsClarification;
+
+        @InvocableVariable(label='Clarification Message')
+        public String clarificationMessage;
+
         @InvocableVariable(label='Visit Report ID (resolved)')
         public Id resolvedVisitReportId;
+
+        @InvocableVariable(label='Resolved Physician Name')
+        public String resolvedPhysicianName;
+
+        @InvocableVariable(label='Resolved Facility Name')
+        public String resolvedFacilityName;
+    }
+
+    private class VisitResolution {
+        Id visitReportId;
+        String physicianName;
+        String facilityName;
+        Boolean needsClarification = false;
+        String clarificationMessage;
     }
 
     // ─── INVOCABLE ENTRY POINT ─────────────────────────────────────────────────
@@ -90,6 +110,7 @@ public without sharing class LogExpenseAction {
             Request req = requests[i];
             Result res = new Result();
             res.success = false;
+            res.needsClarification = false;
 
             if (req.amount == null || req.amount <= 0) {
                 res.errorMessage = 'Amount must be greater than 0.';
@@ -105,21 +126,40 @@ public without sharing class LogExpenseAction {
             // ── Resolve visit report ─────────────────────────────────────────
             Id resolvedVisitReportId = req.visitReportId;
             if (resolvedVisitReportId == null) {
-                resolvedVisitReportId = findOrCreateVisitReport(req.physicianName, req.hospitalName, req.visitDate);
+                VisitResolution visitResolution = findOrCreateVisitReport(req.physicianName, req.hospitalName, req.visitDate);
+                if (visitResolution.needsClarification == true) {
+                    res.needsClarification = true;
+                    res.clarificationMessage = visitResolution.clarificationMessage;
+                    res.errorMessage = visitResolution.clarificationMessage;
+                    results.add(res);
+                    continue;
+                }
+                resolvedVisitReportId = visitResolution.visitReportId;
+                res.resolvedPhysicianName = visitResolution.physicianName;
+                res.resolvedFacilityName = visitResolution.facilityName;
             }
             res.resolvedVisitReportId = resolvedVisitReportId;
 
+            Map<String, Schema.SObjectField> expenseFields = Schema.SObjectType.Visit_Expense__c.fields.getMap();
             Visit_Expense__c exp = new Visit_Expense__c(
                 Visit_Report__c       = resolvedVisitReportId,
                 Amount__c             = req.amount,
                 Category__c           = req.category,
                 Notes__c              = req.notes,
-                Receipt_URL__c        = req.receiptUrl,
-                GST_Rate__c           = req.gstRate,
-                SGST_Amount__c        = req.sgstAmount,
-                CGST_Amount__c        = req.cgstAmount,
-                GST_Invoice_Number__c = req.gstInvoiceNumber
+                Receipt_URL__c        = req.receiptUrl
             );
+            if (expenseFields.containsKey('GST_Rate__c')) {
+                exp.put('GST_Rate__c', req.gstRate);
+            }
+            if (expenseFields.containsKey('SGST_Amount__c')) {
+                exp.put('SGST_Amount__c', req.sgstAmount);
+            }
+            if (expenseFields.containsKey('CGST_Amount__c')) {
+                exp.put('CGST_Amount__c', req.cgstAmount);
+            }
+            if (expenseFields.containsKey('GST_Invoice_Number__c')) {
+                exp.put('GST_Invoice_Number__c', req.gstInvoiceNumber);
+            }
 
             expensesToInsert.add(exp);
             validIndexes.add(i);
@@ -156,39 +196,50 @@ public without sharing class LogExpenseAction {
     // ─── HELPERS ──────────────────────────────────────────────────────────────
 
     @TestVisible
-    private static Id findOrCreateVisitReport(String physicianName, String hospitalName, Date visitDate) {
+    private static VisitResolution findOrCreateVisitReport(String physicianName, String hospitalName, Date visitDate) {
+        VisitResolution output = new VisitResolution();
         Date targetDate = visitDate != null ? visitDate : Date.today();
+        Id physicianId;
+        Id prescriberContactId;
+        Id hospitalAccountId;
+        String resolvedPhysicianName;
+        String resolvedFacilityName;
 
         if (String.isNotBlank(physicianName)) {
-            String nameWildcard = '%' + physicianName.replaceAll('(?i)^dr\\.?\\s+', '').trim() + '%';
+            ProviderResolutionService.Resolution resolution = ProviderResolutionService.resolveDoctor(
+                physicianName,
+                hospitalName,
+                true,
+                true
+            );
+            if (resolution.success != true) {
+                output.needsClarification = true;
+                output.clarificationMessage = resolution.clarificationMessage;
+                return output;
+            }
 
-            List<Visit_Report__c> byContact = [
-                SELECT Id FROM Visit_Report__c
+            physicianId = resolution.physicianAccountId;
+            prescriberContactId = resolution.doctorContactId;
+            hospitalAccountId = resolution.facilityAccountId;
+            resolvedPhysicianName = String.isNotBlank(resolution.physicianName)
+                ? resolution.physicianName
+                : resolution.contactName;
+            resolvedFacilityName = resolution.facilityName;
+
+            List<Visit_Report__c> existingVisits = [
+                SELECT Id
+                FROM Visit_Report__c
                 WHERE Visit_Date__c = :targetDate
-                AND Prescriber__r.Name LIKE :nameWildcard
-                AND OwnerId = :UserInfo.getUserId()
-                ORDER BY CreatedDate DESC LIMIT 1
+                AND Physician__c = :physicianId
+                ORDER BY CreatedDate DESC
+                LIMIT 1
             ];
-            if (!byContact.isEmpty()) return byContact[0].Id;
-
-            List<Visit_Report__c> byAccount = [
-                SELECT Id FROM Visit_Report__c
-                WHERE Visit_Date__c = :targetDate
-                AND Physician__r.Name LIKE :nameWildcard
-                AND OwnerId = :UserInfo.getUserId()
-                ORDER BY CreatedDate DESC LIMIT 1
-            ];
-            if (!byAccount.isEmpty()) return byAccount[0].Id;
-        }
-
-        Id physicianId = null;
-        if (String.isNotBlank(physicianName)) {
-            String nameWildcard = '%' + physicianName.replaceAll('(?i)^dr\\.?\\s+', '').trim() + '%';
-            List<Account> accounts = [
-                SELECT Id FROM Account WHERE Name LIKE :nameWildcard
-                ORDER BY LastModifiedDate DESC LIMIT 1
-            ];
-            if (!accounts.isEmpty()) physicianId = accounts[0].Id;
+            if (!existingVisits.isEmpty()) {
+                output.visitReportId = existingVisits[0].Id;
+                output.physicianName = resolvedPhysicianName;
+                output.facilityName = resolvedFacilityName;
+                return output;
+            }
         }
 
         String notes = 'Auto-created by LogExpenseAction.';
@@ -202,11 +253,23 @@ public without sharing class LogExpenseAction {
             Visit_Type__c       = 'In-Person Clinic',
             Voice_Transcript__c = notes
         );
+        Map<String, Schema.SObjectField> visitFields = Schema.SObjectType.Visit_Report__c.fields.getMap();
+        if (visitFields.containsKey('Prescriber__c') && prescriberContactId != null) {
+            vr.put('Prescriber__c', prescriberContactId);
+        }
+        if (visitFields.containsKey('Hospital__c') && hospitalAccountId != null) {
+            vr.put('Hospital__c', hospitalAccountId);
+        }
         try {
             insert vr;
-            return vr.Id;
+            output.visitReportId = vr.Id;
+            output.physicianName = resolvedPhysicianName;
+            output.facilityName = resolvedFacilityName;
+            return output;
         } catch (Exception e) {
-            return null;
+            output.needsClarification = true;
+            output.clarificationMessage = 'Could not create a visit report for this expense. ' + e.getMessage();
+            return output;
         }
     }
 }

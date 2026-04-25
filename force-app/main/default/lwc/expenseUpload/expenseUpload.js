@@ -11,6 +11,7 @@ const EMPTY_DATA = () => ({
         employee_id: null,
         doctor_name: null,
         doctor_contact_id: null,
+        facility_name: null,
         expense_category: null,
         business_purpose: null
     },
@@ -80,7 +81,7 @@ export default class ExpenseUpload extends LightningElement {
 
     @api
     checkValidity() {
-        return this.hasParsedData && Boolean(this.contentDocumentId);
+        return this.hasParsedData && Boolean(this.contentDocumentId) && Boolean(this.doctorName);
     }
 
     @api
@@ -90,7 +91,7 @@ export default class ExpenseUpload extends LightningElement {
         }
 
         this.errorMessage = this.hasParsedData
-            ? 'The extracted expense details are ready. Click Submit to create the expense.'
+            ? 'Confirm the doctor name before creating the expense.'
             : 'Upload and analyze an expense bill before submitting.';
         return false;
     }
@@ -103,7 +104,7 @@ export default class ExpenseUpload extends LightningElement {
             errorMessage: isValid
                 ? null
                 : this.hasParsedData
-                  ? 'The extracted expense details are ready. Click Submit to create the expense.'
+                  ? 'Confirm the doctor name before creating the expense.'
                   : 'Upload and analyze an expense bill before submitting.'
         };
     }
@@ -188,6 +189,10 @@ export default class ExpenseUpload extends LightningElement {
 
     get doctorContactId() {
         return this.parsedData.expense_report.doctor_contact_id;
+    }
+
+    get hospitalName() {
+        return this.parsedData.expense_report.facility_name;
     }
 
     get expenseCategory() {
@@ -444,6 +449,7 @@ export default class ExpenseUpload extends LightningElement {
             employeeId: this.employeeId,
             doctorName: this.doctorName,
             doctorContactId: this.doctorContactId,
+            hospitalName: this.hospitalName,
             expenseCategory: this.expenseCategory,
             businessPurpose: this.businessPurpose,
             vendorName: this.vendorName,
@@ -492,6 +498,7 @@ export default class ExpenseUpload extends LightningElement {
                 employee_id: value.employeeId || null,
                 doctor_name: value.doctorName || null,
                 doctor_contact_id: value.doctorContactId || null,
+                facility_name: value.hospitalName || null,
                 expense_category: value.expenseCategory || null,
                 business_purpose: value.businessPurpose || null
             },

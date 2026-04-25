@@ -9,6 +9,10 @@ system:
         - Prefer standard Salesforce and Health Cloud context first: HealthcareProvider, HealthcareFacility, HealthcarePractitionerFacility, ServiceAppointment, Event, Task, ContentDocument, Account, and Contact.
         - Use the existing OncoGlobal custom objects only where the current solution already uses them: Visit_Report__c, Visit_Expense__c, Expense__c, and Expense_Line_Item__c.
         - Never ask the user for Salesforce IDs. Resolve by doctor name, facility name, current context, or action outputs.
+        - Extract the complete doctor/provider name from natural language, e.g. "Recently visited doctor demo 004" means physicianName = "Doctor Demo 004".
+        - Do not ask for hospital/facility first. Pass hospitalName only when the user mentioned it or Apex asks for it because multiple doctors matched.
+        - If an action returns needsClarification or clarificationMessage, stop the flow and ask exactly that clarification. Do not create follow-up records until the doctor is resolved.
+        - Never pass placeholder IDs or labels such as "new_visit_report", "latest visit", "created record", or "...". Only pass record IDs returned by prior action outputs.
         - Never hardcode record IDs, doctor names, facility names, prompt template names, or sample data.
         - Keep the flow mobile-first: brief, log, upload, confirm, and move on.
         - When a receipt, bill, invoice, image, camera photo, or PDF is mentioned, launch the custom upload UI immediately.
@@ -144,6 +148,8 @@ topic provider_brief:
     reasoning:
         instructions: ->
             | When the user asks for a doctor/provider brief, call {!@actions.get_provider_brief}.
+            | Extract providerName from the user's wording. Pass facilityName only when the user mentioned a facility or asks to disambiguate a doctor.
+            | If the user asks for a common doctor name and the action output looks ambiguous or weak, ask for hospital/clinic before giving relationship recommendations.
             | Summarize the output in a compact mobile-friendly format: relationship heat, relationship snapshot, recent visits, open tasks, and next best action.
             | Mention whether Health Cloud standard records were found. If only Account/Contact fallback was used, say that briefly.
             | Do not invent referral history. Use only the action output.
@@ -314,6 +320,7 @@ topic digital_engagement_intake:
     reasoning:
         instructions: ->
             | When the input is from WhatsApp, SMS, Digital Engagement, or a message with media, call {!@actions.process_digital_message}.
+            | Extract providerName and facilityName from the inbound text when present so later visit/expense actions can resolve the correct doctor.
             | If mediaProcessed is true, summarize the extracted receipt and ask the user to confirm before creating an expense.
             | If mediaProcessed is false, route the user verbally toward the recommended topic.
             | Mention the standard Messaging and ContentDocument object story briefly.
@@ -373,6 +380,12 @@ topic post_visit_log:
             outputs:
                 success: boolean
                     is_used_by_planner: True
+                needsClarification: boolean
+                    label: "Needs Clarification"
+                    is_used_by_planner: True
+                clarificationMessage: string
+                    label: "Clarification Message"
+                    is_used_by_planner: True
                 visitReportId: string
                     label: "Visit Report ID"
                     is_used_by_planner: True
@@ -383,6 +396,10 @@ topic post_visit_log:
                 resolvedPhysicianName: string
                     label: "Resolved Physician Name"
                     is_used_by_planner: True
+                physicianAccountId: string
+                    label: "Resolved Physician Account ID"
+                    is_used_by_planner: True
+                    filter_from_agent: True
                 prescriberContactId: string
                     label: "Prescriber Contact ID"
                     is_used_by_planner: True
@@ -391,6 +408,9 @@ topic post_visit_log:
                     label: "Hospital Account ID"
                     is_used_by_planner: True
                     filter_from_agent: True
+                resolvedFacilityName: string
+                    label: "Resolved Facility Name"
+                    is_used_by_planner: True
                 errorMessage: string
                     filter_from_agent: True
 
@@ -438,6 +458,10 @@ topic post_visit_log:
                 physicianName: string
                     label: "Physician Name"
                     is_user_input: True
+                hospitalName: string
+                    label: "Hospital or Facility Name"
+                    description: "Only when needed to disambiguate duplicate doctors."
+                    is_user_input: True
                 visitReportId: string
                     label: "Visit Report ID"
                 dueDate: date
@@ -450,6 +474,14 @@ topic post_visit_log:
                 tasksCreated: number
                     is_used_by_planner: True
                 success: boolean
+                    is_used_by_planner: True
+                needsClarification: boolean
+                    is_used_by_planner: True
+                clarificationMessage: string
+                    is_used_by_planner: True
+                resolvedPhysicianName: string
+                    is_used_by_planner: True
+                resolvedFacilityName: string
                     is_used_by_planner: True
                 taskIds: string
                     filter_from_agent: True
@@ -520,6 +552,10 @@ topic post_visit_log:
             outputs:
                 success: boolean
                     is_used_by_planner: True
+                needsClarification: boolean
+                    is_used_by_planner: True
+                clarificationMessage: string
+                    is_used_by_planner: True
                 expenseId: string
                     filter_from_agent: True
                     is_used_by_planner: True
@@ -527,6 +563,10 @@ topic post_visit_log:
                     is_used_by_planner: True
                 resolvedVisitReportId: string
                     filter_from_agent: True
+                    is_used_by_planner: True
+                resolvedPhysicianName: string
+                    is_used_by_planner: True
+                resolvedFacilityName: string
                     is_used_by_planner: True
                 errorMessage: string
                     filter_from_agent: True
@@ -558,6 +598,14 @@ topic post_visit_log:
             outputs:
                 success: boolean
                     is_used_by_planner: True
+                needsClarification: boolean
+                    is_used_by_planner: True
+                clarificationMessage: string
+                    is_used_by_planner: True
+                resolvedPhysicianName: string
+                    is_used_by_planner: True
+                resolvedFacilityName: string
+                    is_used_by_planner: True
                 eventId: string
                     filter_from_agent: True
                     is_used_by_planner: True
@@ -573,13 +621,16 @@ topic post_visit_log:
 
     reasoning:
         instructions: ->
-            | For any completed visit summary, call {!@actions.log_visit} first.
-            | If log_visit succeeds, call {!@actions.extract_topics} using the new visitReportId.
-            | If the same message includes follow-up commitments, call {!@actions.create_followups}.
+            | For any completed visit summary, extract the doctor name, full visit transcript, outcome/sentiment, topics, and next best action from the user's message, then call {!@actions.log_visit} first.
+            | Example: "Recently visited doctor demo 004. He was very happy..." means physicianName = "Doctor Demo 004", transcript = the full sentence, visitOutcome = Positive, aiSummary = the visit details.
+            | Do not ask for hospital first. If hospital/facility is mentioned, pass it. If not, leave hospitalName blank and let Apex detect whether it needs clarification.
+            | If log_visit returns needsClarification or no visitReportId, ask the clarificationMessage and stop. Do not call extract_topics, create tasks, expenses, or schedule actions.
+            | If log_visit succeeds, save the returned visitReportId and call {!@actions.extract_topics} using @variables.visitReportId only.
+            | If the same message includes follow-up commitments, call {!@actions.create_followups} with @variables.visitReportId and the resolved physician/facility.
             | If the same message includes a typed expense amount and category, call {!@actions.review_expense_risk}; if no duplicate is found, call {!@actions.log_expense}.
-            | If the same message includes a next-visit scheduling request, call {!@actions.schedule_visit}.
+            | If the same message includes a next-visit scheduling request, call {!@actions.schedule_visit} with the resolved doctor/facility.
             | Confirm the visit record name and summarize the doctor, facility, outcome, topics, next best action, tasks, expenses, and schedule in one concise response.
-            | Do not ask for record IDs.
+            | Do not ask for record IDs and never invent placeholder IDs.
 
         actions:
             log_visit: @actions.log_visit
@@ -591,9 +642,12 @@ topic post_visit_log:
                 with visitType = ...
                 with engagementScore = ...
                 with aiSummary = ...
+                set @variables.visitReportId = @outputs.visitReportId
+                set @variables.physicianName = @outputs.resolvedPhysicianName
+                set @variables.facilityName = @outputs.resolvedFacilityName
             extract_topics: @actions.extract_topics
                 description: "Enrich the visit report"
-                with visitReportId = ...
+                with visitReportId = @variables.visitReportId
                 with discussionTopics = ...
                 with nextBestAction = ...
                 with engagementScore = ...
@@ -602,8 +656,9 @@ topic post_visit_log:
             create_followups: @actions.create_followups
                 description: "Create standard follow-up tasks"
                 with followUpActions = ...
-                with physicianName = ...
-                with visitReportId = ...
+                with physicianName = @variables.physicianName
+                with hospitalName = @variables.facilityName
+                with visitReportId = @variables.visitReportId
                 with dueDate = ...
                 with priority = ...
             review_expense_risk: @actions.review_expense_risk
@@ -613,20 +668,20 @@ topic post_visit_log:
                 with amount = ...
                 with category = ...
                 with expenseDate = ...
-                with doctorName = ...
+                with doctorName = @variables.physicianName
             log_expense: @actions.log_expense
                 description: "Create same-message typed expense"
                 with amount = ...
                 with category = ...
-                with visitReportId = ...
-                with physicianName = ...
-                with hospitalName = ...
+                with visitReportId = @variables.visitReportId
+                with physicianName = @variables.physicianName
+                with hospitalName = @variables.facilityName
                 with notes = ...
             schedule_visit: @actions.schedule_visit
                 description: "Schedule same-message next visit"
-                with physicianName = ...
-                with hospitalName = ...
-                with visitReportId = ...
+                with physicianName = @variables.physicianName
+                with hospitalName = @variables.facilityName
+                with visitReportId = @variables.visitReportId
                 with preferredDate = ...
                 with preferredTime = ...
                 with notes = ...
@@ -665,6 +720,8 @@ topic expense_bill_upload:
         instructions: ->
             | If ACTION_CONFIRM, call {!@actions.create_from_bill_action} with the submitted form data and do not output extra text first.
             | Otherwise, when the user wants to upload a receipt, bill, invoice, image, photo, camera capture, or PDF, call the action's user_input tool immediately.
+            | If the user mentions a doctor or hospital in the same request, prefill those values in the expense_request so the upload UI can link the expense to the right doctor.
+            | The upload UI requires the extracted/reviewed doctor name before creation. If Apex returns a clarification or duplicate message, show that message and stop.
             | Do not ask "Would you like to proceed?"
             | Do not ask the user to type invoice fields manually in chat.
             | The Apex creation path blocks exact duplicate invoices and returns a duplicate warning if one already exists.
@@ -770,6 +827,10 @@ topic expense_log:
             outputs:
                 success: boolean
                     is_used_by_planner: True
+                needsClarification: boolean
+                    is_used_by_planner: True
+                clarificationMessage: string
+                    is_used_by_planner: True
                 expenseId: string
                     is_used_by_planner: True
                     filter_from_agent: True
@@ -778,6 +839,10 @@ topic expense_log:
                 resolvedVisitReportId: string
                     is_used_by_planner: True
                     filter_from_agent: True
+                resolvedPhysicianName: string
+                    is_used_by_planner: True
+                resolvedFacilityName: string
+                    is_used_by_planner: True
                 errorMessage: string
                     filter_from_agent: True
 
@@ -785,7 +850,9 @@ topic expense_log:
         instructions: ->
             | If the user mentions an amount and category without file upload, first call {!@actions.review_expense_risk}.
             | If duplicateFound is true, warn the user and ask for confirmation before creating another expense.
-            | If duplicateFound is false, call {!@actions.log_expense}.
+            | If duplicateFound is false, call {!@actions.log_expense}. Extract physicianName and hospitalName from the user message when present.
+            | Do not invent a visitReportId. If there is no active @variables.visitReportId, omit the visitReportId and let Apex resolve or create the correct visit by doctor name.
+            | If log_expense returns needsClarification, ask the clarificationMessage and do not say the expense was created.
             | Use the spoken amount exactly. Do not recalculate totals.
             | If policyFlagged is true, clearly mention the policyExplanation.
             | If the user wants to upload a receipt instead, route back to expense_bill_upload on the next turn.
@@ -803,7 +870,6 @@ topic expense_log:
                 description: "Create typed visit expense"
                 with amount = ...
                 with category = ...
-                with visitReportId = ...
                 with physicianName = ...
                 with hospitalName = ...
                 with visitDate = ...
@@ -827,6 +893,10 @@ topic follow_up_tasks:
                 physicianName: string
                     label: "Physician Name"
                     is_user_input: True
+                hospitalName: string
+                    label: "Hospital or Facility Name"
+                    description: "Only when mentioned or needed to disambiguate duplicate doctors."
+                    is_user_input: True
                 visitReportId: string
                     label: "Visit Report ID"
                 physicianId: string
@@ -842,6 +912,14 @@ topic follow_up_tasks:
                     is_used_by_planner: True
                 success: boolean
                     is_used_by_planner: True
+                needsClarification: boolean
+                    is_used_by_planner: True
+                clarificationMessage: string
+                    is_used_by_planner: True
+                resolvedPhysicianName: string
+                    is_used_by_planner: True
+                resolvedFacilityName: string
+                    is_used_by_planner: True
                 taskIds: string
                     filter_from_agent: True
                 errorMessage: string
@@ -850,6 +928,9 @@ topic follow_up_tasks:
     reasoning:
         instructions: ->
             | When the user asks to create or log follow-ups, call {!@actions.create_tasks}.
+            | Extract the doctor name from the request when present. Do not ask for hospital unless Apex returns needsClarification.
+            | Do not invent a visitReportId. If this is not part of a freshly logged visit, let Apex resolve the doctor and link the Task to today's visit or the physician account.
+            | If create_tasks returns needsClarification, ask the clarificationMessage and do not say tasks were created.
             | Split multiple commitments into clean task subjects.
             | Confirm how many tasks were created and their priority or due date when available.
 
@@ -858,7 +939,7 @@ topic follow_up_tasks:
                 description: "Create follow-up tasks"
                 with followUpActions = ...
                 with physicianName = ...
-                with visitReportId = ...
+                with hospitalName = ...
                 with dueDate = ...
                 with priority = ...
 
@@ -897,6 +978,14 @@ topic schedule_visit:
             outputs:
                 success: boolean
                     is_used_by_planner: True
+                needsClarification: boolean
+                    is_used_by_planner: True
+                clarificationMessage: string
+                    is_used_by_planner: True
+                resolvedPhysicianName: string
+                    is_used_by_planner: True
+                resolvedFacilityName: string
+                    is_used_by_planner: True
                 eventId: string
                     filter_from_agent: True
                     is_used_by_planner: True
@@ -913,6 +1002,9 @@ topic schedule_visit:
     reasoning:
         instructions: ->
             | When the user wants to schedule, book, or plan a visit, call {!@actions.schedule_visit}.
+            | Extract the doctor name and preferred date/time. Pass hospitalName only if the user mentioned it.
+            | If schedule_visit returns needsClarification, ask the clarificationMessage and do not say a visit was scheduled.
+            | Do not invent a visitReportId for standalone scheduling.
             | Confirm the scheduled time. If conflictWarning is present, mention it.
             | Mention ServiceAppointment only when the action returns a serviceAppointmentId.
 
@@ -921,7 +1013,6 @@ topic schedule_visit:
                 description: "Schedule Event and optional ServiceAppointment"
                 with physicianName = ...
                 with hospitalName = ...
-                with visitReportId = ...
                 with preferredDate = ...
                 with preferredTime = ...
                 with durationMinutes = ...

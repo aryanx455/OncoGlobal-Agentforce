@@ -81,10 +81,24 @@ if (gd.containsKey('HealthcareProvider')) {
 }
 delete [SELECT Id FROM ContentDocument WHERE Title LIKE 'OG Demo%'];
 delete [SELECT Id FROM Contact WHERE Email LIKE 'og.demo.%@oncoglobal.test'];
+List<Account> oldDoctorAccounts = [SELECT Id FROM Account WHERE Name LIKE 'Doctor Demo%' LIMIT 5000];
+if (!oldDoctorAccounts.isEmpty()) {
+    List<Database.DeleteResult> doctorDeleteResults = Database.delete(oldDoctorAccounts, false);
+    for (Integer i = 0; i < doctorDeleteResults.size(); i++) {
+        if (!doctorDeleteResults[i].isSuccess()) {
+            warnings.add('Doctor Demo account cleanup skipped row ' + (i + 1) + ': ' + doctorDeleteResults[i].getErrors()[0].getMessage());
+        }
+    }
+}
 delete [SELECT Id FROM Account WHERE Name LIKE 'OG Demo%'];
 
-// 1. Account: 40 provider/facility accounts.
+// 1. Account: 40 facility accounts plus 40 physician accounts for meaningful doctor lookup.
 List<Account> accounts = new List<Account>();
+Id physicianRecordTypeId = Schema.SObjectType.Account
+    .getRecordTypeInfosByDeveloperName()
+    .containsKey('Physician')
+    ? Schema.SObjectType.Account.getRecordTypeInfosByDeveloperName().get('Physician').getRecordTypeId()
+    : null;
 List<String> territories = new List<String>{
     'Mumbai South', 'Mumbai Central', 'Delhi NCR', 'Bangalore North', 'Hyderabad West',
     'Chennai East', 'Pune West', 'Kolkata Central'
@@ -121,7 +135,39 @@ for (Integer i = 1; i <= 40; i++) {
     accounts.add(accountRecord);
 }
 insert accounts;
-counts.put('Account', accounts.size());
+
+List<Account> physicianAccounts = new List<Account>();
+for (Integer i = 1; i <= 40; i++) {
+    Account physicianAccount = new Account(
+        Name = 'Doctor Demo ' + String.valueOf(i).leftPad(3, '0'),
+        Phone = '+91-92000-' + String.valueOf(10000 + i),
+        ParentId = accounts[i - 1].Id,
+        BillingCity = territories[Math.mod(i, territories.size())],
+        BillingState = 'Demo State',
+        BillingCountry = 'India'
+    );
+    if (physicianRecordTypeId != null) {
+        physicianAccount.RecordTypeId = physicianRecordTypeId;
+    }
+    if (Schema.SObjectType.Account.fields.getMap().containsKey('Territory__c')) {
+        physicianAccount.put('Territory__c', territories[Math.mod(i, territories.size())]);
+    }
+    if (Schema.SObjectType.Account.fields.getMap().containsKey('Specialty__c')) {
+        physicianAccount.put('Specialty__c', specialties[Math.mod(i, specialties.size())]);
+    }
+    if (Schema.SObjectType.Account.fields.getMap().containsKey('Relationship_Score__c')) {
+        physicianAccount.put('Relationship_Score__c', 45 + Math.mod(i * 8, 50));
+    }
+    if (Schema.SObjectType.Account.fields.getMap().containsKey('Engagement_Score__c')) {
+        physicianAccount.put('Engagement_Score__c', 40 + Math.mod(i * 10, 55));
+    }
+    if (Schema.SObjectType.Account.fields.getMap().containsKey('Key_Account__c')) {
+        physicianAccount.put('Key_Account__c', Math.mod(i, 6) == 0);
+    }
+    physicianAccounts.add(physicianAccount);
+}
+insert physicianAccounts;
+counts.put('Account', accounts.size() + physicianAccounts.size());
 
 // 2. Contact: 40 doctors.
 List<Contact> contacts = new List<Contact>();
@@ -129,7 +175,7 @@ for (Integer i = 1; i <= 40; i++) {
     Contact contactRecord = new Contact(
         FirstName = 'Doctor',
         LastName = 'Demo ' + String.valueOf(i).leftPad(3, '0'),
-        AccountId = accounts[i - 1].Id,
+        AccountId = physicianAccounts[i - 1].Id,
         Title = 'Consultant Oncologist',
         Department = specialties[Math.mod(i, specialties.size())],
         Phone = '+91-91000-' + String.valueOf(10000 + i),
@@ -168,7 +214,7 @@ counts.put('Contact', contacts.size());
 List<Visit_Report__c> visitReports = new List<Visit_Report__c>();
 for (Integer i = 1; i <= 40; i++) {
     Visit_Report__c visit = new Visit_Report__c(
-        Physician__c = accounts[i - 1].Id,
+        Physician__c = physicianAccounts[i - 1].Id,
         Rep__c = currentUserId,
         Visit_Date__c = Date.today().addDays(-1 * Math.mod(i * 3, 90)),
         Visit_Outcome__c = Math.mod(i, 5) == 0 ? 'Follow-Up Required' : 'Positive',
@@ -264,7 +310,7 @@ for (Integer i = 1; i <= 40; i++) {
     tasks.add(new Task(
         Subject = 'OG Demo follow-up task ' + String.valueOf(i).leftPad(3, '0'),
         WhoId = contacts[i - 1].Id,
-        WhatId = accounts[i - 1].Id,
+        WhatId = physicianAccounts[i - 1].Id,
         OwnerId = currentUserId,
         ActivityDate = Date.today().addDays(Math.mod(i, 14) + 1),
         Status = 'Not Started',
@@ -282,7 +328,7 @@ for (Integer i = 1; i <= 40; i++) {
     events.add(new Event(
         Subject = 'OG Demo doctor visit event ' + String.valueOf(i).leftPad(3, '0'),
         WhoId = contacts[i - 1].Id,
-        WhatId = accounts[i - 1].Id,
+        WhatId = physicianAccounts[i - 1].Id,
         OwnerId = currentUserId,
         StartDateTime = startDt,
         EndDateTime = startDt.addMinutes(45),
@@ -299,7 +345,7 @@ for (Integer i = 1; i <= 40; i++) {
         Title = 'OG Demo Receipt ' + String.valueOf(i).leftPad(3, '0'),
         PathOnClient = 'og-demo-receipt-' + String.valueOf(i).leftPad(3, '0') + '.txt',
         VersionData = Blob.valueOf('OG Demo receipt file ' + i + '\nVendor: OG Demo Vendor\nAmount: ' + (200 + Math.mod(i * 41, 900))),
-        FirstPublishLocationId = accounts[i - 1].Id
+        FirstPublishLocationId = physicianAccounts[i - 1].Id
     ));
 }
 insert versions;
@@ -322,7 +368,7 @@ if (gd.containsKey('HealthcareProvider') && gd.get('HealthcareProvider').getDesc
             provider.put('Name', 'OG Demo Provider ' + String.valueOf(i).leftPad(3, '0'));
         }
         if (hpFields.containsKey('AccountId') && hpFields.get('AccountId').getDescribe().isCreateable()) {
-            provider.put('AccountId', accounts[i - 1].Id);
+            provider.put('AccountId', physicianAccounts[i - 1].Id);
         }
         if (hpFields.containsKey('PractitionerId') && hpFields.get('PractitionerId').getDescribe().isCreateable()) {
             provider.put('PractitionerId', contacts[i - 1].Id);
@@ -486,7 +532,7 @@ if (gd.containsKey('ServiceAppointment') && gd.get('ServiceAppointment').getDesc
             appointment.put('Status', statusValues.isEmpty() ? 'None' : statusValues[0].getValue());
         }
         if (saFields.containsKey('ParentRecordId') && saFields.get('ParentRecordId').getDescribe().isCreateable()) {
-            appointment.put('ParentRecordId', accounts[i - 1].Id);
+            appointment.put('ParentRecordId', physicianAccounts[i - 1].Id);
         }
         if (saFields.containsKey('AccountId') && saFields.get('AccountId').getDescribe().isCreateable()) {
             appointment.put('AccountId', accounts[i - 1].Id);
