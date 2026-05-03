@@ -36,6 +36,9 @@ private class LogExpenseActionTest {
         System.assert(results[0].success, 'Should succeed');
         System.assertNotEquals(null, results[0].expenseId);
         System.assert(!results[0].policyFlagged, 'Amount 100 should not be flagged (threshold 150)');
+
+        Expense__c exp = [SELECT Visit_Report__c FROM Expense__c WHERE Id = :results[0].expenseId];
+        System.assertEquals(vr.Id, exp.Visit_Report__c, 'Expense should be linked to the visit report');
     }
 
     @IsTest
@@ -116,5 +119,8 @@ private class LogExpenseActionTest {
             if (res.success) successCount++;
         }
         System.assertEquals(5, successCount, 'All 5 expenses should be created');
+
+        Visit_Report__c updatedVr = [SELECT Total_Expense_Amount__c FROM Visit_Report__c WHERE Id = :vr.Id];
+        System.assertEquals(750, updatedVr.Total_Expense_Amount__c, 'Rollup should total 50+100+150+200+250=750');
     }
 }

@@ -452,7 +452,7 @@ public with sharing class HealthCloudProviderBriefAction {
 
         String query =
             'SELECT Id, Name, Visit_Date__c, Visit_Outcome__c, Discussion_Topics__c, ' +
-            'AI_Summary__c, Engagement_Score__c, Next_Best_Action__c, Total_Visit_Expense__c ' +
+            'AI_Summary__c, Engagement_Score__c, Next_Best_Action__c, Total_Expense_Amount__c ' +
             'FROM Visit_Report__c WHERE ' + String.join(conditions, ' OR ') +
             ' ORDER BY Visit_Date__c DESC NULLS LAST, CreatedDate DESC LIMIT ' + MAX_VISITS;
         return Database.query(query);

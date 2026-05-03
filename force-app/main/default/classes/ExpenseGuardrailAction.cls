@@ -119,55 +119,14 @@ public with sharing class ExpenseGuardrailAction {
             ? null
             : findDuplicateExpenseId(req.invoiceNumber, req.vendorName, req.amount, expenseDate);
 
-        if (duplicateExpenseId != null) {
-            res.duplicateFound = true;
-            res.duplicateRecordId = String.valueOf(duplicateExpenseId);
-            res.duplicateObject = 'Expense__c';
-        } else {
-            Id duplicateVisitExpenseId = findDuplicateVisitExpense(req);
-            res.duplicateFound = duplicateVisitExpenseId != null;
-            res.duplicateRecordId = duplicateVisitExpenseId == null ? null : String.valueOf(duplicateVisitExpenseId);
-            res.duplicateObject = duplicateVisitExpenseId == null ? null : 'Visit_Expense__c';
-        }
+        res.duplicateFound = duplicateExpenseId != null;
+        res.duplicateRecordId = duplicateExpenseId == null ? null : String.valueOf(duplicateExpenseId);
+        res.duplicateObject = duplicateExpenseId == null ? null : 'Expense__c';
 
         res.policyExplanation = buildPolicyExplanation(req, res.policyLimit, res.policyFlagged);
         res.riskSummary = buildRiskSummary(req, res);
         res.recommendedAction = buildRecommendedAction(res);
         return res;
-    }
-
-    private static Id findDuplicateVisitExpense(Request req) {
-        if (req == null) {
-            return null;
-        }
-
-        if (String.isNotBlank(req.invoiceNumber)) {
-            List<Visit_Expense__c> byInvoice = [
-                SELECT Id
-                FROM Visit_Expense__c
-                WHERE GST_Invoice_Number__c = :req.invoiceNumber
-                ORDER BY CreatedDate DESC
-                LIMIT 1
-            ];
-            if (!byInvoice.isEmpty()) {
-                return byInvoice[0].Id;
-            }
-        }
-
-        if (req.amount != null) {
-            List<Visit_Expense__c> byAmount = [
-                SELECT Id
-                FROM Visit_Expense__c
-                WHERE Amount__c = :req.amount
-                ORDER BY CreatedDate DESC
-                LIMIT 1
-            ];
-            if (!byAmount.isEmpty()) {
-                return byAmount[0].Id;
-            }
-        }
-
-        return null;
     }
 
     private static Decimal getPolicyLimit() {
